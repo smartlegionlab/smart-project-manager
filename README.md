@@ -139,4 +139,4 @@ The following features are identified in the code as future implementation targe
 
 ## Screenshot
 
-![Academic Portfolio](https://github.com/smartlegionlab/smart-project-manager/blob/master/images/smartproject-manager-v0-1-0.png)
+![Smart Project Manager Logo](https://github.com/smartlegionlab/smart-project-manager/blob/master/images/smart-project-manager-v0-1-0.png)
