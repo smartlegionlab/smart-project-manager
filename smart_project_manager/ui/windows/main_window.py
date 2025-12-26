@@ -23,12 +23,13 @@ from PyQt5.QtWidgets import (
     QTreeWidget,
     QTreeWidgetItem,
     QProgressBar,
-    QFileDialog
+    QFileDialog, QScrollArea, QFrame, QTextEdit
 )
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt
 
 from smart_project_manager.managers.project_manager import ProjectManager
+from smart_project_manager.models.subtask import SubTask
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.dialogs.project_dialog import ProjectDialog
 from smart_project_manager.ui.dialogs.task_dialog import TaskDialog
@@ -1244,96 +1245,335 @@ class MainWindow(QMainWindow):
             return
 
         dialog = QDialog(self)
-        dialog.setWindowTitle(f'Task: {task.title}')
-        dialog.setMinimumWidth(500)
+        dialog.setWindowTitle(f'Task Details: {task.title}')
+        dialog.setMinimumWidth(600)
+        dialog.setMaximumWidth(800)
 
-        layout = QVBoxLayout(dialog)
+        main_layout = QVBoxLayout(dialog)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
-        title_label = QLabel(f'<h2>{task.title}</h2>')
-        layout.addWidget(title_label)
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                background-color: #2d2d2d;
+                border: none;
+            }
+        """)
+
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        content_layout.setSpacing(20)
+
+        header_frame = QFrame()
+        header_frame.setFrameStyle(QFrame.NoFrame)
+        header_layout = QVBoxLayout(header_frame)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
+
+        title_label = QLabel(task.title)
+        title_label.setStyleSheet("""
+            QLabel {
+                font-size: 18px;
+                font-weight: bold;
+                color: #ffffff;
+                padding-bottom: 5px;
+                border-bottom: 1px solid #444;
+            }
+        """)
+        title_label.setWordWrap(True)
+        header_layout.addWidget(title_label)
+
+        meta_widget = QWidget()
+        meta_layout = QHBoxLayout(meta_widget)
+        meta_layout.setContentsMargins(0, 0, 0, 0)
+        meta_layout.setSpacing(15)
+
+        status_label = QLabel("Status:")
+        status_label.setStyleSheet("color: #aaa; font-size: 12px;")
+        meta_layout.addWidget(status_label)
+
+        status_value = QLabel("Completed" if task.completed else "Pending")
+        status_value.setStyleSheet("color: #2ecc71;" if task.completed else "color: #ff9800;")
+        meta_layout.addWidget(status_value)
+
+        meta_layout.addSpacing(20)
+
+        priority_label = QLabel("Priority:")
+        priority_label.setStyleSheet("color: #aaa; font-size: 12px;")
+        meta_layout.addWidget(priority_label)
+
+        priority_value = QLabel(["High", "Medium", "Low"][task.priority - 1])
+        priority_colors = ["#e74c3c", "#f39c12", "#3498db"]
+        priority_value.setStyleSheet(f"color: {priority_colors[task.priority - 1]};")
+        meta_layout.addWidget(priority_value)
+
+        meta_layout.addStretch()
+        header_layout.addWidget(meta_widget)
+
+        content_layout.addWidget(header_frame)
 
         if task.description:
-            desc_label = QLabel(task.description)
-            desc_label.setWordWrap(True)
-            desc_label.setStyleSheet("padding: 10px; background-color: #2a2a2a; border-radius: 5px;")
-            layout.addWidget(desc_label)
+            desc_frame = QFrame()
+            desc_frame.setFrameStyle(QFrame.NoFrame)
+            desc_layout = QVBoxLayout(desc_frame)
+            desc_layout.setContentsMargins(0, 0, 0, 0)
+            desc_layout.setSpacing(5)
 
-        details_group = QGroupBox("Details")
-        details_layout = QVBoxLayout()
+            desc_label = QLabel("Description")
+            desc_label.setStyleSheet("""
+                QLabel {
+                    color: #3498db;
+                    font-weight: bold;
+                    font-size: 13px;
+                }
+            """)
+            desc_layout.addWidget(desc_label)
 
-        priority_text = ["🚨 High", "⚠️ Medium", "📋 Low"][task.priority - 1]
-        priority_label = QLabel(f'<b>Priority:</b> {priority_text}')
-        details_layout.addWidget(priority_label)
+            desc_text = QTextEdit()
+            desc_text.setPlainText(task.description)
+            desc_text.setReadOnly(True)
+            desc_text.setMaximumHeight(100)
+            desc_text.setStyleSheet("""
+                QTextEdit {
+                    background-color: #353535;
+                    border: 1px solid #444;
+                    border-radius: 3px;
+                    color: #cccccc;
+                    font-size: 13px;
+                    padding: 8px;
+                }
+            """)
+            desc_layout.addWidget(desc_text)
 
-        status_text = "✅ Completed" if task.completed else "⏳ Pending"
-        status_label = QLabel(f'<b>Status:</b> {status_text}')
-        details_layout.addWidget(status_label)
+            content_layout.addWidget(desc_frame)
+
+        info_frame = QFrame()
+        info_frame.setFrameStyle(QFrame.NoFrame)
+        info_layout = QVBoxLayout(info_frame)
+        info_layout.setContentsMargins(0, 0, 0, 0)
+        info_layout.setSpacing(12)
+
+        info_label = QLabel("Task Information")
+        info_label.setStyleSheet("""
+            QLabel {
+                color: #3498db;
+                font-weight: bold;
+                font-size: 13px;
+            }
+        """)
+        info_layout.addWidget(info_label)
 
         progress = self.manager.get_task_progress(task.id)
-        progress_label = QLabel(f'<b>Progress:</b> {progress:.1f}%')
-        details_layout.addWidget(progress_label)
+        progress_widget = self._create_info_row("Progress:", f"{progress:.1f}%")
+        info_layout.addWidget(progress_widget)
 
-        dates_layout = QHBoxLayout()
-        created_label = QLabel(f'<b>Created:</b> {task.created_at[:10]}')
-        dates_layout.addWidget(created_label)
+        dates_widget = QWidget()
+        dates_layout = QHBoxLayout(dates_widget)
+        dates_layout.setContentsMargins(0, 0, 0, 0)
+        dates_layout.setSpacing(30)
 
-        dates_layout.addStretch()
+        created_widget = self._create_info_row("Created:", task.created_at[:10])
+        dates_layout.addWidget(created_widget)
+
+        if task.updated_at and task.updated_at != task.created_at:
+            updated_widget = self._create_info_row("Updated:", task.updated_at[:10])
+            dates_layout.addWidget(updated_widget)
 
         if task.due_date:
-            due_label = QLabel(f'<b>Due:</b> {task.due_date}')
-            dates_layout.addWidget(due_label)
+            due_widget = self._create_info_row("Due Date:", task.due_date)
+            if not task.completed and self._is_overdue(task.due_date):
+                due_widget.findChild(QLabel, "value_label").setStyleSheet("color: #e74c3c; font-weight: bold;")
+            dates_layout.addWidget(due_widget)
 
-        details_layout.addLayout(dates_layout)
+        dates_layout.addStretch()
+        info_layout.addWidget(dates_widget)
+
+        content_layout.addWidget(info_frame)
 
         if task.labels:
-            labels_label = QLabel('<b>Labels:</b>')
-            details_layout.addWidget(labels_label)
+            labels_frame = QFrame()
+            labels_frame.setFrameStyle(QFrame.NoFrame)
+            labels_layout = QVBoxLayout(labels_frame)
+            labels_layout.setContentsMargins(0, 0, 0, 0)
+            labels_layout.setSpacing(8)
 
-            labels_widget = QWidget()
-            labels_widget_layout = QHBoxLayout(labels_widget)
-            labels_widget_layout.setContentsMargins(0, 0, 0, 0)
+            labels_label = QLabel("Labels")
+            labels_label.setStyleSheet("""
+                QLabel {
+                    color: #3498db;
+                    font-weight: bold;
+                    font-size: 13px;
+                }
+            """)
+            labels_layout.addWidget(labels_label)
+
+            labels_container = QWidget()
+            labels_container_layout = QHBoxLayout(labels_container)
+            labels_container_layout.setContentsMargins(0, 0, 0, 0)
+            labels_container_layout.setSpacing(8)
 
             for label_id in task.labels:
                 label = self.manager.get_label(label_id)
                 if label:
                     label_widget = LabelWidget(label.name, label.color)
-                    labels_widget_layout.addWidget(label_widget)
+                    label_widget.setMinimumHeight(24)
+                    label_widget.setMinimumWidth(70)
+                    labels_container_layout.addWidget(label_widget)
 
-            labels_widget_layout.addStretch()
-            details_layout.addWidget(labels_widget)
+            labels_container_layout.addStretch()
+            labels_layout.addWidget(labels_container)
 
-        details_group.setLayout(details_layout)
-        layout.addWidget(details_group)
+            content_layout.addWidget(labels_frame)
 
         subtasks = self.manager.get_subtasks_by_task(task.id)
         if subtasks:
-            subtasks_group = QGroupBox(f"Subtasks ({len(subtasks)})")
-            subtasks_layout = QVBoxLayout()
+            subtasks_frame = QFrame()
+            subtasks_frame.setFrameStyle(QFrame.NoFrame)
+            subtasks_layout = QVBoxLayout(subtasks_frame)
+            subtasks_layout.setContentsMargins(0, 0, 0, 0)
+            subtasks_layout.setSpacing(8)
+
+            subtasks_label = QLabel(f"Subtasks ({len(subtasks)})")
+            subtasks_label.setStyleSheet("""
+                QLabel {
+                    color: #3498db;
+                    font-weight: bold;
+                    font-size: 13px;
+                }
+            """)
+            subtasks_layout.addWidget(subtasks_label)
+
+            completed_count = sum(1 for st in subtasks if st.completed)
+            stats_label = QLabel(f"{completed_count} of {len(subtasks)} completed")
+            stats_label.setStyleSheet("color: #888; font-size: 11px; margin-bottom: 8px;")
+            subtasks_layout.addWidget(stats_label)
 
             for subtask in subtasks:
-                subtask_widget = QWidget()
-                subtask_layout = QHBoxLayout(subtask_widget)
+                subtask_row = self._create_subtask_row(subtask)
+                subtasks_layout.addWidget(subtask_row)
 
-                status = "✅" if subtask.completed else "⏳"
-                subtask_label = QLabel(f'{status} {subtask.title}')
-                subtask_layout.addWidget(subtask_label)
+            content_layout.addWidget(subtasks_frame)
 
-                if subtask.due_date:
-                    due_label = QLabel(f'Due: {subtask.due_date}')
-                    due_label.setStyleSheet("color: #888;")
-                    subtask_layout.addWidget(due_label)
+        content_layout.addStretch()
 
-                subtask_layout.addStretch()
-                subtasks_layout.addWidget(subtask_widget)
+        scroll_area.setWidget(content_widget)
+        main_layout.addWidget(scroll_area)
 
-            subtasks_group.setLayout(subtasks_layout)
-            layout.addWidget(subtasks_group)
+        button_frame = QFrame()
+        button_frame.setFrameStyle(QFrame.NoFrame)
+        button_frame.setStyleSheet("background-color: #353535;")
+        button_frame.setFixedHeight(50)
+        button_layout = QHBoxLayout(button_frame)
+        button_layout.setContentsMargins(20, 0, 20, 0)
+
+        button_layout.addStretch()
 
         close_button = QPushButton('Close')
+        close_button.setFixedSize(100, 30)
+        close_button.setStyleSheet("""
+            QPushButton {
+                background-color: #555;
+                color: white;
+                border: none;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #666;
+            }
+        """)
         close_button.clicked.connect(dialog.accept)
-        layout.addWidget(close_button)
+        button_layout.addWidget(close_button)
+
+        main_layout.addWidget(button_frame)
 
         dialog.exec_()
+
+    def _create_info_row(self, label: str, value: str) -> QWidget:
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        label_widget = QLabel(label)
+        label_widget.setStyleSheet("color: #aaa; font-size: 13px; min-width: 80px;")
+        layout.addWidget(label_widget)
+
+        value_widget = QLabel(value)
+        value_widget.setObjectName("value_label")
+        value_widget.setStyleSheet("color: white; font-size: 13px;")
+        layout.addWidget(value_widget)
+
+        layout.addStretch()
+        return widget
+
+    def _create_subtask_row(self, subtask: SubTask) -> QWidget:
+        widget = QFrame()
+        widget.setFrameStyle(QFrame.NoFrame)
+        widget.setStyleSheet("""
+            QFrame {
+                background-color: #353535;
+                padding: 8px;
+                border-radius: 3px;
+            }
+        """)
+
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(10, 5, 10, 5)
+        layout.setSpacing(10)
+
+        status_label = QLabel("✓" if subtask.completed else "○")
+        status_label.setStyleSheet("""
+            QLabel {
+                font-size: 14px;
+                min-width: 20px;
+            }
+        """)
+        if subtask.completed:
+            status_label.setStyleSheet("color: #2ecc71; font-size: 14px; min-width: 20px;")
+        layout.addWidget(status_label)
+
+        title_label = QLabel(subtask.title)
+        if subtask.completed:
+            title_label.setStyleSheet("color: #888; font-size: 13px; text-decoration: line-through;")
+        else:
+            title_label.setStyleSheet("color: white; font-size: 13px;")
+        layout.addWidget(title_label, 1)
+
+        if subtask.description:
+            desc_label = QLabel(subtask.description)
+            desc_label.setStyleSheet("color: #aaa; font-size: 11px;")
+            desc_label.setWordWrap(True)
+            layout.addWidget(desc_label, 2)
+
+        if subtask.due_date:
+            due_label = QLabel(f"Due: {subtask.due_date}")
+            if not subtask.completed and self._is_overdue(subtask.due_date):
+                due_label.setStyleSheet("color: #e74c3c; font-size: 11px;")
+            else:
+                due_label.setStyleSheet("color: #888; font-size: 11px;")
+            layout.addWidget(due_label)
+
+        priority_label = QLabel(["High", "Med", "Low"][subtask.priority - 1])
+        priority_colors = ["#e74c3c", "#f39c12", "#3498db"]
+        priority_label.setStyleSheet(f"""
+            QLabel {{
+                color: {priority_colors[subtask.priority - 1]};
+                font-size: 11px;
+                font-weight: bold;
+                min-width: 30px;
+            }}
+        """)
+        layout.addWidget(priority_label)
+
+        return widget
+
+    def _is_overdue(self, due_date_str: str) -> bool:
+        try:
+            due_date = datetime.fromisoformat(due_date_str).date()
+            return due_date < datetime.now().date()
+        except:
+            return False
 
     def refresh_view(self):
         self.load_projects()
