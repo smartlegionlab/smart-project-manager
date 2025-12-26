@@ -1,5 +1,7 @@
 # Copyright (©) 2025, Alexander Suvorov. All rights reserved.
+import os
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from PyQt5.QtWidgets import (
@@ -1636,10 +1638,11 @@ class MainWindow(QMainWindow):
             self.subtasks_progress_bar.setFormat("No subtasks")
 
     def import_data(self):
+        home_dir = str(Path.home())
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Import Data",
-            "",
+            home_dir,
             "JSON Files (*.json);;All Files (*)"
         )
 
@@ -1705,10 +1708,17 @@ class MainWindow(QMainWindow):
             )
 
     def export_data(self):
+        home_dir = str(Path.home())
+
+        default_file_name = os.path.join(
+            home_dir,
+            f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
+
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Export Data",
-            f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            default_file_name,
             "JSON Files (*.json);;All Files (*)"
         )
 
