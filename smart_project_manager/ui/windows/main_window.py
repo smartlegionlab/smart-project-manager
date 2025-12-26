@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
 
-        self.setWindowTitle('Smart Project Manager v0.1.6')
+        self.setWindowTitle('Smart Project Manager v0.1.7')
         self.showMaximized()
 
         self.setStyleSheet("""
@@ -203,28 +203,6 @@ class MainWindow(QMainWindow):
             }
         """)
         project_buttons_layout.addWidget(self.btn_new_project)
-
-        self.btn_delete_project = QPushButton('Delete')
-        self.btn_delete_project.clicked.connect(self.delete_current_project)
-        self.btn_delete_project.setEnabled(False)
-        self.btn_delete_project.setStyleSheet("""
-            QPushButton {
-                background-color: #e74c3c;
-                color: white;
-                font-weight: bold;
-                padding: 8px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #c0392b;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
-        project_buttons_layout.addWidget(self.btn_delete_project)
 
         left_layout.addLayout(project_buttons_layout)
 
@@ -464,7 +442,7 @@ class MainWindow(QMainWindow):
         self.btn_new_task.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
-                color: white;
+                color: black;
                 font-weight: bold;
                 padding: 8px 16px;
                 border-radius: 5px;
@@ -475,7 +453,262 @@ class MainWindow(QMainWindow):
         """)
         tasks_header_layout.addWidget(self.btn_new_task)
 
+        self.btn_edit_project = QPushButton('Edit')
+        self.btn_edit_project.clicked.connect(self.edit_current_project)
+        self.btn_edit_project.setEnabled(False)
+        self.btn_edit_project.setStyleSheet("""
+            QPushButton {
+                background-color: #FFC107;
+                color: black;
+                font-weight: bold;
+                padding: 8px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #FFA000;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+
+        tasks_header_layout.addWidget(self.btn_edit_project)
+
+        self.btn_delete_project = QPushButton('Delete')
+        self.btn_delete_project.clicked.connect(self.delete_current_project)
+        self.btn_delete_project.setEnabled(False)
+        self.btn_delete_project.setStyleSheet("""
+                            QPushButton {
+                                background-color: #e74c3c;
+                                color: black;
+                                font-weight: bold;
+                                padding: 8px 12px;
+                                border-radius: 5px;
+                                font-size: 12px;
+                            }
+                            QPushButton:hover:enabled {
+                                background-color: #c0392b;
+                            }
+                            QPushButton:disabled {
+                                background-color: #666;
+                                color: #999;
+                            }
+                        """)
+        tasks_header_layout.addWidget(self.btn_delete_project)
+
         right_layout.addLayout(tasks_header_layout)
+
+        self.project_progress_group = QGroupBox("📊 Project Progress")
+        self.project_progress_group.setStyleSheet("""
+                            QGroupBox {
+                                font-weight: bold;
+                                border: 2px solid #444;
+                                border-radius: 8px;
+                                margin-top: 10px;
+                                padding-top: 10px;
+                            }
+                            QGroupBox::title {
+                                subcontrol-origin: margin;
+                                left: 10px;
+                                padding: 0 5px 0 5px;
+                                color: #2a82da;
+                            }
+                        """)
+
+        self.project_progress_layout = QVBoxLayout(self.project_progress_group)
+        self.project_progress_layout.setSpacing(8)
+        self.project_progress_layout.setContentsMargins(10, 12, 10, 10)
+
+        top_line = QHBoxLayout()
+
+        self.project_name_label = QLabel("--")
+        self.project_name_label.setStyleSheet("""
+                            QLabel {
+                                font-size: 16px;
+                                font-weight: bold;
+                                color: #3498db;
+                            }
+                        """)
+        top_line.addWidget(self.project_name_label)
+
+        top_line.addStretch()
+
+        self.project_version_badge = QLabel("v-- | --")
+        self.project_version_badge.setStyleSheet("""
+                            QLabel {
+                                background-color: #95a5a6;
+                                color: white;
+                                padding: 3px 8px;
+                                border-radius: 10px;
+                                font-weight: bold;
+                                font-size: 10px;
+                                min-width: 90px;
+                                text-align: center;
+                            }
+                        """)
+        top_line.addWidget(self.project_version_badge)
+
+        self.project_progress_layout.addLayout(top_line)
+
+        self.project_description_label = QLabel("--")
+        self.project_description_label.setStyleSheet("""
+                            QLabel {
+                                font-size: 11px;
+                                color: #aaa;
+                                font-style: italic;
+                                margin-bottom: 5px;
+                            }
+                        """)
+        self.project_description_label.setWordWrap(True)
+        self.project_progress_layout.addWidget(self.project_description_label)
+
+        progress_layout = QVBoxLayout()
+        progress_layout.setSpacing(3)
+
+        progress_line = QHBoxLayout()
+
+        progress_label = QLabel("Progress")
+        progress_label.setStyleSheet("font-weight: bold; font-size: 11px;")
+        progress_line.addWidget(progress_label)
+
+        progress_line.addStretch()
+
+        progress_layout.addLayout(progress_line)
+
+        progress_bar_line = QHBoxLayout()
+
+        self.project_progress_bar = QProgressBar()
+        self.project_progress_bar.setTextVisible(False)
+        self.project_progress_bar.setFixedHeight(16)
+        self.project_progress_bar.setStyleSheet("""
+                            QProgressBar {
+                                border: 1px solid #444;
+                                border-radius: 8px;
+                                background-color: #2a2a2a;
+                            }
+                            QProgressBar::chunk {
+                                background-color: qlineargradient(
+                                    spread:pad, x1:0, y1:0, x2:1, y2:0,
+                                    stop:0 #3498db,
+                                    stop:1 #2ecc71
+                                );
+                                border-radius: 7px;
+                            }
+                        """)
+        progress_bar_line.addWidget(self.project_progress_bar, 3)
+
+        self.project_progress_text = QLabel("0%")
+        self.project_progress_text.setStyleSheet("""
+                            QLabel {
+                                font-weight: bold;
+                                color: #2ecc71;
+                                font-size: 12px;
+                                margin-left: 10px;
+                                min-width: 40px;
+                            }
+                        """)
+        progress_bar_line.addWidget(self.project_progress_text)
+
+        progress_layout.addLayout(progress_bar_line)
+        self.project_progress_layout.addLayout(progress_layout)
+
+        stats_line = QHBoxLayout()
+        stats_line.setSpacing(15)
+
+        tasks_container = QWidget()
+        tasks_layout = QHBoxLayout(tasks_container)
+        tasks_layout.setContentsMargins(0, 0, 0, 0)
+        tasks_layout.setSpacing(5)
+
+        tasks_icon = QLabel("✅")
+        tasks_icon.setStyleSheet("font-size: 12px;")
+        tasks_layout.addWidget(tasks_icon)
+
+        tasks_stats = QVBoxLayout()
+        tasks_stats.setSpacing(1)
+
+        self.project_tasks_total = QLabel("0")
+        self.project_tasks_total.setStyleSheet("""
+                            QLabel {
+                                font-size: 14px;
+                                font-weight: bold;
+                                color: white;
+                            }
+                        """)
+        tasks_stats.addWidget(self.project_tasks_total)
+
+        tasks_label = QLabel("tasks")
+        tasks_label.setStyleSheet("color: #2ecc71; font-size: 9px;")
+        tasks_stats.addWidget(tasks_label)
+
+        tasks_layout.addLayout(tasks_stats)
+        stats_line.addWidget(tasks_container)
+
+        subtasks_container = QWidget()
+        subtasks_layout = QHBoxLayout(subtasks_container)
+        subtasks_layout.setContentsMargins(0, 0, 0, 0)
+        subtasks_layout.setSpacing(5)
+
+        subtasks_icon = QLabel("📝")
+        subtasks_icon.setStyleSheet("font-size: 12px;")
+        subtasks_layout.addWidget(subtasks_icon)
+
+        subtasks_stats = QVBoxLayout()
+        subtasks_stats.setSpacing(1)
+
+        self.project_subtasks_total = QLabel("0")
+        self.project_subtasks_total.setStyleSheet("""
+                            QLabel {
+                                font-size: 14px;
+                                font-weight: bold;
+                                color: white;
+                            }
+                        """)
+        subtasks_stats.addWidget(self.project_subtasks_total)
+
+        subtasks_label = QLabel("subtasks")
+        subtasks_label.setStyleSheet("color: #9b59b6; font-size: 9px;")
+        subtasks_stats.addWidget(subtasks_label)
+
+        subtasks_layout.addLayout(subtasks_stats)
+        stats_line.addWidget(subtasks_container)
+
+        timeline_container = QWidget()
+        timeline_layout = QHBoxLayout(timeline_container)
+        timeline_layout.setContentsMargins(0, 0, 0, 0)
+        timeline_layout.setSpacing(5)
+
+        timeline_icon = QLabel("📅")
+        timeline_icon.setStyleSheet("font-size: 12px;")
+        timeline_layout.addWidget(timeline_icon)
+
+        timeline_stats = QVBoxLayout()
+        timeline_stats.setSpacing(1)
+
+        self.project_updated_label = QLabel("--")
+        self.project_updated_label.setStyleSheet("""
+                            QLabel {
+                                font-size: 11px;
+                                font-weight: bold;
+                                color: white;
+                            }
+                        """)
+        timeline_stats.addWidget(self.project_updated_label)
+
+        timeline_label = QLabel("updated")
+        timeline_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
+        timeline_stats.addWidget(timeline_label)
+
+        timeline_layout.addLayout(timeline_stats)
+        stats_line.addWidget(timeline_container)
+
+        stats_line.addStretch()
+        self.project_progress_layout.addLayout(stats_line)
+
+        self.project_progress_group.setVisible(False)
+        right_layout.addWidget(self.project_progress_group)
 
         self.tasks_table = QTableWidget()
         self.tasks_table.setColumnCount(8)
@@ -511,216 +744,6 @@ class MainWindow(QMainWindow):
         self.tasks_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.ResizeToContents)
 
         right_layout.addWidget(self.tasks_table, 3)
-
-        self.project_progress_group = QGroupBox("📊 Project Progress")
-        self.project_progress_group.setStyleSheet("""
-                    QGroupBox {
-                        font-weight: bold;
-                        border: 2px solid #444;
-                        border-radius: 8px;
-                        margin-top: 10px;
-                        padding-top: 10px;
-                    }
-                    QGroupBox::title {
-                        subcontrol-origin: margin;
-                        left: 10px;
-                        padding: 0 5px 0 5px;
-                        color: #2a82da;
-                    }
-                """)
-
-        self.project_progress_layout = QVBoxLayout(self.project_progress_group)
-        self.project_progress_layout.setSpacing(8)
-        self.project_progress_layout.setContentsMargins(10, 12, 10, 10)
-
-        top_line = QHBoxLayout()
-
-        self.project_name_label = QLabel("--")
-        self.project_name_label.setStyleSheet("""
-                    QLabel {
-                        font-size: 16px;
-                        font-weight: bold;
-                        color: #3498db;
-                    }
-                """)
-        top_line.addWidget(self.project_name_label)
-
-        top_line.addStretch()
-
-        self.project_version_badge = QLabel("v-- | --")
-        self.project_version_badge.setStyleSheet("""
-                    QLabel {
-                        background-color: #95a5a6;
-                        color: white;
-                        padding: 3px 8px;
-                        border-radius: 10px;
-                        font-weight: bold;
-                        font-size: 10px;
-                        min-width: 90px;
-                        text-align: center;
-                    }
-                """)
-        top_line.addWidget(self.project_version_badge)
-
-        self.project_progress_layout.addLayout(top_line)
-
-        self.project_description_label = QLabel("--")
-        self.project_description_label.setStyleSheet("""
-                    QLabel {
-                        font-size: 11px;
-                        color: #aaa;
-                        font-style: italic;
-                        margin-bottom: 5px;
-                    }
-                """)
-        self.project_description_label.setWordWrap(True)
-        self.project_progress_layout.addWidget(self.project_description_label)
-
-        progress_layout = QVBoxLayout()
-        progress_layout.setSpacing(3)
-
-        progress_line = QHBoxLayout()
-
-        progress_label = QLabel("Progress")
-        progress_label.setStyleSheet("font-weight: bold; font-size: 11px;")
-        progress_line.addWidget(progress_label)
-
-        progress_line.addStretch()
-
-        progress_layout.addLayout(progress_line)
-
-        progress_bar_line = QHBoxLayout()
-
-        self.project_progress_bar = QProgressBar()
-        self.project_progress_bar.setTextVisible(False)
-        self.project_progress_bar.setFixedHeight(16)
-        self.project_progress_bar.setStyleSheet("""
-                    QProgressBar {
-                        border: 1px solid #444;
-                        border-radius: 8px;
-                        background-color: #2a2a2a;
-                    }
-                    QProgressBar::chunk {
-                        background-color: qlineargradient(
-                            spread:pad, x1:0, y1:0, x2:1, y2:0,
-                            stop:0 #3498db,
-                            stop:1 #2ecc71
-                        );
-                        border-radius: 7px;
-                    }
-                """)
-        progress_bar_line.addWidget(self.project_progress_bar, 3)
-
-        self.project_progress_text = QLabel("0%")
-        self.project_progress_text.setStyleSheet("""
-                    QLabel {
-                        font-weight: bold;
-                        color: #2ecc71;
-                        font-size: 12px;
-                        margin-left: 10px;
-                        min-width: 40px;
-                    }
-                """)
-        progress_bar_line.addWidget(self.project_progress_text)
-
-        progress_layout.addLayout(progress_bar_line)
-        self.project_progress_layout.addLayout(progress_layout)
-
-        stats_line = QHBoxLayout()
-        stats_line.setSpacing(15)
-
-        tasks_container = QWidget()
-        tasks_layout = QHBoxLayout(tasks_container)
-        tasks_layout.setContentsMargins(0, 0, 0, 0)
-        tasks_layout.setSpacing(5)
-
-        tasks_icon = QLabel("✅")
-        tasks_icon.setStyleSheet("font-size: 12px;")
-        tasks_layout.addWidget(tasks_icon)
-
-        tasks_stats = QVBoxLayout()
-        tasks_stats.setSpacing(1)
-
-        self.project_tasks_total = QLabel("0")
-        self.project_tasks_total.setStyleSheet("""
-                    QLabel {
-                        font-size: 14px;
-                        font-weight: bold;
-                        color: white;
-                    }
-                """)
-        tasks_stats.addWidget(self.project_tasks_total)
-
-        tasks_label = QLabel("tasks")
-        tasks_label.setStyleSheet("color: #2ecc71; font-size: 9px;")
-        tasks_stats.addWidget(tasks_label)
-
-        tasks_layout.addLayout(tasks_stats)
-        stats_line.addWidget(tasks_container)
-
-        subtasks_container = QWidget()
-        subtasks_layout = QHBoxLayout(subtasks_container)
-        subtasks_layout.setContentsMargins(0, 0, 0, 0)
-        subtasks_layout.setSpacing(5)
-
-        subtasks_icon = QLabel("📝")
-        subtasks_icon.setStyleSheet("font-size: 12px;")
-        subtasks_layout.addWidget(subtasks_icon)
-
-        subtasks_stats = QVBoxLayout()
-        subtasks_stats.setSpacing(1)
-
-        self.project_subtasks_total = QLabel("0")
-        self.project_subtasks_total.setStyleSheet("""
-                    QLabel {
-                        font-size: 14px;
-                        font-weight: bold;
-                        color: white;
-                    }
-                """)
-        subtasks_stats.addWidget(self.project_subtasks_total)
-
-        subtasks_label = QLabel("subtasks")
-        subtasks_label.setStyleSheet("color: #9b59b6; font-size: 9px;")
-        subtasks_stats.addWidget(subtasks_label)
-
-        subtasks_layout.addLayout(subtasks_stats)
-        stats_line.addWidget(subtasks_container)
-
-        timeline_container = QWidget()
-        timeline_layout = QHBoxLayout(timeline_container)
-        timeline_layout.setContentsMargins(0, 0, 0, 0)
-        timeline_layout.setSpacing(5)
-
-        timeline_icon = QLabel("📅")
-        timeline_icon.setStyleSheet("font-size: 12px;")
-        timeline_layout.addWidget(timeline_icon)
-
-        timeline_stats = QVBoxLayout()
-        timeline_stats.setSpacing(1)
-
-        self.project_updated_label = QLabel("--")
-        self.project_updated_label.setStyleSheet("""
-                    QLabel {
-                        font-size: 11px;
-                        font-weight: bold;
-                        color: white;
-                    }
-                """)
-        timeline_stats.addWidget(self.project_updated_label)
-
-        timeline_label = QLabel("updated")
-        timeline_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
-        timeline_stats.addWidget(timeline_label)
-
-        timeline_layout.addLayout(timeline_stats)
-        stats_line.addWidget(timeline_container)
-
-        stats_line.addStretch()
-        self.project_progress_layout.addLayout(stats_line)
-
-        self.project_progress_group.setVisible(False)
-        right_layout.addWidget(self.project_progress_group)
 
         main_layout.addWidget(right_panel, 1)
 
@@ -884,11 +907,13 @@ class MainWindow(QMainWindow):
         self.current_project_id = item.project_id
         self.selected_project_item = item
         self.btn_delete_project.setEnabled(True)
+        self.btn_edit_project.setEnabled(True)
         self.btn_new_task.setEnabled(True)
 
         project = self.manager.get_project(self.current_project_id)
+
         if project:
-            self.tasks_header.setText(f'📋 Tasks in "{project.name}"')
+            self.tasks_header.setText(f'📋 Project: "{project.name}"')
 
             self.update_project_progress_panel(project.id)
 
@@ -1670,6 +1695,7 @@ class MainWindow(QMainWindow):
                 self.current_project_id = None
                 self.selected_project_item = None
                 self.btn_delete_project.setEnabled(False)
+                self.btn_edit_project.setEnabled(False)
                 self.btn_new_task.setEnabled(False)
                 self.tasks_header.setText('Select a project to view tasks')
                 self.tasks_table.setRowCount(0)
@@ -1912,7 +1938,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About Smart Project Manager",
-            """<h2>Smart Project Manager v0.1.6</h2>
+            """<h2>Smart Project Manager v0.1.7</h2>
             <p>A powerful project and task management tool for developers and researchers.</p>
             <p><b>Features:</b></p>
             <ul>
