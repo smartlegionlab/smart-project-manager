@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
         self.selected_project_item = None
+        self.last_selected_project_id = None
 
         self.setWindowTitle('Smart Project Manager v0.1.7')
         self.showMaximized()
@@ -298,12 +299,28 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage('Ready')
 
     def load_projects(self):
+        if self.current_project_id:
+            self.last_selected_project_id = self.current_project_id
+
         self.projects_tree.clear()
 
         projects = self.manager.get_all_projects()
 
         for project in projects:
             self.projects_tree.add_project(project, self.manager)
+
+        if self.last_selected_project_id:
+            for i in range(self.projects_tree.topLevelItemCount()):
+                item = self.projects_tree.topLevelItem(i)
+                if hasattr(item, 'project_id') and item.project_id == self.last_selected_project_id:
+                    self.projects_tree.setCurrentItem(item)
+
+                    self.current_project_id = self.last_selected_project_id
+                    self.selected_project_item = item
+                    self.btn_delete_project.setEnabled(True)
+                    self.btn_edit_project.setEnabled(True)
+                    self.btn_new_task.setEnabled(True)
+                    break
 
         self.update_statistics()
 
@@ -313,6 +330,8 @@ class MainWindow(QMainWindow):
         self.btn_delete_project.setEnabled(True)
         self.btn_edit_project.setEnabled(True)
         self.btn_new_task.setEnabled(True)
+
+        self.last_selected_project_id = self.current_project_id
 
         project = self.manager.get_project(self.current_project_id)
 
@@ -414,6 +433,9 @@ class MainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             self.manager.delete_project(project.id)
+
+            self.last_selected_project_id = None
+
             self.current_project_id = None
             self.selected_project_item = None
             self.btn_delete_project.setEnabled(False)
