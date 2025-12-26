@@ -88,6 +88,9 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 ### Keyboard Shortcuts
 *   `Ctrl+N`: New Project
 *   `Ctrl+T`: New Task
+*   `Ctrl+B`: Create BackUp
+*   `Ctrl+I`: Import
+*   `Ctrl+Shift+E`: Export
 *   `Ctrl+E`: Edit Selected Project
 *   `Ctrl+D`: Delete Selected Project
 *   `Ctrl+L`: Manage Labels

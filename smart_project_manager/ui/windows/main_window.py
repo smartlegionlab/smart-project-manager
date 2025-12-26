@@ -64,6 +64,7 @@ class MainWindow(QMainWindow):
         self.setup_status_bar()
 
         self.load_projects()
+        self.cleanup_old_backups_on_start()
 
         self.center_window()
         self.selected_project_item = None
@@ -1389,23 +1390,20 @@ class MainWindow(QMainWindow):
         if not file_path:
             return
 
-        reply = QMessageBox.question(
+        reply = QMessageBox.warning(
             self,
-            "Import Options",
-            "How to import?\n\n"
-            "Yes: Merge with current data\n"
-            "No: Replace current data",
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
-            QMessageBox.Yes
+            "Import Data",
+            "⚠️ This will REPLACE all current data with imported data!\n\n"
+            "Current data will be lost. Are you sure?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
         )
 
-        if reply == QMessageBox.Cancel:
+        if reply != QMessageBox.Yes:
             return
 
-        strategy = "merge" if reply == QMessageBox.Yes else "replace"
-
         try:
-            result = self.manager.import_data(file_path, strategy)
+            result = self.manager.import_data(file_path)
 
             if result['success']:
                 self.manager.load_data()
@@ -1439,7 +1437,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(
                     self,
                     "Import Failed",
-                    f"Failed to import: {result.get('error', 'Unknown error')}"
+                    f"Failed to import: {result.get('error', 'Unknown error')}\n\n"
+                    f"Original data has been restored."
                 )
 
         except Exception as e:
@@ -1679,6 +1678,9 @@ class MainWindow(QMainWindow):
             <ul>
             <li>Ctrl+N: New Project</li>
             <li>Ctrl+T: New Task</li>
+            <li>Ctrl+B: Create BackUp</li>
+            <li>Ctrl+I: Import</li>
+            <li>Ctrl+Shift+E: Export</li>
             <li>Ctrl+E: Edit Project</li>
             <li>Ctrl+D: Delete Project</li>
             <li>Ctrl+L: Manage Labels</li>

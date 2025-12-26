@@ -2,11 +2,10 @@
 import os
 import shutil
 import glob
+import json
+import tempfile
 from datetime import datetime, timedelta
 from typing import Dict
-import json
-
-from smart_project_manager.utils import generate_id
 
 
 class ImportExportService:
@@ -46,33 +45,31 @@ class ImportExportService:
             }
 
     @staticmethod
-    def import_data(data_file: str, import_path: str, strategy: str = "merge") -> Dict:
+    def import_data(data_file: str, import_path: str) -> Dict:
         try:
+            backup_path = ImportExportService._create_temp_backup(data_file)
+
             with open(import_path, 'r', encoding='utf-8') as f:
                 import_data = json.load(f)
 
             import_data.pop('_export_info', None)
+            import_data.pop('_backup_info', None)
 
-            if os.path.exists(data_file):
-                with open(data_file, 'r', encoding='utf-8') as f:
-                    current_data = json.load(f)
-            else:
-                current_data = {
-                    'labels': {},
-                    'projects': {},
-                    'tasks': {},
-                    'subtasks': {}
+            if not ImportExportService._validate_import_data(import_data):
+                if backup_path and os.path.exists(backup_path):
+                    shutil.copy2(backup_path, data_file)
+                return {
+                    'success': False,
+                    'error': 'Invalid import data format'
                 }
 
-            if strategy == "replace":
-                result_data = import_data
-                imported_items = ImportExportService._count_items(import_data)
-            else:
-                result_data = ImportExportService._merge_data(current_data, import_data)
-                imported_items = ImportExportService._count_items(import_data)
-
             with open(data_file, 'w', encoding='utf-8') as f:
-                json.dump(result_data, f, indent=4, ensure_ascii=False)
+                json.dump(import_data, f, indent=4, ensure_ascii=False)
+
+            if backup_path and os.path.exists(backup_path):
+                os.remove(backup_path)
+
+            imported_items = ImportExportService._count_items(import_data)
 
             return {
                 'success': True,
@@ -80,53 +77,49 @@ class ImportExportService:
             }
 
         except Exception as e:
+            backup_path = os.path.join(tempfile.gettempdir(), 'smartpm_import_backup.json')
+            if os.path.exists(backup_path):
+                try:
+                    shutil.copy2(backup_path, data_file)
+                    os.remove(backup_path)
+                except:
+                    pass
+
             return {
                 'success': False,
                 'error': str(e)
             }
 
     @staticmethod
-    def _merge_data(current_data: Dict, import_data: Dict) -> Dict:
-        merged_data = current_data.copy()
+    def _create_temp_backup(data_file: str):
+        if not os.path.exists(data_file):
+            return None
 
-        if 'labels' in import_data:
-            if 'labels' not in merged_data:
-                merged_data['labels'] = {}
+        temp_dir = tempfile.gettempdir()
+        backup_path = os.path.join(temp_dir, 'smartpm_import_backup.json')
 
-            for label_id, label_data in import_data['labels'].items():
-                new_id = generate_id()
-                merged_data['labels'][new_id] = label_data
-                merged_data['labels'][new_id]['id'] = new_id
+        try:
+            shutil.copy2(data_file, backup_path)
+            return backup_path
+        except:
+            return None
 
-        if 'projects' in import_data:
-            if 'projects' not in merged_data:
-                merged_data['projects'] = {}
+    @staticmethod
+    def _validate_import_data(data: Dict) -> bool:
+        if not isinstance(data, dict):
+            return False
 
-            for project_id, project_data in import_data['projects'].items():
-                new_id = generate_id()
-                merged_data['projects'][new_id] = project_data
-                merged_data['projects'][new_id]['id'] = new_id
-                merged_data['projects'][new_id]['tasks'] = []
+        if not isinstance(data, dict):
+            return False
 
-        if 'tasks' in import_data:
-            if 'tasks' not in merged_data:
-                merged_data['tasks'] = {}
+        required_sections = {'labels', 'projects', 'tasks', 'subtasks'}
+        for section in required_sections:
+            if section not in data:
+                return False
+            if not isinstance(data[section], dict):
+                return False
 
-            for task_id, task_data in import_data['tasks'].items():
-                new_id = generate_id()
-                merged_data['tasks'][new_id] = task_data
-                merged_data['tasks'][new_id]['id'] = new_id
-
-        if 'subtasks' in import_data:
-            if 'subtasks' not in merged_data:
-                merged_data['subtasks'] = {}
-
-            for subtask_id, subtask_data in import_data['subtasks'].items():
-                new_id = generate_id()
-                merged_data['subtasks'][new_id] = subtask_data
-                merged_data['subtasks'][new_id]['id'] = new_id
-
-        return merged_data
+        return True
 
     @staticmethod
     def _count_items(data: Dict) -> Dict:
@@ -139,6 +132,9 @@ class ImportExportService:
 
     @staticmethod
     def create_backup(data_file: str) -> str:
+        if not os.path.exists(data_file):
+            raise FileNotFoundError(f"Cannot create backup: {data_file} does not exist")
+
         backup_dir = os.path.join(os.path.dirname(data_file), 'backups')
         os.makedirs(backup_dir, exist_ok=True)
 
@@ -188,20 +184,10 @@ class ImportExportService:
                     else:
                         kept += 1
                 else:
-                    filename = os.path.basename(backup_file)
-                    try:
-                        date_str = filename.replace('backup_', '').replace('.json', '')
-                        backup_date = datetime.strptime(date_str, '%Y%m%d_%H%M%S')
+                    kept += 1
 
-                        if backup_date < cutoff_date:
-                            os.remove(backup_file)
-                            deleted += 1
-                        else:
-                            kept += 1
-                    except ValueError:
-                        kept += 1
-
-            except Exception:
+            except Exception as e:
+                print(e)
                 kept += 1
                 continue
 
@@ -214,7 +200,7 @@ class ImportExportService:
     @staticmethod
     def get_backup_info(backup_dir: str) -> Dict:
         if not os.path.exists(backup_dir):
-            return {'total': 0, 'backups': []}
+            return {'total': 0, 'total_size_mb': 0, 'backups': []}
 
         backup_files = glob.glob(os.path.join(backup_dir, 'backup_*.json'))
         backups = []
@@ -233,13 +219,7 @@ class ImportExportService:
                     backup_date = datetime.fromisoformat(backup_date_str)
                     date_str = backup_date.strftime('%Y-%m-%d %H:%M:%S')
                 else:
-                    filename = os.path.basename(backup_file)
-                    try:
-                        date_str = filename.replace('backup_', '').replace('.json', '')
-                        backup_date = datetime.strptime(date_str, '%Y%m%d_%H%M%S')
-                        date_str = backup_date.strftime('%Y-%m-%d %H:%M:%S')
-                    except ValueError:
-                        date_str = "Unknown date"
+                    date_str = "Unknown date"
 
                 backups.append({
                     'path': backup_file,
@@ -248,16 +228,16 @@ class ImportExportService:
                     'size_mb': size / (1024 * 1024)
                 })
 
-            except Exception:
+            except Exception as e:
+                print(e)
                 continue
 
         backups.sort(key=lambda x: x['filename'], reverse=True)
-        recent_backups = backups[:10]
 
         return {
             'total': len(backup_files),
             'total_size_mb': total_size / (1024 * 1024),
-            'backups': recent_backups
+            'backups': backups[:10]
         }
 
     @staticmethod
@@ -279,7 +259,8 @@ class ImportExportService:
             try:
                 os.remove(backup_file)
                 deleted_count += 1
-            except Exception:
+            except Exception as e:
+                print(e)
                 continue
 
         return {

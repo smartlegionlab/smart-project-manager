@@ -321,8 +321,8 @@ class ProjectManager:
             'subtask_completion_rate': (completed_subtasks / total_subtasks * 100) if total_subtasks > 0 else 0
         }
 
-    def import_data(self, import_path: str, strategy: str = "merge") -> Dict:
-        return ImportExportService.import_data(self.data_file, import_path, strategy)
+    def import_data(self, import_path: str) -> Dict:
+        return ImportExportService.import_data(self.data_file, import_path)
 
     def export_data(self, export_path: str) -> Dict:
         return ImportExportService.export_data(self.data_file, export_path)
@@ -340,39 +340,4 @@ class ProjectManager:
 
     def clear_all_backups(self) -> Dict:
         backup_dir = os.path.join(self.data_dir, 'backups')
-
-        if not os.path.exists(backup_dir):
-            return {'deleted': 0, 'total_size_mb': 0, 'error': 'Backup directory does not exist'}
-
-        try:
-            import glob
-            backup_files = glob.glob(os.path.join(backup_dir, 'backup_*.json'))
-
-            if not backup_files:
-                return {'deleted': 0, 'total_size_mb': 0, 'error': 'No backup files found'}
-
-            total_size = 0
-            for backup_file in backup_files:
-                total_size += os.path.getsize(backup_file)
-
-            deleted_count = 0
-            for backup_file in backup_files:
-                try:
-                    os.remove(backup_file)
-                    deleted_count += 1
-                except Exception as e:
-                    print(f"Failed to delete {backup_file}: {e}")
-                    continue
-
-            return {
-                'success': True,
-                'deleted': deleted_count,
-                'total_size_mb': total_size / (1024 * 1024),
-                'total_files': len(backup_files)
-            }
-
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e)
-            }
+        return ImportExportService.clear_all_backups(backup_dir)
