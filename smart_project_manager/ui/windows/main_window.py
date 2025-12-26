@@ -514,6 +514,8 @@ class MainWindow(QMainWindow):
             }
         """)
 
+        self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
+
         self.tasks_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.tasks_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
         self.tasks_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -736,6 +738,21 @@ class MainWindow(QMainWindow):
         right_layout.addWidget(self.project_progress_group)
 
         main_layout.addWidget(right_panel, 1)
+
+    def on_task_double_clicked(self, item: QTableWidgetItem):
+        row = item.row()
+        column = item.column()
+
+        if column in [2, 6, 7]:
+            return
+
+        widget = self.tasks_table.cellWidget(row, column)
+        if widget and isinstance(widget, (QPushButton, QProgressBar)):
+            return
+
+        task_id = self.get_task_id_from_row(row)
+        if task_id:
+            self.view_task(task_id)
 
     def create_stat_box(self, icon: str, title: str, color: str) -> QGroupBox:
         box = QGroupBox()
