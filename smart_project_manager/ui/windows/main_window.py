@@ -456,23 +456,6 @@ class MainWindow(QMainWindow):
 
         tasks_header_layout.addStretch()
 
-        self.btn_refresh = QPushButton('🔄 Refresh')
-        self.btn_refresh.clicked.connect(self.refresh_view)
-        self.btn_refresh.setStyleSheet("""
-            QPushButton {
-                background-color: #3498db;
-                color: white;
-                font-weight: bold;
-                padding: 8px 16px;
-                border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #2980b9;
-            }
-        """)
-        self.btn_refresh.setToolTip("Refresh view (F5)")
-        tasks_header_layout.addWidget(self.btn_refresh)
-
         self.btn_new_task = QPushButton('+ New Task')
         self.btn_new_task.clicked.connect(self.create_task)
         self.btn_new_task.setEnabled(False)
