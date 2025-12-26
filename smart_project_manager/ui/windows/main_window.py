@@ -1381,13 +1381,20 @@ class MainWindow(QMainWindow):
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Export Data",
-            "projects_export.json",
+            f"project_manager_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             "JSON Files (*.json);;All Files (*)"
         )
 
         if file_path:
-            # TODO: Implement export logic
-            QMessageBox.information(self, "Export", "Export feature coming soon")
+            try:
+                import shutil
+                shutil.copy2(self.manager.data_file, file_path)
+                QMessageBox.information(self, "Export Successful",
+                                        f"Data exported to:\n{file_path}")
+                self.status_bar.showMessage(f'Data exported to {file_path}', 3000)
+            except Exception as e:
+                QMessageBox.critical(self, "Export Error",
+                                     f"Failed to export data:\n{str(e)}")
 
     def show_about(self):
         QMessageBox.about(
