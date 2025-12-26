@@ -1174,27 +1174,16 @@ class MainWindow(QMainWindow):
 
     def show_task_context_menu(self, position):
         row = self.tasks_table.rowAt(position.y())
+
         if row < 0:
             return
 
-        edit_button = self.tasks_table.cellWidget(row, 6)
-        if not edit_button:
-            return
+        self.tasks_table.selectRow(row)
 
-        for col in [2, 6, 7]:
-            widget = self.tasks_table.cellWidget(row, col)
-            if widget and widget.underMouse():
-                task_id = None
-                if col == 2:
-                    task_id = self.get_task_id_from_row(row)
-                elif col == 6:
-                    task_id = self.get_task_id_from_row(row)
-                elif col == 7:
-                    task_id = self.get_task_id_from_row(row)
+        task_id = self.get_task_id_from_row(row)
 
-                if task_id:
-                    self.show_task_menu(task_id, self.tasks_table.viewport().mapToGlobal(position))
-                return
+        if task_id:
+            self.show_task_menu(task_id, self.tasks_table.viewport().mapToGlobal(position))
 
     def get_task_id_from_row(self, row: int) -> Optional[str]:
         if not self.current_project_id:
