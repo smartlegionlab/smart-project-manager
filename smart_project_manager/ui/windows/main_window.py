@@ -495,7 +495,7 @@ class MainWindow(QMainWindow):
         self.tasks_table = QTableWidget()
         self.tasks_table.setColumnCount(8)
         self.tasks_table.setHorizontalHeaderLabels(
-            ['Title', 'Priority', 'Status', 'Progress', 'Due Date', 'Labels', 'Edit', 'Delete']
+            ['Title', 'Priority', 'Status', 'Progress', 'Due Date', 'Labels', '', '']
         )
         self.tasks_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.tasks_table.setAlternatingRowColors(True)
@@ -746,10 +746,6 @@ class MainWindow(QMainWindow):
         if column in [2, 6, 7]:
             return
 
-        widget = self.tasks_table.cellWidget(row, column)
-        if widget and isinstance(widget, (QPushButton, QProgressBar)):
-            return
-
         task_id = self.get_task_id_from_row(row)
         if task_id:
             self.view_task(task_id)
@@ -936,24 +932,36 @@ class MainWindow(QMainWindow):
             priority_widget = PriorityIndicatorWidget(task.priority)
             self.tasks_table.setCellWidget(row, 1, priority_widget)
 
-            status_button = QPushButton("✅ Completed" if task.completed else "⏳ Pending")
-            status_button.setCheckable(True)
-            status_button.setChecked(task.completed)
-            status_button.setStyleSheet("""
-                QPushButton {
-                    border-radius: 3px;
-                    padding: 5px 10px;
-                    min-width: 100px;
-                }
-                QPushButton:checked {
-                    background-color: #2e7d32;
-                    color: white;
-                }
-                QPushButton:!checked {
-                    background-color: #ff9800;
-                    color: white;
-                }
-            """)
+            status_button = QPushButton("✅" if task.completed else "⏳")
+            status_button.setFixedSize(30, 30)
+            if task.completed:
+                status_button.setToolTip("Mark as Pending")
+                status_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: transparent;
+                        border: 1px solid #2e7d32;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        color: #2e7d32;
+                    }
+                    QPushButton:hover {
+                        background-color: rgba(46, 125, 50, 0.1);
+                    }
+                """)
+            else:
+                status_button.setToolTip("Mark as Completed")
+                status_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: transparent;
+                        border: 2px solid #ff9800;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        color: #ff9800;
+                    }
+                    QPushButton:hover {
+                        background-color: rgba(255, 152, 0, 0.1);
+                    }
+                """)
             status_button.clicked.connect(lambda checked, tid=task.id: self.toggle_task_status(tid))
             self.tasks_table.setCellWidget(row, 2, status_button)
 
@@ -962,11 +970,13 @@ class MainWindow(QMainWindow):
             progress_bar.setValue(int(progress))
             progress_bar.setTextVisible(True)
             progress_bar.setFormat(f"{progress:.1f}%")
+            progress_bar.setFixedHeight(20)
             progress_bar.setStyleSheet("""
                 QProgressBar {
                     border: 1px solid #444;
                     border-radius: 3px;
                     text-align: center;
+                    font-size: 10px;
                 }
                 QProgressBar::chunk {
                     background-color: #2a82da;
@@ -1002,33 +1012,37 @@ class MainWindow(QMainWindow):
             labels_layout.addStretch()
             self.tasks_table.setCellWidget(row, 5, labels_widget)
 
-            edit_button = QPushButton("✏️ Edit")
+            edit_button = QPushButton("✏️")
+            edit_button.setFixedSize(30, 30)
+            edit_button.setToolTip("Edit Task")
             edit_button.setStyleSheet("""
                 QPushButton {
-                    background-color: #ff9800;
-                    color: white;
-                    border-radius: 3px;
-                    padding: 5px 10px;
-                    min-width: 80px;
+                    background-color: transparent;
+                    border: 1px solid #ff9800;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    color: #ff9800;
                 }
                 QPushButton:hover {
-                    background-color: #e68900;
+                    background-color: rgba(255, 152, 0, 0.1);
                 }
             """)
             edit_button.clicked.connect(lambda checked, tid=task.id: self.edit_task(tid))
             self.tasks_table.setCellWidget(row, 6, edit_button)
 
-            delete_button = QPushButton("Delete")
+            delete_button = QPushButton("🗑️")
+            delete_button.setFixedSize(30, 30)
+            delete_button.setToolTip("Delete Task")
             delete_button.setStyleSheet("""
                 QPushButton {
-                    background-color: #da2a2a;
-                    color: white;
-                    border-radius: 3px;
-                    padding: 5px 10px;
-                    min-width: 80px;
+                    background-color: transparent;
+                    border: 1px solid #e74c3c;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    color: #e74c3c;
                 }
                 QPushButton:hover {
-                    background-color: #ca1a1a;
+                    background-color: rgba(231, 76, 60, 0.1);
                 }
             """)
             delete_button.clicked.connect(lambda checked, tid=task.id: self.delete_task(tid))
