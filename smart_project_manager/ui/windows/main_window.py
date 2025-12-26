@@ -1,6 +1,4 @@
 # Copyright (©) 2025, Alexander Suvorov. All rights reserved.
-import glob
-import os
 from datetime import datetime
 from typing import Optional
 
@@ -1528,7 +1526,6 @@ class MainWindow(QMainWindow):
 
             if info['total'] == 0:
                 message += "No backups found."
-                show_clear_button = False
             else:
                 message += f"Total backups: {info['total']}\n"
                 message += f"Total size: {info['total_size_mb']:.2f} MB\n\n"
@@ -1541,15 +1538,25 @@ class MainWindow(QMainWindow):
                 for backup in info['backups']:
                     message += f"• {backup['date']} ({backup['size_mb']:.1f} MB)\n"
 
-                show_clear_button = True
-
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("Backup Manager")
             msg_box.setText(message)
             msg_box.setIcon(QMessageBox.Information)
 
-            if show_clear_button:
-                clear_btn = msg_box.addButton("Clear All Backups", QMessageBox.ActionRole)
+            clear_btn = msg_box.addButton("Clear All Backups", QMessageBox.ActionRole)
+
+            if info['total'] == 0:
+                clear_btn.setEnabled(False)
+                clear_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #666;
+                        color: #999;
+                        font-weight: bold;
+                        padding: 5px 10px;
+                    }
+                """)
+            else:
+                clear_btn.setEnabled(True)
                 clear_btn.setStyleSheet("""
                     QPushButton {
                         background-color: #e74c3c;
@@ -1560,13 +1567,17 @@ class MainWindow(QMainWindow):
                     QPushButton:hover {
                         background-color: #c0392b;
                     }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
                 """)
 
-            close_btn = msg_box.addButton("Close", QMessageBox.RejectRole)
+            msg_box.addButton("Close", QMessageBox.RejectRole)
 
             msg_box.exec_()
 
-            if show_clear_button and msg_box.clickedButton() == clear_btn:
+            if msg_box.clickedButton() == clear_btn and clear_btn.isEnabled():
                 self.clear_all_backups()
 
         except Exception as e:
@@ -1601,32 +1612,21 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            backup_dir = os.path.join(self.manager.data_dir, 'backups')
+            result = self.manager.clear_all_backups()
 
-            if os.path.exists(backup_dir):
-                backup_files = glob.glob(os.path.join(backup_dir, 'backup_*.json'))
-                deleted_count = 0
-
-                for backup_file in backup_files:
-                    try:
-                        os.remove(backup_file)
-                        deleted_count += 1
-                    except Exception as e:
-                        print(f"Failed to delete {backup_file}: {e}")
-                        continue
-
+            if result.get('success', True):
                 QMessageBox.information(
                     self,
                     "Backups Cleared",
-                    f"✅ Cleared {deleted_count} backup files\n"
-                    f"Freed {info['total_size_mb']:.2f} MB"
+                    f"✅ Cleared {result.get('deleted', 0)} backup files\n"
+                    f"Freed {result.get('total_size_mb', 0):.2f} MB"
                 )
-                self.status_bar.showMessage(f'Cleared {deleted_count} backups', 3000)
+                self.status_bar.showMessage(f'Cleared {result.get("deleted", 0)} backups', 3000)
             else:
-                QMessageBox.information(
+                QMessageBox.warning(
                     self,
-                    "No Backups",
-                    "Backup directory does not exist"
+                    "Clear Failed",
+                    f"Failed to clear backups: {result.get('error', 'Unknown error')}"
                 )
 
         except Exception as e:

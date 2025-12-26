@@ -322,3 +322,42 @@ class ProjectManager:
     def get_backup_info(self) -> Dict:
         backup_dir = os.path.join(self.data_dir, 'backups')
         return ImportExportService.get_backup_info(backup_dir)
+
+    def clear_all_backups(self) -> Dict:
+        backup_dir = os.path.join(self.data_dir, 'backups')
+
+        if not os.path.exists(backup_dir):
+            return {'deleted': 0, 'total_size_mb': 0, 'error': 'Backup directory does not exist'}
+
+        try:
+            import glob
+            backup_files = glob.glob(os.path.join(backup_dir, 'backup_*.json'))
+
+            if not backup_files:
+                return {'deleted': 0, 'total_size_mb': 0, 'error': 'No backup files found'}
+
+            total_size = 0
+            for backup_file in backup_files:
+                total_size += os.path.getsize(backup_file)
+
+            deleted_count = 0
+            for backup_file in backup_files:
+                try:
+                    os.remove(backup_file)
+                    deleted_count += 1
+                except Exception as e:
+                    print(f"Failed to delete {backup_file}: {e}")
+                    continue
+
+            return {
+                'success': True,
+                'deleted': deleted_count,
+                'total_size_mb': total_size / (1024 * 1024),
+                'total_files': len(backup_files)
+            }
+
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }

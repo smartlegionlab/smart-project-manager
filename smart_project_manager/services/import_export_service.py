@@ -245,3 +245,31 @@ class ImportExportService:
             'total_size_mb': total_size / (1024 * 1024),
             'backups': recent_backups
         }
+
+    @staticmethod
+    def clear_all_backups(backup_dir: str) -> Dict:
+        if not os.path.exists(backup_dir):
+            return {'deleted': 0, 'total_size_mb': 0}
+
+        backup_files = glob.glob(os.path.join(backup_dir, 'backup_*.json'))
+
+        if not backup_files:
+            return {'deleted': 0, 'total_size_mb': 0}
+
+        total_size = 0
+        for backup_file in backup_files:
+            total_size += os.path.getsize(backup_file)
+
+        deleted_count = 0
+        for backup_file in backup_files:
+            try:
+                os.remove(backup_file)
+                deleted_count += 1
+            except Exception:
+                continue
+
+        return {
+            'deleted': deleted_count,
+            'total_size_mb': total_size / (1024 * 1024),
+            'total_files': len(backup_files)
+        }
