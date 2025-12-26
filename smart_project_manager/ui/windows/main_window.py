@@ -44,7 +44,7 @@ class MainWindow(QMainWindow):
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
 
-        self.setWindowTitle('Smart Project Manager v0.1.4')
+        self.setWindowTitle('Smart Project Manager v0.1.5')
         self.showMaximized()
 
         self.setStyleSheet("""
@@ -1903,7 +1903,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About Smart Project Manager",
-            """<h2>Smart Project Manager v0.1.4</h2>
+            """<h2>Smart Project Manager v0.1.5</h2>
             <p>A powerful project and task management tool for developers and researchers.</p>
             <p><b>Features:</b></p>
             <ul>
