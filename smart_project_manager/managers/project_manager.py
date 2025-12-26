@@ -16,12 +16,27 @@ class ProjectManager:
         self.data_dir = os.path.expanduser(data_dir)
         self.data_file = os.path.join(self.data_dir, "projects.json")
 
+        self._ensure_data_file_exists()
+
         self.projects: Dict[str, Project] = {}
         self.tasks: Dict[str, Task] = {}
         self.subtasks: Dict[str, SubTask] = {}
         self.labels: Dict[str, Label] = {}
 
         self.load_data()
+
+    def _ensure_data_file_exists(self):
+        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+
+        if not os.path.exists(self.data_file):
+            empty_data = {
+                'labels': {},
+                'projects': {},
+                'tasks': {},
+                'subtasks': {}
+            }
+            save_json(self.data_file, empty_data)
+            print(f"Created new data file: {self.data_file}")
 
     def load_data(self):
         data = load_json(self.data_file)

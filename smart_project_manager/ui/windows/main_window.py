@@ -1501,6 +1501,13 @@ class MainWindow(QMainWindow):
 
             self.status_bar.showMessage(f'Backup created', 3000)
 
+        except FileNotFoundError as e:
+            QMessageBox.warning(
+                self,
+                "No Data File",
+                f"Cannot create backup: No data file found.\n"
+                f"Please create at least one project first."
+            )
         except Exception as e:
             QMessageBox.critical(
                 self,

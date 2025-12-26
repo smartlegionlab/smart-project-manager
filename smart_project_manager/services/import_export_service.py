@@ -14,6 +14,12 @@ class ImportExportService:
     @staticmethod
     def export_data(data_file: str, export_path: str) -> Dict:
         try:
+            if not os.path.exists(data_file):
+                return {
+                    'success': False,
+                    'error': f'Source file {data_file} does not exist'
+                }
+
             shutil.copy2(data_file, export_path)
 
             with open(export_path, 'r', encoding='utf-8') as f:
@@ -47,8 +53,16 @@ class ImportExportService:
 
             import_data.pop('_export_info', None)
 
-            with open(data_file, 'r', encoding='utf-8') as f:
-                current_data = json.load(f)
+            if os.path.exists(data_file):
+                with open(data_file, 'r', encoding='utf-8') as f:
+                    current_data = json.load(f)
+            else:
+                current_data = {
+                    'labels': {},
+                    'projects': {},
+                    'tasks': {},
+                    'subtasks': {}
+                }
 
             if strategy == "replace":
                 result_data = import_data
