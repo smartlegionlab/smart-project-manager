@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QGridLayout
 )
 
-from smart_project_manager.models.project import Project
+from smart_project_manager.core.models.project import Project
 
 
 class ProjectDialog(QDialog):

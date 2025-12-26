@@ -2,12 +2,12 @@
 import os
 from typing import Dict, List, Optional
 
-from smart_project_manager.models.label import Label
-from smart_project_manager.models.project import Project
-from smart_project_manager.models.subtask import SubTask
-from smart_project_manager.models.task import Task
-from smart_project_manager.services.import_export_service import ImportExportService
-from smart_project_manager.utils import load_json, save_json, format_datetime
+from smart_project_manager.core.models.label import Label
+from smart_project_manager.core.models.project import Project
+from smart_project_manager.core.models.subtask import SubTask
+from smart_project_manager.core.models.task import Task
+from smart_project_manager.core.services.import_export_service import ImportExportService
+from smart_project_manager.core.utils import load_json, save_json, format_datetime
 
 
 class ProjectManager:

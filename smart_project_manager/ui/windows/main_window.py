@@ -30,8 +30,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt
 
-from smart_project_manager.managers.project_manager import ProjectManager
-from smart_project_manager.models.subtask import SubTask
+from smart_project_manager.core.managers.project_manager import ProjectManager
+from smart_project_manager.core.models.subtask import SubTask
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.dialogs.project_dialog import ProjectDialog
 from smart_project_manager.ui.dialogs.task_dialog import TaskDialog

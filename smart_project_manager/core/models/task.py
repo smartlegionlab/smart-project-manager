@@ -2,8 +2,8 @@
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
-from smart_project_manager.models.subtask import SubTask
-from smart_project_manager.utils import generate_id, format_datetime, calculate_progress
+from smart_project_manager.core.models.subtask import SubTask
+from smart_project_manager.core.utils import generate_id, format_datetime, calculate_progress
 
 
 @dataclass

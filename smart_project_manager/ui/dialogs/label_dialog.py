@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QColor
 
-from smart_project_manager.models.label import Label
+from smart_project_manager.core.models.label import Label
 from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 

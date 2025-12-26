@@ -2,7 +2,7 @@
 from typing import Dict, Optional
 from dataclasses import dataclass
 
-from smart_project_manager.utils import generate_id
+from smart_project_manager.core.utils import generate_id
 
 
 @dataclass

@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QDate
 
-from smart_project_manager.models.subtask import SubTask
+from smart_project_manager.core.models.subtask import SubTask
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.widgets.label_widget import LabelWidget
 

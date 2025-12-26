@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt, QDate, pyqtSignal
 
-from smart_project_manager.models.task import Task
+from smart_project_manager.core.models.task import Task
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.dialogs.subtask_dialog import SubTaskDialog
 from smart_project_manager.ui.widgets.label_widget import LabelWidget
