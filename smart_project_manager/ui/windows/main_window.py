@@ -1,4 +1,6 @@
 # Copyright (©) 2025, Alexander Suvorov. All rights reserved.
+import glob
+import os
 from datetime import datetime
 from typing import Optional
 
@@ -91,11 +93,24 @@ class MainWindow(QMainWindow):
 
         file_menu.addSeparator()
 
+        backup_action = QAction('Create Backup', self)
+        backup_action.setShortcut('Ctrl+B')
+        backup_action.triggered.connect(self.create_backup)
+        file_menu.addAction(backup_action)
+
+        backup_manager_action = QAction('Show Backups', self)
+        backup_manager_action.triggered.connect(self.show_backup_manager)
+        file_menu.addAction(backup_manager_action)
+
+        file_menu.addSeparator()
+
         import_action = QAction('Import...', self)
+        import_action.setShortcut('Ctrl+I')
         import_action.triggered.connect(self.import_data)
         file_menu.addAction(import_action)
 
         export_action = QAction('Export...', self)
+        export_action.setShortcut('Ctrl+Shift+E')
         export_action.triggered.connect(self.export_data)
         file_menu.addAction(export_action)
 
@@ -1373,28 +1388,253 @@ class MainWindow(QMainWindow):
             "JSON Files (*.json);;All Files (*)"
         )
 
-        if file_path:
-            # TODO: Implement import logic
-            QMessageBox.information(self, "Import", "Import feature coming soon")
+        if not file_path:
+            return
+
+        reply = QMessageBox.question(
+            self,
+            "Import Options",
+            "How to import?\n\n"
+            "Yes: Merge with current data\n"
+            "No: Replace current data",
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            QMessageBox.Yes
+        )
+
+        if reply == QMessageBox.Cancel:
+            return
+
+        strategy = "merge" if reply == QMessageBox.Yes else "replace"
+
+        try:
+            result = self.manager.import_data(file_path, strategy)
+
+            if result['success']:
+                self.manager.load_data()
+
+                self.current_project_id = None
+                self.selected_project_item = None
+                self.btn_delete_project.setEnabled(False)
+                self.btn_new_task.setEnabled(False)
+                self.tasks_header.setText('Select a project to view tasks')
+                self.tasks_table.setRowCount(0)
+                self.project_progress_group.setVisible(False)
+
+                self.load_projects()
+                self.update_statistics()
+
+                items = result.get('imported_items', {})
+                message = f"✅ Import successful!\n\n"
+
+                if items.get('projects', 0) > 0:
+                    message += f"📁 Projects: {items.get('projects', 0)}\n"
+                if items.get('tasks', 0) > 0:
+                    message += f"✅ Tasks: {items.get('tasks', 0)}\n"
+                if items.get('subtasks', 0) > 0:
+                    message += f"📝 Subtasks: {items.get('subtasks', 0)}\n"
+                if items.get('labels', 0) > 0:
+                    message += f"🏷️ Labels: {items.get('labels', 0)}\n"
+
+                QMessageBox.information(self, "Import Complete", message)
+                self.status_bar.showMessage('Data imported successfully', 3000)
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Import Failed",
+                    f"Failed to import: {result.get('error', 'Unknown error')}"
+                )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Import Error",
+                f"Import failed:\n\n{str(e)}"
+            )
 
     def export_data(self):
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Export Data",
-            f"project_manager_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             "JSON Files (*.json);;All Files (*)"
         )
 
-        if file_path:
-            try:
-                import shutil
-                shutil.copy2(self.manager.data_file, file_path)
-                QMessageBox.information(self, "Export Successful",
-                                        f"Data exported to:\n{file_path}")
-                self.status_bar.showMessage(f'Data exported to {file_path}', 3000)
-            except Exception as e:
-                QMessageBox.critical(self, "Export Error",
-                                     f"Failed to export data:\n{str(e)}")
+        if not file_path:
+            return
+
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        try:
+            result = self.manager.export_data(file_path)
+
+            if result['success']:
+                message = (
+                    f"✅ Export successful!\n\n"
+                    f"File: {result['export_path']}\n"
+                    f"Size: {result['export_size'] / 1024:.1f} KB"
+                )
+
+                QMessageBox.information(self, "Export Complete", message)
+                self.status_bar.showMessage('Data exported successfully', 3000)
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Export Failed",
+                    f"Failed to export: {result.get('error', 'Unknown error')}"
+                )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Export Error",
+                f"Export failed:\n\n{str(e)}"
+            )
+
+    def create_backup(self):
+        try:
+            backup_path = self.manager.create_backup()
+
+            QMessageBox.information(
+                self,
+                "Backup Created",
+                f"✅ Backup created successfully!\n\n{backup_path}"
+            )
+
+            self.status_bar.showMessage(f'Backup created', 3000)
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Backup Error",
+                f"Failed to create backup:\n\n{str(e)}"
+            )
+
+    def cleanup_old_backups_on_start(self):
+        try:
+            stats = self.manager.cleanup_old_backups(days_to_keep=30)
+
+            if stats['deleted'] > 0:
+                print(f"Cleaned up {stats['deleted']} old backups")
+
+        except Exception as e:
+            print(f"Backup cleanup error: {e}")
+
+    def show_backup_manager(self):
+        try:
+            info = self.manager.get_backup_info()
+
+            message = "📂 Backup Manager\n\n"
+
+            if info['total'] == 0:
+                message += "No backups found."
+                show_clear_button = False
+            else:
+                message += f"Total backups: {info['total']}\n"
+                message += f"Total size: {info['total_size_mb']:.2f} MB\n\n"
+
+                if info['total'] > 10:
+                    message += f"Showing last 10 of {info['total']} backups:\n\n"
+                else:
+                    message += "All backups:\n\n"
+
+                for backup in info['backups']:
+                    message += f"• {backup['date']} ({backup['size_mb']:.1f} MB)\n"
+
+                show_clear_button = True
+
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Backup Manager")
+            msg_box.setText(message)
+            msg_box.setIcon(QMessageBox.Information)
+
+            if show_clear_button:
+                clear_btn = msg_box.addButton("Clear All Backups", QMessageBox.ActionRole)
+                clear_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #e74c3c;
+                        color: white;
+                        font-weight: bold;
+                        padding: 5px 10px;
+                    }
+                    QPushButton:hover {
+                        background-color: #c0392b;
+                    }
+                """)
+
+            close_btn = msg_box.addButton("Close", QMessageBox.RejectRole)
+
+            msg_box.exec_()
+
+            if show_clear_button and msg_box.clickedButton() == clear_btn:
+                self.clear_all_backups()
+
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                "Backup Error",
+                f"Failed to show backup info: {str(e)}"
+            )
+
+    def clear_all_backups(self):
+        info = self.manager.get_backup_info()
+
+        if info['total'] == 0:
+            QMessageBox.information(
+                self,
+                "No Backups",
+                "No backup files found to delete"
+            )
+            return
+
+        reply = QMessageBox.warning(
+            self,
+            "Clear All Backups",
+            f"⚠️ Are you sure you want to delete ALL {info['total']} backups?\n"
+            f"Total size: {info['total_size_mb']:.2f} MB\n\n"
+            "This action cannot be undone!",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reply != QMessageBox.Yes:
+            return
+
+        try:
+            backup_dir = os.path.join(self.manager.data_dir, 'backups')
+
+            if os.path.exists(backup_dir):
+                backup_files = glob.glob(os.path.join(backup_dir, 'backup_*.json'))
+                deleted_count = 0
+
+                for backup_file in backup_files:
+                    try:
+                        os.remove(backup_file)
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"Failed to delete {backup_file}: {e}")
+                        continue
+
+                QMessageBox.information(
+                    self,
+                    "Backups Cleared",
+                    f"✅ Cleared {deleted_count} backup files\n"
+                    f"Freed {info['total_size_mb']:.2f} MB"
+                )
+                self.status_bar.showMessage(f'Cleared {deleted_count} backups', 3000)
+            else:
+                QMessageBox.information(
+                    self,
+                    "No Backups",
+                    "Backup directory does not exist"
+                )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Clear Error",
+                f"Failed to clear backups:\n\n{str(e)}"
+            )
 
     def show_about(self):
         QMessageBox.about(

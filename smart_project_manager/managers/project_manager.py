@@ -6,6 +6,7 @@ from smart_project_manager.models.label import Label
 from smart_project_manager.models.project import Project
 from smart_project_manager.models.subtask import SubTask
 from smart_project_manager.models.task import Task
+from smart_project_manager.services.import_export_service import ImportExportService
 from smart_project_manager.utils import load_json, save_json, format_datetime
 
 
@@ -304,3 +305,20 @@ class ProjectManager:
             'task_completion_rate': (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,
             'subtask_completion_rate': (completed_subtasks / total_subtasks * 100) if total_subtasks > 0 else 0
         }
+
+    def import_data(self, import_path: str, strategy: str = "merge") -> Dict:
+        return ImportExportService.import_data(self.data_file, import_path, strategy)
+
+    def export_data(self, export_path: str) -> Dict:
+        return ImportExportService.export_data(self.data_file, export_path)
+
+    def create_backup(self) -> str:
+        return ImportExportService.create_backup(self.data_file)
+
+    def cleanup_old_backups(self, days_to_keep: int = 30) -> Dict:
+        backup_dir = os.path.join(self.data_dir, 'backups')
+        return ImportExportService.cleanup_old_backups(backup_dir, days_to_keep)
+
+    def get_backup_info(self) -> Dict:
+        backup_dir = os.path.join(self.data_dir, 'backups')
+        return ImportExportService.get_backup_info(backup_dir)
