@@ -923,7 +923,9 @@ class MainWindow(QMainWindow):
 
             title_item = QTableWidgetItem(task.title)
             if task.description:
-                title_item.setToolTip(task.description)
+                title_item.setToolTip(f"Double-click to view details\n\n{task.description}")
+            else:
+                title_item.setToolTip("Double-click to view details")
             if task.completed:
                 title_item.setForeground(QColor(100, 100, 100))
                 font = title_item.font()

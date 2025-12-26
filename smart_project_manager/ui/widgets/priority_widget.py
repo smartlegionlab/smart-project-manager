@@ -1,7 +1,6 @@
 # Copyright (©) 2025, Alexander Suvorov. All rights reserved.
-from PyQt5.QtWidgets import QWidget
-from PyQt5.QtGui import QFont, QColor, QPainter, QBrush, QPen
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
+from PyQt5.QtGui import QColor, QPainter, QBrush, QPen
 
 
 class PriorityIndicatorWidget(QWidget):
@@ -9,7 +8,28 @@ class PriorityIndicatorWidget(QWidget):
     def __init__(self, priority: int, parent=None):
         super().__init__(parent)
         self.priority = priority
-        self.setFixedSize(24, 24)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(5, 0, 5, 0)
+        layout.setSpacing(6)
+
+        self.indicator = PriorityIndicator(priority)
+        layout.addWidget(self.indicator)
+
+        priority_text = ["High", "Medium", "Low"][priority - 1]
+        self.text_label = QLabel(priority_text)
+        self.text_label.setStyleSheet("color: white; font-size: 11px; font-weight: bold;")
+        layout.addWidget(self.text_label)
+
+        self.setFixedSize(90, 26)
+
+
+class PriorityIndicator(QWidget):
+
+    def __init__(self, priority: int, parent=None):
+        super().__init__(parent)
+        self.priority = priority
+        self.setFixedSize(14, 14)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -24,8 +44,4 @@ class PriorityIndicatorWidget(QWidget):
 
         painter.setBrush(QBrush(color))
         painter.setPen(QPen(QColor(255, 255, 255, 100), 1))
-        painter.drawEllipse(2, 2, 20, 20)
-
-        painter.setPen(QPen(Qt.white))
-        painter.setFont(QFont("Arial", 10, QFont.Bold))
-        painter.drawText(QRect(0, 0, 24, 24), Qt.AlignCenter, str(self.priority))
+        painter.drawEllipse(2, 2, 10, 10)
