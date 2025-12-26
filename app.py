@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette, QColor
 from PyQt5.QtCore import Qt
 
-from smart_project_manager.ui.windows.main_window import MainWindow
+from smart_project_manager.ui.main_window import MainWindow
 
 
 def main():
