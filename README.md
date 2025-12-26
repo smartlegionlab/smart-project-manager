@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v0.1.2</sup>
+# Smart Project Manager <sup>v0.1.3</sup>
 
 ---
 
@@ -10,7 +10,7 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 *   **Author:** Alexander Suvorov
 *   **GitHub:** [smartlegionlab](https://github.com/smartlegionlab)
-*   **Version:** v0.1.2
+*   **Version:** v0.1.3
 
 ---
 
@@ -122,9 +122,6 @@ repository for full details.
 The following features are identified in the code as future implementation targets:
 
 ### 🚧 **Planned Features**
-*   **Import/Export Functionality** - Currently implemented as menu placeholders (`File → Import...` and `File → Export...`), this feature will allow users to:
-    *   Import existing project data from external JSON files
-    *   Export current projects to portable JSON format for backup or sharing
     
 *   **Task Filtering System** - The "Show Completed Tasks" toggle in the `View` menu is implemented as a placeholder. Future implementation will:
     *   Enable filtering of completed vs. pending tasks in the task table
