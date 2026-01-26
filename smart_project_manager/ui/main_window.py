@@ -478,6 +478,8 @@ class MainWindow(QMainWindow):
         if not task:
             return
 
+        self.tasks_table.save_selection()
+
         dialog = TaskDialog(self, task=task, manager=self.manager)
         dialog.task_updated.connect(self.on_task_updated)
         if dialog.exec_() == QDialog.Accepted:
@@ -499,8 +501,11 @@ class MainWindow(QMainWindow):
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
 
+            self.tasks_table.restore_selection()
+
     def on_task_updated(self):
         if self.current_project_id:
+            self.tasks_table.save_selection()
             self.load_tasks_for_project(self.current_project_id)
             self.update_statistics()
 
@@ -509,6 +514,8 @@ class MainWindow(QMainWindow):
             project = self.manager.get_project(self.current_project_id)
             if project:
                 self.project_progress_widget.update_progress(project, self.manager)
+
+            self.tasks_table.restore_selection()
 
     def delete_task(self, task_id: str):
         task = self.manager.get_task(task_id)

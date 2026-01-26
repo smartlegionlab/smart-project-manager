@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar, QWidget,
-    QHBoxLayout, QPushButton
+    QHBoxLayout, QPushButton, QAbstractItemView
 )
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
@@ -13,7 +13,33 @@ from smart_project_manager.ui.widgets.label_widget import LabelWidget
 class TaskTableWidget(QTableWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setup_selection_behavior()
         self.setup_table()
+        self.setFocusPolicy(Qt.NoFocus)
+        self.selected_task_id = None
+
+        self.itemSelectionChanged.connect(self.save_selection)
+
+    def save_selection(self):
+        selected = self.selectedItems()
+        if selected:
+            row = selected[0].row()
+            item = self.item(row, 0)
+            self.selected_task_id = item.data(Qt.UserRole)
+
+    def restore_selection(self):
+        if not self.selected_task_id:
+            return
+
+        for row in range(self.rowCount()):
+            item = self.item(row, 0)
+            if item and item.data(Qt.UserRole) == self.selected_task_id:
+                self.selectRow(row)
+                break
+
+    def setup_selection_behavior(self):
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
 
     def setup_table(self):
         self.setColumnCount(8)
@@ -48,6 +74,7 @@ class TaskTableWidget(QTableWidget):
         self.insertRow(row)
 
         title_item = QTableWidgetItem(task.title)
+        title_item.setData(Qt.UserRole, task.id)
         if task.description:
             title_item.setToolTip(f"Double-click to view details\n\n{task.description}")
         else:
