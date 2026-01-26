@@ -18,8 +18,8 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QMainWindow
 )
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont, QDesktopServices
+from PyQt5.QtCore import Qt, QUrl
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
@@ -108,6 +108,13 @@ class MainWindow(QMainWindow):
         export_action.setShortcut('Ctrl+Shift+E')
         export_action.triggered.connect(self.export_data)
         file_menu.addAction(export_action)
+
+        file_menu.addSeparator()
+
+        github_url_action = QAction('Open GitHub URL', self)
+        github_url_action.setShortcut('Ctrl+G')
+        github_url_action.triggered.connect(self.open_github_url)
+        file_menu.addAction(github_url_action)
 
         file_menu.addSeparator()
 
@@ -391,6 +398,33 @@ class MainWindow(QMainWindow):
                     break
 
             QMessageBox.information(self, 'Success', f'Project "{project.name}" created')
+
+    def open_github_url(self):
+        if not self.current_project_id:
+            QMessageBox.warning(self, 'Error', 'No project selected')
+            return
+
+        project = self.manager.get_project(self.current_project_id)
+        if not project:
+            QMessageBox.warning(self, 'Error', 'Project not found')
+            return
+
+        if not project.github_url:
+            QMessageBox.warning(self, 'Error', 'No GitHub URL specified for this project')
+            return
+
+        try:
+            url = project.github_url.strip()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+
+            QDesktopServices.openUrl(QUrl(url))
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                'Error',
+                f'Failed to open URL:\n{str(e)}\n\nURL: {project.github_url}'
+            )
 
     def edit_current_project(self):
         if not self.current_project_id:

@@ -55,6 +55,15 @@ class ProjectDialog(QDialog):
             self.version_input.setText("1.0.0")
         name_layout.addWidget(self.version_input, 1, 1)
 
+        self.github_url_label = QLabel('GitHub URL:')
+        name_layout.addWidget(self.github_url_label, 2, 0)
+
+        self.github_url_input = QLineEdit()
+        self.github_url_input.setPlaceholderText("https://github.com/user/repo")
+        if project:
+            self.version_input.setText(project.github_url)
+        name_layout.addWidget(self.github_url_input, 2, 1)
+
         self.layout.addWidget(name_group)
 
         desc_group = QFrame()
@@ -117,6 +126,7 @@ class ProjectDialog(QDialog):
     def get_project_data(self) -> dict:
         return {
             'name': self.name_input.text().strip(),
+            'github_url': self.github_url_input.text().strip(),
             'version': self.version_input.text().strip(),
             'description': self.desc_input.toPlainText().strip() or None
         }
