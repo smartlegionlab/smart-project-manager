@@ -10,6 +10,7 @@ from smart_project_manager.core.utils import generate_id, format_datetime, calcu
 class Project:
     id: str
     name: str
+    github_url: str
     version: str
     description: Optional[str] = None
     tasks: List[str] = field(default_factory=list)
@@ -19,12 +20,14 @@ class Project:
     def __init__(
             self,
             name: str,
+            github_url: str = "",
             version: str = "1.0.0",
             description: Optional[str] = None,
             id: Optional[str] = None
     ):
         self.id = id or generate_id()
         self.name = name
+        self.github_url = github_url
         self.version = version
         self.description = description
         self.tasks = []
@@ -63,6 +66,7 @@ class Project:
         return {
             "id": self.id,
             "name": self.name,
+            "github_url": self.github_url,
             "version": self.version,
             "description": self.description,
             "tasks": self.tasks,
@@ -72,9 +76,12 @@ class Project:
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'Project':
+        github_url = data.get('github_url', '')
+
         project = cls(
             id=data['id'],
             name=data['name'],
+            github_url=github_url,
             version=data['version'],
             description=data.get('description')
         )
