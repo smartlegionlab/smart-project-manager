@@ -203,6 +203,8 @@ class MainWindow(QMainWindow):
 
         self.projects_tree = ProjectsTreeWidget(self)
         self.projects_tree.itemClicked.connect(self.on_project_selected)
+        self.projects_tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.projects_tree.customContextMenuRequested.connect(self.show_project_context_menu)
         left_layout.addWidget(self.projects_tree, 1)
 
         self.statistics_widget = StatisticsWidget(self)
@@ -349,6 +351,9 @@ class MainWindow(QMainWindow):
         self.update_statistics()
 
     def on_project_selected(self, item, column):
+        if not item or not hasattr(item, 'project_id'):
+            return
+
         self.current_project_id = item.project_id
         self.selected_project_item = item
         self.btn_delete_project.setEnabled(True)
@@ -362,9 +367,7 @@ class MainWindow(QMainWindow):
 
         if project:
             self.tasks_header.setText(f'📋 Project: "{project.name}"')
-
             self.project_progress_widget.update_progress(project, self.manager)
-
             self.load_tasks_for_project(project.id)
 
     def load_tasks_for_project(self, project_id: str):
@@ -466,6 +469,7 @@ class MainWindow(QMainWindow):
 
             if self.current_project_id == project.id:
                 self.load_tasks_for_project(project.id)
+        self.refresh_view()
 
     def delete_current_project(self):
         if not self.current_project_id:
@@ -599,6 +603,23 @@ class MainWindow(QMainWindow):
         dialog.exec_()
         self.update_statistics()
 
+    def show_project_context_menu(self, position):
+        item = self.projects_tree.itemAt(position)
+
+        if item and hasattr(item, 'project_id'):
+            project_id = item.project_id
+            self.current_project_id = project_id
+            self.selected_project_item = item
+
+            self.btn_delete_project.setEnabled(True)
+            self.btn_edit_project.setEnabled(True)
+            self.btn_open_url.setEnabled(True)
+            self.btn_new_task.setEnabled(True)
+
+            self.show_project_menu(project_id, self.projects_tree.viewport().mapToGlobal(position))
+        else:
+            self.show_empty_project_context_menu(position)
+
     def show_task_context_menu(self, position):
         row = self.tasks_table.rowAt(position.y())
 
@@ -651,6 +672,46 @@ class MainWindow(QMainWindow):
 
         menu.exec_(position)
 
+    def show_empty_project_context_menu(self, position):
+        menu = QMenu()
+
+        new_project_action = QAction("📁 New Project", self)
+        new_project_action.triggered.connect(self.create_project)
+        menu.addAction(new_project_action)
+
+        menu.addSeparator()
+
+        refresh_action = QAction("🔄 Refresh", self)
+        refresh_action.triggered.connect(self.refresh_view)
+        menu.addAction(refresh_action)
+
+        menu.exec_(self.projects_tree.viewport().mapToGlobal(position))
+
+    def show_project_menu(self, project_id: str, position):
+        project = self.manager.get_project(project_id)
+        if not project:
+            return
+
+        menu = QMenu()
+
+        if project.github_url:
+            open_url_action = QAction("🌐 Open GitHub URL")
+            open_url_action.triggered.connect(self.open_github_url)
+            menu.addAction(open_url_action)
+            menu.addSeparator()
+
+        edit_action = QAction("✏️ Edit Project")
+        edit_action.triggered.connect(self.edit_current_project)
+        menu.addAction(edit_action)
+
+        menu.addSeparator()
+
+        delete_action = QAction("🗑️ Delete Project")
+        delete_action.triggered.connect(self.delete_current_project)
+        menu.addAction(delete_action)
+
+        menu.exec_(position)
+
     def view_task(self, task_id: str):
         task = self.manager.get_task(task_id)
         if not task:
@@ -676,6 +737,7 @@ class MainWindow(QMainWindow):
             self.load_tasks_for_project(self.current_project_id)
             project = self.manager.get_project(self.current_project_id)
             if project:
+                self.tasks_header.setText(f'📋 Project: "{project.name}"')
                 self.project_progress_widget.update_progress(project, self.manager)
 
         self.status_bar.showMessage('View refreshed', 3000)
