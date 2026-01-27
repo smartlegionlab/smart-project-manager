@@ -331,6 +331,30 @@ class MainWindow(QMainWindow):
         """)
         table_header_layout.addWidget(self.btn_new_task)
 
+        self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
+        self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
+        self.btn_clear_completed.setEnabled(False)
+        self.btn_clear_completed.setVisible(False)
+        self.btn_clear_completed.setStyleSheet("""
+                QPushButton {
+                    background-color: #f39c12;
+                    color: black;
+                    font-weight: bold;
+                    padding: 6px 12px;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    min-width: 140px;
+                }
+                QPushButton:hover:enabled {
+                    background-color: #d68910;
+                }
+                QPushButton:disabled {
+                    background-color: #666;
+                    color: #999;
+                }
+            """)
+        table_header_layout.addWidget(self.btn_clear_completed)
+
         table_container_layout.addLayout(table_header_layout)
 
         self.tasks_table = TaskTableWidget(self)
@@ -387,6 +411,9 @@ class MainWindow(QMainWindow):
         self.btn_new_task.setVisible(True)
         self.btn_new_task.setEnabled(True)
 
+        self.btn_clear_completed.setVisible(True)
+        self.update_clear_completed_button()
+
         self.last_selected_project_id = self.current_project_id
 
         project = self.manager.get_project(self.current_project_id)
@@ -424,6 +451,7 @@ class MainWindow(QMainWindow):
                 project = self.manager.get_project(self.current_project_id)
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
+        self.update_clear_completed_button()
 
     def create_project(self):
         dialog = ProjectDialog(self, manager=self.manager)
@@ -527,12 +555,113 @@ class MainWindow(QMainWindow):
             self.btn_new_task.setVisible(False)
             self.btn_new_task.setEnabled(False)
 
+            self.btn_clear_completed.setVisible(False)
+            self.btn_clear_completed.setEnabled(False)
+
             self.tasks_header.setText('Select a project to view tasks')
             self.tasks_table.setRowCount(0)
 
             self.project_progress_widget.setVisible(False)
 
             self.load_projects()
+
+    def clear_completed_tasks(self):
+        if not self.current_project_id:
+            QMessageBox.warning(self, 'Error', 'No project selected')
+            return
+
+        tasks = self.manager.get_tasks_by_project(self.current_project_id)
+        completed_tasks = [task for task in tasks if task.completed]
+
+        if not completed_tasks:
+            QMessageBox.information(self, 'Info', 'No completed tasks to clear')
+            return
+
+        reply = QMessageBox.question(
+            self,
+            'Clear Completed Tasks',
+            f'Clear {len(completed_tasks)} completed task(s)?\n\n'
+            'This action cannot be undone.',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            deleted_count = 0
+            for task in completed_tasks:
+                if self.manager.delete_task(task.id):
+                    deleted_count += 1
+
+            if self.current_project_id:
+                self.load_tasks_for_project(self.current_project_id)
+                self.update_statistics()
+
+                self.load_projects()
+
+                project = self.manager.get_project(self.current_project_id)
+                if project:
+                    self.project_progress_widget.update_progress(project, self.manager)
+
+            QMessageBox.information(
+                self,
+                'Success',
+                f'Cleared {deleted_count} completed task(s)'
+            )
+
+            self.update_clear_completed_button()
+
+    def update_clear_completed_button(self):
+        if not self.current_project_id:
+            self.btn_clear_completed.setEnabled(False)
+            self.btn_clear_completed.setText('🗑️ Clear Completed (0)')
+            return
+
+        tasks = self.manager.get_tasks_by_project(self.current_project_id)
+
+        completed_count = sum(1 for task in tasks if task.completed)
+
+        self.btn_clear_completed.setText(f'🗑️ Clear Completed ({completed_count})')
+
+        self.btn_clear_completed.setEnabled(completed_count > 0)
+
+        if completed_count > 0:
+            self.btn_clear_completed.setStyleSheet("""
+                QPushButton {
+                    background-color: #f39c12;
+                    color: black;
+                    font-weight: bold;
+                    padding: 6px 12px;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    min-width: 140px;
+                }
+                QPushButton:hover:enabled {
+                    background-color: #d68910;
+                }
+                QPushButton:disabled {
+                    background-color: #666;
+                    color: #999;
+                }
+            """)
+        else:
+            self.btn_clear_completed.setStyleSheet("""
+                QPushButton {
+                    background-color: #666;
+                    color: #999;
+                    font-weight: bold;
+                    padding: 6px 12px;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    min-width: 140px;
+                }
+                QPushButton:hover:enabled {
+                    background-color: #d68910;
+                }
+                QPushButton:disabled {
+                    background-color: #666;
+                    color: #999;
+                }
+            """)
 
     def create_task(self):
         if not self.current_project_id:
@@ -648,6 +777,9 @@ class MainWindow(QMainWindow):
 
             self.btn_new_task.setVisible(True)
             self.btn_new_task.setEnabled(True)
+
+            self.btn_clear_completed.setVisible(True)
+            self.update_clear_completed_button()
 
             self.show_project_menu(project_id, self.projects_tree.viewport().mapToGlobal(position))
         else:
@@ -819,6 +951,9 @@ class MainWindow(QMainWindow):
 
                 self.btn_new_task.setVisible(False)
                 self.btn_new_task.setEnabled(False)
+
+                self.btn_clear_completed.setVisible(False)
+                self.btn_clear_completed.setEnabled(False)
 
                 self.tasks_header.setText('Select a project to view tasks')
                 self.tasks_table.setRowCount(0)
