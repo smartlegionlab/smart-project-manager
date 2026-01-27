@@ -31,6 +31,8 @@ from smart_project_manager.ui.widgets.project_tree_widget import ProjectsTreeWid
 from smart_project_manager.ui.widgets.statistic_widget import StatisticsWidget
 from smart_project_manager.ui.widgets.task_table_widget import TaskTableWidget
 
+from smart_project_manager import __version__ as ver
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -40,7 +42,7 @@ class MainWindow(QMainWindow):
         self.selected_project_item = None
         self.last_selected_project_id = None
 
-        self.setWindowTitle('Smart Project Manager v0.1.8')
+        self.setWindowTitle(f'Smart Project Manager {ver}')
         self.showMaximized()
 
         self.setStyleSheet("""
@@ -945,7 +947,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About Smart Project Manager",
-            """<h2>Smart Project Manager v0.1.8</h2>
+            f"""<h2>Smart Project Manager {ver}</h2>
             <p>A powerful project and task management tool for developers and researchers.</p>
             <p><b>Features:</b></p>
             <ul>

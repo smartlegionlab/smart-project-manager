@@ -61,7 +61,7 @@ class ProjectDialog(QDialog):
         self.github_url_input = QLineEdit()
         self.github_url_input.setPlaceholderText("https://github.com/user/repo")
         if project:
-            self.version_input.setText(project.github_url)
+            self.github_url_input.setText(project.github_url)
         name_layout.addWidget(self.github_url_input, 2, 1)
 
         self.layout.addWidget(name_group)
