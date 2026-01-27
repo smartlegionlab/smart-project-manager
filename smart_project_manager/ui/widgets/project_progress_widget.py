@@ -1,3 +1,4 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar
 )
@@ -74,6 +75,20 @@ class ProjectProgressWidget(QGroupBox):
         """)
         self.project_description_label.setWordWrap(True)
         self.layout.addWidget(self.project_description_label)
+
+        self.project_url_label = QLabel()
+        self.project_url_label.setStyleSheet("""
+            QLabel {
+                font-size: 12px;
+                font-weight: bold;
+            }
+        """)
+        self.project_url_label.setWordWrap(True)
+        self.project_url_label.setTextFormat(Qt.RichText)
+        self.project_url_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.project_url_label.setOpenExternalLinks(True)
+
+        self.layout.addWidget(self.project_url_label)
 
         progress_layout = QVBoxLayout()
         progress_layout.setSpacing(3)
@@ -228,6 +243,12 @@ class ProjectProgressWidget(QGroupBox):
             self.project_description_label.setText(project.description)
         else:
             self.project_description_label.setText("No description")
+
+        if project.github_url:
+            self.project_url_label.setText(f'<a href="{project.github_url}" styles="text-decoration=none">'
+                                           f'{project.github_url}</a>')
+        else:
+            self.project_url_label.setText("No GitHub URL")
 
         tasks = manager.get_tasks_by_project(project.id)
         total_tasks = len(tasks)
