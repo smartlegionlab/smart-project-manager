@@ -1,4 +1,4 @@
-# Copyright (©) 2025, Alexander Suvorov. All rights reserved.
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QProgressBar
 from PyQt5.QtCore import Qt
 

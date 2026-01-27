@@ -1207,7 +1207,7 @@ class MainWindow(QMainWindow):
             <li>Automatic progress tracking</li>
             <li>Dark theme interface</li>
             </ul>
-            <p><b>Copyright © 2025, <a href="https://github.com/smartlegionlab/">Alexander Suvorov</a>. All rights reserved.</b></p>
+            <p><b>Copyright © 2026, <a href="https://github.com/smartlegionlab/">Alexander Suvorov</a>. All rights reserved.</b></p>
             """
         )
 

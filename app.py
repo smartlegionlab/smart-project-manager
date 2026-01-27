@@ -1,4 +1,4 @@
-# Copyright (©) 2025, Alexander Suvorov. All rights reserved.
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette, QColor

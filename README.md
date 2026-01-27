@@ -133,7 +133,7 @@ The following features are identified in the code as future implementation targe
 
 ---
 
-**Copyright (©) 2025, Alexander Suvorov. All rights reserved.**
+**Copyright (©) 2026, Alexander Suvorov. All rights reserved.**
 
 ---
 
