@@ -42,6 +42,7 @@ class LabelDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Enter label name")
+        self.name_input.setMaxLength(10)
         if label:
             self.name_input.setText(label.name)
         name_layout.addWidget(self.name_input)

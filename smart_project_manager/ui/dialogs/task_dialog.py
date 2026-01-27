@@ -169,24 +169,22 @@ class TaskDialog(QDialog):
         labels_header.addStretch()
         labels_layout.addLayout(labels_header)
 
-        self.labels_list = QListWidget()
-        self.labels_list.setMaximumHeight(80)
-        self.labels_list.setStyleSheet("""
-            QListWidget {
+        self.selected_labels_container = QWidget()
+        self.selected_labels_container.setStyleSheet("""
+            QWidget {
                 background-color: #2a2a2a;
                 border: 1px solid #444;
                 border-radius: 3px;
             }
         """)
-        labels_layout.addWidget(self.labels_list)
+        self.selected_labels_container.setMinimumHeight(50)
+        self.selected_labels_layout = QHBoxLayout(self.selected_labels_container)
+        self.selected_labels_layout.setContentsMargins(8, 8, 8, 8)
+        self.selected_labels_layout.setSpacing(5)
+
+        labels_layout.addWidget(self.selected_labels_container)
 
         layout.addWidget(labels_group)
-
-        self.selected_labels_widget = QWidget()
-        self.selected_labels_layout = QHBoxLayout(self.selected_labels_widget)
-        self.selected_labels_layout.setContentsMargins(0, 0, 0, 0)
-        self.selected_labels_layout.setSpacing(5)
-        layout.addWidget(self.selected_labels_widget)
 
         self.selected_label_ids = []
         if self.task:
@@ -266,40 +264,47 @@ class TaskDialog(QDialog):
 
     def update_selected_labels_display(self):
         for i in reversed(range(self.selected_labels_layout.count())):
-            widget = self.selected_labels_layout.itemAt(i).widget()
-            if widget:
-                widget.deleteLater()
+            item = self.selected_labels_layout.itemAt(i)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.spacerItem():
+                self.selected_labels_layout.removeItem(item)
 
-        for label_id in self.selected_label_ids:
-            label = self.manager.get_label(label_id)
-            if label:
-                label_widget = LabelWidget(label.name, label.color)
+        if self.selected_label_ids:
+            for label_id in self.selected_label_ids:
+                label = self.manager.get_label(label_id)
+                if label:
+                    label_widget = LabelWidget(label.name, label.color)
 
-                remove_btn = QPushButton('×')
-                remove_btn.setFixedSize(20, 20)
-                remove_btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #e74c3c;
-                        color: white;
-                        border-radius: 10px;
-                        font-weight: bold;
-                    }
-                    QPushButton:hover {
-                        background-color: #c0392b;
-                    }
-                """)
-                remove_btn.clicked.connect(lambda checked, lid=label_id: self.remove_label(lid))
+                    remove_btn = QPushButton('×')
+                    remove_btn.setFixedSize(20, 20)
+                    remove_btn.setStyleSheet("""
+                        QPushButton {
+                            background-color: #e74c3c;
+                            color: white;
+                            border-radius: 10px;
+                            font-weight: bold;
+                            font-size: 12px;
+                        }
+                        QPushButton:hover {
+                            background-color: #c0392b;
+                        }
+                    """)
+                    remove_btn.clicked.connect(lambda checked, lid=label_id: self.remove_label(lid))
 
-                container = QWidget()
-                container_layout = QHBoxLayout(container)
-                container_layout.setContentsMargins(0, 0, 0, 0)
-                container_layout.setSpacing(2)
-                container_layout.addWidget(label_widget)
-                container_layout.addWidget(remove_btn)
+                    container = QWidget()
+                    container.setStyleSheet("background-color: #353535; border-radius: 3px;")
+                    container_layout = QHBoxLayout(container)
+                    container_layout.setContentsMargins(5, 2, 5, 2)
+                    container_layout.setSpacing(5)
+                    container_layout.addWidget(label_widget)
+                    container_layout.addWidget(remove_btn)
 
-                self.selected_labels_layout.addWidget(container)
+                    self.selected_labels_layout.addWidget(container)
 
-        self.selected_labels_layout.addStretch()
+            self.selected_labels_layout.addStretch()
+        else:
+            self.selected_labels_layout.addStretch()
 
     def remove_label(self, label_id: str):
         if label_id in self.selected_label_ids:

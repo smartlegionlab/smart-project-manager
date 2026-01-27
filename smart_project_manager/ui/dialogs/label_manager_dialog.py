@@ -70,7 +70,7 @@ class LabelManagerDialog(QDialog):
             QListWidget::item {
                 background-color: #353535;
                 border-radius: 5px;
-                margin: 5px;
+                margin: 1px;
                 padding: 10px;
             }
             QListWidget::item:hover {
