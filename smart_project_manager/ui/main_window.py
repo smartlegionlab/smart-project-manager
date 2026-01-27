@@ -113,13 +113,6 @@ class MainWindow(QMainWindow):
 
         file_menu.addSeparator()
 
-        github_url_action = QAction('Open GitHub URL', self)
-        github_url_action.setShortcut('Ctrl+G')
-        github_url_action.triggered.connect(self.open_github_url)
-        file_menu.addAction(github_url_action)
-
-        file_menu.addSeparator()
-
         exit_action = QAction('Exit', self)
         exit_action.setShortcut('Ctrl+Q')
         exit_action.triggered.connect(self.close)
@@ -245,6 +238,28 @@ class MainWindow(QMainWindow):
         """)
         tasks_header_layout.addWidget(self.btn_new_task)
 
+        self.btn_open_url = QPushButton('Open GitHub URL')
+        self.btn_open_url.clicked.connect(self.open_github_url)
+        self.btn_open_url.setEnabled(False)
+        self.btn_open_url.setStyleSheet("""
+                    QPushButton {
+                        background-color: #3498db;
+                        color: black;
+                        font-weight: bold;
+                        padding: 8px 12px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                    }
+                    QPushButton:hover:enabled {
+                        background-color: #1976d2;
+                    }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
+                """)
+        tasks_header_layout.addWidget(self.btn_open_url)
+
         self.btn_edit_project = QPushButton('Edit')
         self.btn_edit_project.clicked.connect(self.edit_current_project)
         self.btn_edit_project.setEnabled(False)
@@ -338,6 +353,7 @@ class MainWindow(QMainWindow):
         self.selected_project_item = item
         self.btn_delete_project.setEnabled(True)
         self.btn_edit_project.setEnabled(True)
+        self.btn_open_url.setEnabled(True)
         self.btn_new_task.setEnabled(True)
 
         self.last_selected_project_id = self.current_project_id
