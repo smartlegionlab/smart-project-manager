@@ -223,24 +223,7 @@ class MainWindow(QMainWindow):
 
         tasks_header_layout.addStretch()
 
-        self.btn_new_task = QPushButton('+ New Task')
-        self.btn_new_task.clicked.connect(self.create_task)
-        self.btn_new_task.setEnabled(False)
-        self.btn_new_task.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: black;
-                font-weight: bold;
-                padding: 8px 16px;
-                border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #219653;
-            }
-        """)
-        tasks_header_layout.addWidget(self.btn_new_task)
-
-        self.btn_open_url = QPushButton('Open GitHub URL')
+        self.btn_open_url = QPushButton('GitHub URL')
         self.btn_open_url.clicked.connect(self.open_github_url)
         self.btn_open_url.setEnabled(False)
         self.btn_open_url.setStyleSheet("""
@@ -311,11 +294,52 @@ class MainWindow(QMainWindow):
         self.project_progress_widget = ProjectProgressWidget(self)
         right_layout.addWidget(self.project_progress_widget)
 
+        self.table_container = QWidget()
+        table_container_layout = QVBoxLayout(self.table_container)
+        table_container_layout.setContentsMargins(0, 0, 0, 0)
+        table_container_layout.setSpacing(5)
+
+        table_header_layout = QHBoxLayout()
+
+        table_title = QLabel('Tasks')
+        table_title.setFont(QFont("Arial", 12, QFont.Bold))
+        table_header_layout.addWidget(table_title)
+
+        table_header_layout.addStretch()
+
+        self.btn_new_task = QPushButton('➕ Add Task')
+        self.btn_new_task.clicked.connect(self.create_task)
+        self.btn_new_task.setEnabled(False)
+        self.btn_new_task.setVisible(False)
+        self.btn_new_task.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: black;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+                min-width: 90px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #219653;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        table_header_layout.addWidget(self.btn_new_task)
+
+        table_container_layout.addLayout(table_header_layout)
+
         self.tasks_table = TaskTableWidget(self)
         self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
         self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
-        right_layout.addWidget(self.tasks_table, 3)
+        table_container_layout.addWidget(self.tasks_table, 1)
+
+        right_layout.addWidget(self.table_container, 1)
 
         main_layout.addWidget(right_panel, 1)
 
@@ -359,6 +383,8 @@ class MainWindow(QMainWindow):
         self.btn_delete_project.setEnabled(True)
         self.btn_edit_project.setEnabled(True)
         self.btn_open_url.setEnabled(True)
+
+        self.btn_new_task.setVisible(True)
         self.btn_new_task.setEnabled(True)
 
         self.last_selected_project_id = self.current_project_id
@@ -495,7 +521,12 @@ class MainWindow(QMainWindow):
             self.current_project_id = None
             self.selected_project_item = None
             self.btn_delete_project.setEnabled(False)
+            self.btn_edit_project.setEnabled(False)
+            self.btn_open_url.setEnabled(False)
+
+            self.btn_new_task.setVisible(False)
             self.btn_new_task.setEnabled(False)
+
             self.tasks_header.setText('Select a project to view tasks')
             self.tasks_table.setRowCount(0)
 
@@ -614,6 +645,8 @@ class MainWindow(QMainWindow):
             self.btn_delete_project.setEnabled(True)
             self.btn_edit_project.setEnabled(True)
             self.btn_open_url.setEnabled(True)
+
+            self.btn_new_task.setVisible(True)
             self.btn_new_task.setEnabled(True)
 
             self.show_project_menu(project_id, self.projects_tree.viewport().mapToGlobal(position))
@@ -783,7 +816,10 @@ class MainWindow(QMainWindow):
                 self.selected_project_item = None
                 self.btn_delete_project.setEnabled(False)
                 self.btn_edit_project.setEnabled(False)
+
+                self.btn_new_task.setVisible(False)
                 self.btn_new_task.setEnabled(False)
+
                 self.tasks_header.setText('Select a project to view tasks')
                 self.tasks_table.setRowCount(0)
                 self.project_progress_widget.setVisible(False)
