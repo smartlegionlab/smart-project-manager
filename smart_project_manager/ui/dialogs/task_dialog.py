@@ -1,4 +1,5 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
+from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -32,13 +33,26 @@ from smart_project_manager.ui.widgets.priority_widget import PriorityIndicatorWi
 class TaskDialog(QDialog):
     task_updated = pyqtSignal()
 
-    def __init__(self, parent=None, task: Task = None, manager=None, project_id: str = None):
+    def __init__(self, parent=None, task: Task = None,
+                 manager=None, project_id: str = None, sound_manager = None):
         super().__init__(parent)
         self.is_edit_mode = task is not None
         self.task = task
         self.manager = manager
         self.project_id = project_id if project_id else (task.project_id if task else None)
         self.max_labels = 3
+
+        self.click_sound = QSound("data/sounds/click.wav")
+
+        self.notify_sound = QSound("data/sounds/notify.wav")
+
+        self.error_sound = QSound("data/sounds/error.wav")
+
+        self.sound_manager = sound_manager
+
+        self.sound_manager.register_sound('click', self.click_sound)
+        self.sound_manager.register_sound('notify', self.notify_sound)
+        self.sound_manager.register_sound('error', self.error_sound)
 
         self.setWindowTitle('Edit Task' if self.is_edit_mode else 'Create New Task')
         self.setMinimumSize(700, 600)
@@ -62,11 +76,13 @@ class TaskDialog(QDialog):
         button_layout = QHBoxLayout()
 
         self.cancel_button = QPushButton('Cancel')
+        self.cancel_button.clicked.connect(self.on_click)
         self.cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(self.cancel_button)
 
         button_text = 'Update Task' if self.is_edit_mode else 'Create Task'
         self.submit_button = QPushButton(button_text)
+        self.submit_button.clicked.connect(self.on_click)
         self.submit_button.setDefault(True)
         self.submit_button.setStyleSheet("background-color: #2a82da; color: white;")
         self.submit_button.clicked.connect(self.accept)
@@ -158,6 +174,7 @@ class TaskDialog(QDialog):
         labels_header.addWidget(self.labels_counter)
 
         self.btn_add_label = QPushButton('+ Add Labels')
+        self.btn_add_label.clicked.connect(self.on_click)
         self.btn_add_label.clicked.connect(self.add_label)
         self.btn_add_label.setStyleSheet("""
                     QPushButton {
@@ -214,6 +231,7 @@ class TaskDialog(QDialog):
         header_layout.addStretch()
 
         self.btn_add_subtask = QPushButton('+ Add Subtask')
+        self.btn_add_subtask.clicked.connect(self.on_click)
         self.btn_add_subtask.clicked.connect(self.add_subtask)
         self.btn_add_subtask.setStyleSheet("""
             QPushButton {
@@ -261,7 +279,9 @@ class TaskDialog(QDialog):
         self.load_subtasks()
 
     def add_label(self):
+        self.on_notify()
         if len(self.selected_label_ids) >= self.max_labels:
+            self.on_error()
             QMessageBox.warning(self, 'Limit Reached',
                                 f'You can only select up to {self.max_labels} labels.')
             return
@@ -388,11 +408,13 @@ class TaskDialog(QDialog):
             self.update_selected_labels_display()
 
     def add_subtask(self):
+        self.on_notify()
         dialog = SubTaskDialog(self, manager=self.manager, task_id=self.task.id, project_id=self.task.project_id)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_subtask_data()
 
             if not data['title']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Subtask title is required')
                 return
 
@@ -480,6 +502,7 @@ class TaskDialog(QDialog):
             self.subtasks_table.setCellWidget(row, 5, delete_button)
 
     def toggle_subtask_status(self, subtask_id: str):
+        self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
         if subtask:
             subtask.toggle_complete()
@@ -488,6 +511,7 @@ class TaskDialog(QDialog):
             self.task_updated.emit()
 
     def edit_subtask(self, subtask_id: str):
+        self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
         if not subtask:
             return
@@ -505,6 +529,7 @@ class TaskDialog(QDialog):
             self.task_updated.emit()
 
     def delete_subtask(self, subtask_id: str):
+        self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
         if not subtask:
             return
@@ -533,6 +558,15 @@ class TaskDialog(QDialog):
             'labels': self.selected_label_ids,
             'project_id': self.project_id
         }
+
+    def on_click(self):
+        self.sound_manager.play_click()
+
+    def on_notify(self):
+        self.sound_manager.play_notify()
+
+    def on_error(self):
+        self.sound_manager.play_error()
 
     def accept(self):
         data = self.get_task_data()

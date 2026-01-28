@@ -174,11 +174,13 @@ class MainWindow(QMainWindow):
         show_completed_action.triggered.connect(self.toggle_show_completed_menu)
         view_menu.addAction(show_completed_action)
 
+        sounds_menu = menubar.addMenu('Sounds')
+
         sound_action = QAction('Enable Sounds', self)
         sound_action.setCheckable(True)
         sound_action.setChecked(True)
         sound_action.triggered.connect(self.toggle_sounds)
-        view_menu.addAction(sound_action)
+        sounds_menu.addAction(sound_action)
 
         self.sound_manager.sound_enabled_changed.connect(
             sound_action.setChecked
@@ -1005,7 +1007,8 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, 'Error', 'Please select a project first')
             return
 
-        dialog = TaskDialog(self, manager=self.manager, project_id=self.current_project_id)
+        dialog = TaskDialog(self, manager=self.manager,
+                            project_id=self.current_project_id, sound_manager=self.sound_manager)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_task_data()
 
@@ -1038,7 +1041,7 @@ class MainWindow(QMainWindow):
 
         self.tasks_table.save_selection()
 
-        dialog = TaskDialog(self, task=task, manager=self.manager)
+        dialog = TaskDialog(self, task=task, manager=self.manager, sound_manager=self.sound_manager)
         dialog.task_updated.connect(self.on_task_updated)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_task_data()
