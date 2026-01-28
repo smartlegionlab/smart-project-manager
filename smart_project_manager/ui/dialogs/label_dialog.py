@@ -42,7 +42,7 @@ class LabelDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Enter label name")
-        self.name_input.setMaxLength(10)
+        self.name_input.setMaxLength(8)
         if label:
             self.name_input.setText(label.name)
         name_layout.addWidget(self.name_input)
@@ -77,7 +77,7 @@ class LabelDialog(QDialog):
         preview_container_layout.setContentsMargins(0, 0, 0, 0)
 
         self.preview_widget = LabelWidget(
-            label.name if label else "Preview Label",
+            label.name if label else "Preview",
             self.current_color.name(),
             self
         )
@@ -167,7 +167,7 @@ class LabelDialog(QDialog):
         return QColor.fromHsv(h, s, v, a).name()
 
     def update_preview(self):
-        name = self.name_input.text() or "Preview Label"
+        name = self.name_input.text() or "Preview"
         self.preview_widget.set_label(name, self.current_color.name())
 
     def get_label_data(self) -> dict:
