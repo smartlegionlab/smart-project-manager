@@ -1,4 +1,5 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
+from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -21,12 +22,25 @@ class LabelManagerDialog(QDialog):
     label_selected = pyqtSignal(str)
     multiple_labels_selected = pyqtSignal(list)
 
-    def __init__(self, parent=None, manager=None, multi_select=False, max_selection=3, pre_selected_ids=None):
+    def __init__(self, parent=None, manager=None, multi_select=False,
+                 max_selection=3, pre_selected_ids=None, sound_manager=None):
         super().__init__(parent)
         self.manager = manager
         self.multi_select = multi_select
         self.max_selection = max_selection
         self.selected_label_ids = pre_selected_ids or []
+
+        self.click_sound = QSound("data/sounds/click.wav")
+
+        self.notify_sound = QSound("data/sounds/notify.wav")
+
+        self.error_sound = QSound("data/sounds/error.wav")
+
+        self.sound_manager = sound_manager
+
+        self.sound_manager.register_sound('click', self.click_sound)
+        self.sound_manager.register_sound('notify', self.notify_sound)
+        self.sound_manager.register_sound('error', self.error_sound)
 
         title_suffix = " (Select up to 3)" if multi_select else ""
         self.setWindowTitle(f'📝 Label Manager{title_suffix}')
@@ -42,6 +56,7 @@ class LabelManagerDialog(QDialog):
         self.layout.addWidget(header_label)
 
         self.btn_new_label = QPushButton('+ Create New Label')
+        self.btn_new_label.clicked.connect(self.on_click)
         self.btn_new_label.clicked.connect(self.create_label)
         self.btn_new_label.setFixedHeight(40)
         self.btn_new_label.setStyleSheet("""
@@ -103,6 +118,7 @@ class LabelManagerDialog(QDialog):
         button_layout.setSpacing(10)
 
         self.btn_edit = QPushButton('✏️ Edit')
+        self.btn_edit.clicked.connect(self.on_click)
         self.btn_edit.clicked.connect(self.edit_label)
         self.btn_edit.setEnabled(False)
         self.btn_edit.setFixedSize(80, 35)
@@ -124,6 +140,7 @@ class LabelManagerDialog(QDialog):
         button_layout.addWidget(self.btn_edit)
 
         self.btn_delete = QPushButton('🗑️ Delete')
+        self.btn_delete.clicked.connect(self.on_click)
         self.btn_delete.clicked.connect(self.delete_label)
         self.btn_delete.setEnabled(False)
         self.btn_delete.setFixedSize(80, 35)
@@ -304,11 +321,13 @@ class LabelManagerDialog(QDialog):
             self.btn_select.setEnabled(has_selection)
 
     def create_label(self):
+        self.on_notify()
         dialog = LabelDialog(self)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_label_data()
 
             if not data['name']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Label name is required')
                 return
 
@@ -316,6 +335,7 @@ class LabelManagerDialog(QDialog):
             self.load_labels()
 
     def edit_label(self):
+        self.on_notify()
         items = self.labels_list.selectedItems()
         if not items:
             return
@@ -330,6 +350,7 @@ class LabelManagerDialog(QDialog):
             data = dialog.get_label_data()
 
             if not data['name']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Label name is required')
                 return
 
@@ -337,6 +358,7 @@ class LabelManagerDialog(QDialog):
             self.load_labels()
 
     def delete_label(self):
+        self.on_notify()
         items = self.labels_list.selectedItems()
         if not items:
             return
@@ -380,6 +402,15 @@ class LabelManagerDialog(QDialog):
             item = items[0]
             self.label_selected.emit(item.label_id)
             self.accept()
+
+    def on_click(self):
+        self.sound_manager.play_click()
+
+    def on_notify(self):
+        self.sound_manager.play_notify()
+
+    def on_error(self):
+        self.sound_manager.play_error()
 
     def select_label(self, item):
         if self.multi_select:

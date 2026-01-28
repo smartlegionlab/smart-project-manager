@@ -291,7 +291,8 @@ class TaskDialog(QDialog):
             self.manager,
             multi_select=True,
             max_selection=self.max_labels,
-            pre_selected_ids=self.selected_label_ids
+            pre_selected_ids=self.selected_label_ids,
+            sound_manager=self.sound_manager
         )
         dialog.multiple_labels_selected.connect(self.on_labels_selected)
 
