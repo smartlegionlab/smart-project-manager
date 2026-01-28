@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v01.10</sup>
+# Smart Project Manager <sup>v0.1.11</sup>
 
 ---
 
@@ -10,7 +10,7 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 *   **Author:** Alexander Suvorov
 *   **GitHub:** [smartlegionlab](https://github.com/smartlegionlab)
-*   **Version:** v01.10
+*   **Version:** v0.1.11
 
 ---
 

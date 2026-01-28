@@ -308,7 +308,6 @@ class MainWindow(QMainWindow):
         filters_layout.setContentsMargins(8, 5, 8, 5)
         filters_layout.setSpacing(10)
 
-        # Поиск
         search_label = QLabel("🔍")
         search_label.setStyleSheet("font-size: 14px;")
         filters_layout.addWidget(search_label)
