@@ -4,22 +4,12 @@ from pathlib import Path
 from typing import Optional
 
 from PyQt5.QtWidgets import (
-    QWidget,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-    QMessageBox,
-    QDialog,
-    QHBoxLayout,
-    QMenu,
-    QAction,
-    QDesktopWidget,
-    QStatusBar,
-    QFileDialog,
-    QMainWindow
+    QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
+    QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
+    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame
 )
-from PyQt5.QtGui import QFont, QDesktopServices
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtGui import QFont, QDesktopServices, QIcon
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
@@ -35,12 +25,18 @@ from smart_project_manager import __version__ as ver
 
 
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
         self.selected_project_item = None
         self.last_selected_project_id = None
+
+        self.search_text = ""
+        self.priority_filter = "All"
+        self.label_filter = "All"
+        self.show_completed = True
 
         self.setWindowTitle(f'Smart Project Manager {ver}')
         self.showMaximized()
@@ -149,7 +145,7 @@ class MainWindow(QMainWindow):
         show_completed_action = QAction('Show Completed Tasks', self)
         show_completed_action.setCheckable(True)
         show_completed_action.setChecked(True)
-        show_completed_action.triggered.connect(self.toggle_show_completed)
+        show_completed_action.triggered.connect(self.toggle_show_completed_menu)
         view_menu.addAction(show_completed_action)
 
         help_menu = menubar.addMenu('Help')
@@ -299,6 +295,155 @@ class MainWindow(QMainWindow):
         table_container_layout.setContentsMargins(0, 0, 0, 0)
         table_container_layout.setSpacing(5)
 
+        self.filters_panel = QFrame()
+        self.filters_panel.setStyleSheet("""
+            QFrame {
+                background-color: #3a3a3a;
+                border-radius: 5px;
+                padding: 5px;
+            }
+        """)
+        self.filters_panel.setVisible(False)
+        filters_layout = QHBoxLayout(self.filters_panel)
+        filters_layout.setContentsMargins(8, 5, 8, 5)
+        filters_layout.setSpacing(10)
+
+        # Поиск
+        search_label = QLabel("🔍")
+        search_label.setStyleSheet("font-size: 14px;")
+        filters_layout.addWidget(search_label)
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search tasks...")
+        self.search_input.setClearButtonEnabled(True)
+        self.search_input.textChanged.connect(self.on_search_changed)
+        self.search_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-size: 12px;
+                min-width: 150px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #3498db;
+            }
+        """)
+        filters_layout.addWidget(self.search_input, 2)
+
+        priority_label = QLabel("Priority:")
+        priority_label.setStyleSheet("font-size: 11px; color: #aaa;")
+        filters_layout.addWidget(priority_label)
+
+        self.priority_filter_combo = QComboBox()
+        self.priority_filter_combo.addItems(["All", "Low", "Medium", "High"])
+        self.priority_filter_combo.currentTextChanged.connect(self.on_priority_filter_changed)
+        self.priority_filter_combo.setStyleSheet("""
+            QComboBox {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                min-width: 80px;
+            }
+            QComboBox:hover {
+                border: 1px solid #666;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 1px solid #555;
+                padding-left: 5px;
+            }
+        """)
+        filters_layout.addWidget(self.priority_filter_combo)
+
+        label_label = QLabel("Label:")
+        label_label.setStyleSheet("font-size: 11px; color: #aaa;")
+        filters_layout.addWidget(label_label)
+
+        self.label_filter_combo = QComboBox()
+        self.label_filter_combo.addItem("All")
+        self.label_filter_combo.currentTextChanged.connect(self.on_label_filter_changed)
+        self.label_filter_combo.setStyleSheet("""
+            QComboBox {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                min-width: 100px;
+            }
+            QComboBox:hover {
+                border: 1px solid #666;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 1px solid #555;
+                padding-left: 5px;
+            }
+        """)
+        filters_layout.addWidget(self.label_filter_combo)
+
+        self.show_completed_checkbox = QCheckBox("Show Completed")
+        self.show_completed_checkbox.setChecked(True)
+        self.show_completed_checkbox.stateChanged.connect(self.on_show_completed_changed)
+        self.show_completed_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 11px;
+                color: #aaa;
+                spacing: 5px;
+            }
+            QCheckBox::indicator {
+                width: 14px;
+                height: 14px;
+                border: 1px solid #555;
+                border-radius: 3px;
+                background-color: #2a2a2a;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #27ae60;
+                border: 1px solid #27ae60;
+            }
+            QCheckBox::indicator:hover {
+                border: 1px solid #666;
+            }
+        """)
+        filters_layout.addWidget(self.show_completed_checkbox)
+
+        self.search_input.textChanged.connect(self.on_search_changed)
+        self.priority_filter_combo.currentTextChanged.connect(self.on_priority_filter_changed)
+        self.label_filter_combo.currentTextChanged.connect(self.on_label_filter_changed)
+        self.show_completed_checkbox.stateChanged.connect(self.on_show_completed_changed)
+
+        self.btn_reset_filters = QPushButton("Reset")
+        self.btn_reset_filters.clicked.connect(self.reset_filters)
+        self.btn_reset_filters.setStyleSheet("""
+            QPushButton {
+                background-color: #555;
+                color: white;
+                font-weight: bold;
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-size: 11px;
+                min-width: 60px;
+            }
+            QPushButton:hover {
+                background-color: #666;
+            }
+        """)
+        filters_layout.addWidget(self.btn_reset_filters)
+
+        filters_layout.addStretch()
+        table_container_layout.addWidget(self.filters_panel)
+
         table_header_layout = QHBoxLayout()
 
         table_title = QLabel('Tasks')
@@ -397,6 +542,7 @@ class MainWindow(QMainWindow):
                     break
 
         self.update_statistics()
+        self.update_label_filter_combo()
 
     def on_project_selected(self, item, column):
         if not item or not hasattr(item, 'project_id'):
@@ -406,6 +552,8 @@ class MainWindow(QMainWindow):
         self.selected_project_item = item
         self.btn_delete_project.setEnabled(True)
         self.btn_edit_project.setEnabled(True)
+
+        self.filters_panel.setVisible(True)
 
         self.btn_new_task.setVisible(True)
         self.btn_new_task.setEnabled(True)
@@ -420,25 +568,15 @@ class MainWindow(QMainWindow):
         if project:
             self.tasks_header.setText('📋 Project info')
             self.project_progress_widget.update_progress(project, self.manager)
-            self.load_tasks_for_project(project.id)
+            self.apply_filters()
             if project.github_url:
                 self.btn_open_url.setEnabled(True)
             else:
                 self.btn_open_url.setEnabled(False)
-
+        self.reset_filters()
 
     def load_tasks_for_project(self, project_id: str):
-        self.tasks_table.setRowCount(0)
-
-        tasks = self.manager.get_tasks_by_project(project_id)
-
-        for row, task in enumerate(tasks):
-            self.tasks_table.add_task_row(
-                row, task, self.manager,
-                self.toggle_task_status,
-                self.edit_task,
-                self.delete_task
-            )
+        self.apply_filters()
 
     def toggle_task_status(self, task_id: str):
         task = self.manager.get_task(task_id)
@@ -448,7 +586,7 @@ class MainWindow(QMainWindow):
             self.manager.update_task(task_id, completed=task.completed)
 
             if self.current_project_id:
-                self.load_tasks_for_project(self.current_project_id)
+                self.apply_filters()
                 self.update_statistics()
 
                 self.load_projects()
@@ -558,6 +696,8 @@ class MainWindow(QMainWindow):
             self.btn_edit_project.setEnabled(False)
             self.btn_open_url.setEnabled(False)
 
+            self.filters_panel.setVisible(False)
+
             self.btn_new_task.setVisible(False)
             self.btn_new_task.setEnabled(False)
 
@@ -599,7 +739,7 @@ class MainWindow(QMainWindow):
                     deleted_count += 1
 
             if self.current_project_id:
-                self.load_tasks_for_project(self.current_project_id)
+                self.apply_filters()
                 self.update_statistics()
 
                 self.load_projects()
@@ -607,6 +747,8 @@ class MainWindow(QMainWindow):
                 project = self.manager.get_project(self.current_project_id)
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
+
+                self.update_label_filter_combo()
 
             QMessageBox.information(
                 self,
@@ -669,6 +811,128 @@ class MainWindow(QMainWindow):
                 }
             """)
 
+    def update_label_filter_combo(self):
+        current_text = self.label_filter_combo.currentText()
+        self.label_filter_combo.clear()
+        self.label_filter_combo.addItem("All")
+
+        labels = self.manager.get_all_labels()
+        for label in labels:
+            self.label_filter_combo.addItem(label.name)
+
+        if current_text and current_text != "All":
+            index = self.label_filter_combo.findText(current_text)
+            if index >= 0:
+                self.label_filter_combo.setCurrentIndex(index)
+            else:
+                self.label_filter_combo.setCurrentIndex(0)
+                self.label_filter = "All"
+        else:
+            self.label_filter_combo.setCurrentIndex(0)
+            self.label_filter = "All"
+
+    def on_search_changed(self, text):
+        self.search_text = text.strip().lower()
+        self.apply_filters()
+
+    def on_priority_filter_changed(self, priority):
+        self.priority_filter = priority
+        self.apply_filters()
+
+    def on_label_filter_changed(self, label):
+        self.label_filter = label
+        self.apply_filters()
+
+    def on_show_completed_changed(self, state):
+        self.show_completed = (state == Qt.Checked)
+        self.apply_filters()
+
+    def toggle_show_completed_menu(self, show: bool):
+        self.show_completed_checkbox.setChecked(show)
+        self.show_completed = show
+        self.apply_filters()
+
+    def reset_filters(self):
+        self.search_input.clear()
+        self.priority_filter_combo.setCurrentIndex(0)
+        self.label_filter_combo.setCurrentIndex(0)
+        self.show_completed_checkbox.setChecked(True)
+
+        self.search_text = ""
+        self.priority_filter = "All"
+        self.label_filter = "All"
+        self.show_completed = True
+
+        self.apply_filters()
+        self.status_bar.showMessage('Filters reset', 2000)
+
+    def apply_filters(self):
+        if not self.current_project_id:
+            return
+
+        all_tasks = self.manager.get_tasks_by_project(self.current_project_id)
+        filtered_tasks = []
+
+        PRIORITY_MAP = {
+            "Low": 3,
+            "Medium": 2,
+            "High": 1,
+        }
+
+        all_labels = self.manager.get_all_labels()
+        label_name_to_id = {label.name: label.id for label in all_labels}
+
+
+        for task in all_tasks:
+            search_ok = True
+            if self.search_text:
+                search_in_title = self.search_text in task.title.lower()
+                search_in_desc = task.description and self.search_text in task.description.lower()
+                search_ok = search_in_title or search_in_desc
+
+            priority_ok = True
+            if self.priority_filter != "All":
+                expected_priority = PRIORITY_MAP.get(self.priority_filter)
+                if expected_priority is not None:
+                    priority_ok = (task.priority == expected_priority)
+
+            label_ok = True
+            if self.label_filter != "All":
+                label_id = label_name_to_id.get(self.label_filter)
+                if label_id:
+                    label_ok = (label_id in task.labels)
+                else:
+                    label_ok = False
+
+            completed_ok = True
+            if not self.show_completed:
+                completed_ok = not task.completed
+
+            if search_ok and priority_ok and label_ok and completed_ok:
+                filtered_tasks.append(task)
+
+
+        self.display_filtered_tasks(filtered_tasks)
+
+        filtered_count = len(filtered_tasks)
+        total_count = len(all_tasks)
+
+        if filtered_count == total_count:
+            self.status_bar.showMessage(f'Showing all {total_count} tasks', 2000)
+        else:
+            self.status_bar.showMessage(f'Showing {filtered_count} of {total_count} tasks', 2000)
+
+    def display_filtered_tasks(self, tasks):
+        self.tasks_table.setRowCount(0)
+
+        for row, task in enumerate(tasks):
+            self.tasks_table.add_task_row(
+                row, task, self.manager,
+                self.toggle_task_status,
+                self.edit_task,
+                self.delete_task
+            )
+
     def create_task(self):
         if not self.current_project_id:
             QMessageBox.warning(self, 'Error', 'Please select a project first')
@@ -684,7 +948,7 @@ class MainWindow(QMainWindow):
 
             task = self.manager.create_task(**data)
 
-            self.load_tasks_for_project(self.current_project_id)
+            self.apply_filters()
             self.update_statistics()
 
             self.load_projects()
@@ -692,6 +956,8 @@ class MainWindow(QMainWindow):
             project = self.manager.get_project(self.current_project_id)
             if project:
                 self.project_progress_widget.update_progress(project, self.manager)
+
+            self.update_label_filter_combo()
 
             QMessageBox.information(self, 'Success', f'Task "{task.title}" created')
 
@@ -714,7 +980,7 @@ class MainWindow(QMainWindow):
             self.manager.update_task(task.id, **data)
 
             if self.current_project_id:
-                self.load_tasks_for_project(self.current_project_id)
+                self.apply_filters()
                 self.update_statistics()
 
                 self.load_projects()
@@ -723,12 +989,14 @@ class MainWindow(QMainWindow):
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
 
+                self.update_label_filter_combo()
+
             self.tasks_table.restore_selection()
 
     def on_task_updated(self):
         if self.current_project_id:
             self.tasks_table.save_selection()
-            self.load_tasks_for_project(self.current_project_id)
+            self.apply_filters()
             self.update_statistics()
 
             self.load_projects()
@@ -736,6 +1004,8 @@ class MainWindow(QMainWindow):
             project = self.manager.get_project(self.current_project_id)
             if project:
                 self.project_progress_widget.update_progress(project, self.manager)
+
+            self.update_label_filter_combo()
 
             self.tasks_table.restore_selection()
 
@@ -755,7 +1025,7 @@ class MainWindow(QMainWindow):
             self.manager.delete_task(task_id)
 
             if self.current_project_id:
-                self.load_tasks_for_project(self.current_project_id)
+                self.apply_filters()
                 self.update_statistics()
 
                 self.load_projects()
@@ -764,10 +1034,14 @@ class MainWindow(QMainWindow):
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
 
+                self.update_label_filter_combo()
+
     def manage_labels(self):
         dialog = LabelManagerDialog(self, self.manager)
         dialog.exec_()
         self.update_statistics()
+        self.update_label_filter_combo()
+        self.apply_filters()
 
     def show_project_context_menu(self, position):
         item = self.projects_tree.itemAt(position)
@@ -905,11 +1179,11 @@ class MainWindow(QMainWindow):
     def refresh_view(self):
         self.load_projects()
         if self.current_project_id:
-            self.load_tasks_for_project(self.current_project_id)
             project = self.manager.get_project(self.current_project_id)
             if project:
                 self.tasks_header.setText('📋 Project info')
                 self.project_progress_widget.update_progress(project, self.manager)
+                self.apply_filters()
                 if project.github_url:
                     self.btn_open_url.setEnabled(True)
                 else:
