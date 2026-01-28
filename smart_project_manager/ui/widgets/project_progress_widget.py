@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar
+    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar, QSizePolicy
 )
 from datetime import datetime
 
@@ -37,13 +37,16 @@ class ProjectProgressWidget(QGroupBox):
 
         self.project_name_label = QLabel("--")
         self.project_name_label.setStyleSheet("""
-            QLabel {
-                font-size: 16px;
-                font-weight: bold;
-                color: #3498db;
-            }
-        """)
-        top_line.addWidget(self.project_name_label)
+                    QLabel {
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #3498db;
+                    }
+                """)
+        self.project_name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.project_name_label.setMinimumWidth(200)
+        self.project_name_label.setWordWrap(True)
+        top_line.addWidget(self.project_name_label, 1)
 
         top_line.addStretch()
 

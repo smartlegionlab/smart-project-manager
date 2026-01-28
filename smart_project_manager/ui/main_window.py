@@ -418,7 +418,7 @@ class MainWindow(QMainWindow):
         project = self.manager.get_project(self.current_project_id)
 
         if project:
-            self.tasks_header.setText(f'📋 Project: "{project.name}"')
+            self.tasks_header.setText('📋 Project info')
             self.project_progress_widget.update_progress(project, self.manager)
             self.load_tasks_for_project(project.id)
             if project.github_url:
@@ -908,7 +908,7 @@ class MainWindow(QMainWindow):
             self.load_tasks_for_project(self.current_project_id)
             project = self.manager.get_project(self.current_project_id)
             if project:
-                self.tasks_header.setText(f'📋 Project: "{project.name}"')
+                self.tasks_header.setText('📋 Project info')
                 self.project_progress_widget.update_progress(project, self.manager)
                 if project.github_url:
                     self.btn_open_url.setEnabled(True)
