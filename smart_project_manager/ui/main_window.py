@@ -406,7 +406,6 @@ class MainWindow(QMainWindow):
         self.selected_project_item = item
         self.btn_delete_project.setEnabled(True)
         self.btn_edit_project.setEnabled(True)
-        self.btn_open_url.setEnabled(True)
 
         self.btn_new_task.setVisible(True)
         self.btn_new_task.setEnabled(True)
@@ -422,6 +421,11 @@ class MainWindow(QMainWindow):
             self.tasks_header.setText(f'📋 Project: "{project.name}"')
             self.project_progress_widget.update_progress(project, self.manager)
             self.load_tasks_for_project(project.id)
+            if project.github_url:
+                self.btn_open_url.setEnabled(True)
+            else:
+                self.btn_open_url.setEnabled(False)
+
 
     def load_tasks_for_project(self, project_id: str):
         self.tasks_table.setRowCount(0)
@@ -906,6 +910,10 @@ class MainWindow(QMainWindow):
             if project:
                 self.tasks_header.setText(f'📋 Project: "{project.name}"')
                 self.project_progress_widget.update_progress(project, self.manager)
+                if project.github_url:
+                    self.btn_open_url.setEnabled(True)
+                else:
+                    self.btn_open_url.setEnabled(False)
 
         self.status_bar.showMessage('View refreshed', 3000)
 
