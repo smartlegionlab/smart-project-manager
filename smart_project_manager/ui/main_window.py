@@ -3,15 +3,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
     QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame
 )
-from PyQt5.QtGui import QFont, QDesktopServices, QIcon
-from PyQt5.QtCore import Qt, QUrl, pyqtSignal
+from PyQt5.QtGui import QFont, QDesktopServices
+from PyQt5.QtCore import Qt, QUrl
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
+from smart_project_manager.core.managers.sound_manager import SoundManager
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.dialogs.project_dialog import ProjectDialog
 from smart_project_manager.ui.dialogs.task_detail_dialog import TaskDetailsDialog
@@ -32,6 +34,18 @@ class MainWindow(QMainWindow):
         self.current_project_id: Optional[str] = None
         self.selected_project_item = None
         self.last_selected_project_id = None
+
+        self.click_sound = QSound("data/sounds/click.wav")
+
+        self.notify_sound = QSound("data/sounds/notify.wav")
+
+        self.error_sound = QSound("data/sounds/error.wav")
+
+        self.sound_manager = SoundManager()
+
+        self.sound_manager.register_sound('click', self.click_sound)
+        self.sound_manager.register_sound('notify', self.notify_sound)
+        self.sound_manager.register_sound('error', self.error_sound)
 
         self.search_text = ""
         self.priority_filter = "All"
@@ -76,11 +90,13 @@ class MainWindow(QMainWindow):
 
         new_project_action = QAction('New Project', self)
         new_project_action.setShortcut('Ctrl+N')
+        new_project_action.triggered.connect(self.on_click)
         new_project_action.triggered.connect(self.create_project)
         file_menu.addAction(new_project_action)
 
         new_task_action = QAction('New Task', self)
         new_task_action.setShortcut('Ctrl+T')
+        new_task_action.triggered.connect(self.on_click)
         new_task_action.triggered.connect(self.create_task)
         file_menu.addAction(new_task_action)
 
@@ -88,10 +104,12 @@ class MainWindow(QMainWindow):
 
         backup_action = QAction('Create Backup', self)
         backup_action.setShortcut('Ctrl+B')
+        backup_action.triggered.connect(self.on_click)
         backup_action.triggered.connect(self.create_backup)
         file_menu.addAction(backup_action)
 
         backup_manager_action = QAction('Show Backups', self)
+        backup_manager_action.triggered.connect(self.on_click)
         backup_manager_action.triggered.connect(self.show_backup_manager)
         file_menu.addAction(backup_manager_action)
 
@@ -99,11 +117,13 @@ class MainWindow(QMainWindow):
 
         import_action = QAction('Import...', self)
         import_action.setShortcut('Ctrl+I')
+        import_action.triggered.connect(self.on_click)
         import_action.triggered.connect(self.import_data)
         file_menu.addAction(import_action)
 
         export_action = QAction('Export...', self)
         export_action.setShortcut('Ctrl+Shift+E')
+        export_action.triggered.connect(self.on_click)
         export_action.triggered.connect(self.export_data)
         file_menu.addAction(export_action)
 
@@ -111,6 +131,7 @@ class MainWindow(QMainWindow):
 
         exit_action = QAction('Exit', self)
         exit_action.setShortcut('Ctrl+Q')
+        exit_action.triggered.connect(self.on_error)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
@@ -118,11 +139,13 @@ class MainWindow(QMainWindow):
 
         edit_project_action = QAction('Edit Project', self)
         edit_project_action.setShortcut('Ctrl+E')
+        edit_project_action.triggered.connect(self.on_click)
         edit_project_action.triggered.connect(self.edit_current_project)
         edit_menu.addAction(edit_project_action)
 
         delete_project_action = QAction('Delete Project', self)
         delete_project_action.setShortcut('Ctrl+D')
+        delete_project_action.triggered.connect(self.on_click)
         delete_project_action.triggered.connect(self.delete_current_project)
         edit_menu.addAction(delete_project_action)
 
@@ -130,6 +153,7 @@ class MainWindow(QMainWindow):
 
         labels_action = QAction('Manage Labels', self)
         labels_action.setShortcut('Ctrl+L')
+        labels_action.triggered.connect(self.on_click)
         labels_action.triggered.connect(self.manage_labels)
         edit_menu.addAction(labels_action)
 
@@ -137,6 +161,7 @@ class MainWindow(QMainWindow):
 
         refresh_action = QAction('Refresh', self)
         refresh_action.setShortcut('F5')
+        refresh_action.triggered.connect(self.on_click)
         refresh_action.triggered.connect(self.refresh_view)
         view_menu.addAction(refresh_action)
 
@@ -145,17 +170,30 @@ class MainWindow(QMainWindow):
         show_completed_action = QAction('Show Completed Tasks', self)
         show_completed_action.setCheckable(True)
         show_completed_action.setChecked(True)
+        show_completed_action.triggered.connect(self.on_click)
         show_completed_action.triggered.connect(self.toggle_show_completed_menu)
         view_menu.addAction(show_completed_action)
+
+        sound_action = QAction('Enable Sounds', self)
+        sound_action.setCheckable(True)
+        sound_action.setChecked(True)
+        sound_action.triggered.connect(self.toggle_sounds)
+        view_menu.addAction(sound_action)
+
+        self.sound_manager.sound_enabled_changed.connect(
+            sound_action.setChecked
+        )
 
         help_menu = menubar.addMenu('Help')
 
         about_action = QAction('About', self)
+        about_action.triggered.connect(self.on_click)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
 
         help_action = QAction('Help', self)
         help_action.setShortcut('F1')
+        help_action.triggered.connect(self.on_click)
         help_action.triggered.connect(self.show_help)
         help_menu.addAction(help_action)
 
@@ -179,6 +217,7 @@ class MainWindow(QMainWindow):
         project_buttons_layout.setSpacing(5)
 
         self.btn_new_project = QPushButton('+ New Project')
+        self.btn_new_project.clicked.connect(self.on_click)
         self.btn_new_project.clicked.connect(self.create_project)
         self.btn_new_project.setStyleSheet("""
             QPushButton {
@@ -199,6 +238,7 @@ class MainWindow(QMainWindow):
 
         self.projects_tree = ProjectsTreeWidget(self)
         self.projects_tree.itemClicked.connect(self.on_project_selected)
+        self.projects_tree.itemClicked.connect(self.on_click)
         self.projects_tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.projects_tree.customContextMenuRequested.connect(self.show_project_context_menu)
         left_layout.addWidget(self.projects_tree, 1)
@@ -220,6 +260,7 @@ class MainWindow(QMainWindow):
         tasks_header_layout.addStretch()
 
         self.btn_open_url = QPushButton('GitHub URL')
+        self.btn_open_url.clicked.connect(self.on_click)
         self.btn_open_url.clicked.connect(self.open_github_url)
         self.btn_open_url.setEnabled(False)
         self.btn_open_url.setStyleSheet("""
@@ -242,6 +283,7 @@ class MainWindow(QMainWindow):
         tasks_header_layout.addWidget(self.btn_open_url)
 
         self.btn_edit_project = QPushButton('Edit')
+        self.btn_edit_project.clicked.connect(self.on_click)
         self.btn_edit_project.clicked.connect(self.edit_current_project)
         self.btn_edit_project.setEnabled(False)
         self.btn_edit_project.setStyleSheet("""
@@ -264,6 +306,7 @@ class MainWindow(QMainWindow):
         tasks_header_layout.addWidget(self.btn_edit_project)
 
         self.btn_delete_project = QPushButton('Delete')
+        self.btn_delete_project.clicked.connect(self.on_click)
         self.btn_delete_project.clicked.connect(self.delete_current_project)
         self.btn_delete_project.setEnabled(False)
         self.btn_delete_project.setStyleSheet("""
@@ -423,6 +466,7 @@ class MainWindow(QMainWindow):
         self.show_completed_checkbox.stateChanged.connect(self.on_show_completed_changed)
 
         self.btn_reset_filters = QPushButton("Reset")
+        self.btn_reset_filters.clicked.connect(self.on_click)
         self.btn_reset_filters.clicked.connect(self.reset_filters)
         self.btn_reset_filters.setStyleSheet("""
             QPushButton {
@@ -452,6 +496,7 @@ class MainWindow(QMainWindow):
         table_header_layout.addStretch()
 
         self.btn_new_task = QPushButton('➕ Add Task')
+        self.btn_new_task.clicked.connect(self.on_click)
         self.btn_new_task.clicked.connect(self.create_task)
         self.btn_new_task.setEnabled(False)
         self.btn_new_task.setVisible(False)
@@ -476,6 +521,7 @@ class MainWindow(QMainWindow):
         table_header_layout.addWidget(self.btn_new_task)
 
         self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
+        self.btn_clear_completed.clicked.connect(self.on_click)
         self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
         self.btn_clear_completed.setEnabled(False)
         self.btn_clear_completed.setVisible(False)
@@ -578,6 +624,7 @@ class MainWindow(QMainWindow):
         self.apply_filters()
 
     def toggle_task_status(self, task_id: str):
+        self.on_notify()
         task = self.manager.get_task(task_id)
         self.tasks_table.save_selection()
         if task:
@@ -597,11 +644,13 @@ class MainWindow(QMainWindow):
         self.tasks_table.restore_selection()
 
     def create_project(self):
+        self.on_notify()
         dialog = ProjectDialog(self, manager=self.manager)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_project_data()
 
             if not data['name']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Project name is required')
                 return
 
@@ -614,20 +663,24 @@ class MainWindow(QMainWindow):
                     self.projects_tree.setCurrentItem(item)
                     self.on_project_selected(item, 0)
                     break
-
+            self.on_notify()
             QMessageBox.information(self, 'Success', f'Project "{project.name}" created')
 
     def open_github_url(self):
+        self.on_notify()
         if not self.current_project_id:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'No project selected')
             return
 
         project = self.manager.get_project(self.current_project_id)
         if not project:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'Project not found')
             return
 
         if not project.github_url:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'No GitHub URL specified for this project')
             return
 
@@ -638,6 +691,7 @@ class MainWindow(QMainWindow):
 
             QDesktopServices.openUrl(QUrl(url))
         except Exception as e:
+            self.on_error()
             QMessageBox.critical(
                 self,
                 'Error',
@@ -645,7 +699,9 @@ class MainWindow(QMainWindow):
             )
 
     def edit_current_project(self):
+        self.on_notify()
         if not self.current_project_id:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'No project selected')
             return
 
@@ -658,6 +714,7 @@ class MainWindow(QMainWindow):
             data = dialog.get_project_data()
 
             if not data['name']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Project name is required')
                 return
 
@@ -669,14 +726,16 @@ class MainWindow(QMainWindow):
         self.refresh_view()
 
     def delete_current_project(self):
+        self.on_notify()
         if not self.current_project_id:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'No project selected')
             return
 
         project = self.manager.get_project(self.current_project_id)
         if not project:
             return
-
+        self.on_notify()
         reply = QMessageBox.question(
             self,
             'Confirm Delete',
@@ -711,7 +770,9 @@ class MainWindow(QMainWindow):
             self.load_projects()
 
     def clear_completed_tasks(self):
+        self.on_notify()
         if not self.current_project_id:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'No project selected')
             return
 
@@ -719,9 +780,11 @@ class MainWindow(QMainWindow):
         completed_tasks = [task for task in tasks if task.completed]
 
         if not completed_tasks:
+            self.on_notify()
             QMessageBox.information(self, 'Info', 'No completed tasks to clear')
             return
 
+        self.on_notify()
         reply = QMessageBox.question(
             self,
             'Clear Completed Tasks',
@@ -748,6 +811,8 @@ class MainWindow(QMainWindow):
                     self.project_progress_widget.update_progress(project, self.manager)
 
                 self.update_label_filter_combo()
+
+            self.on_notify()
 
             QMessageBox.information(
                 self,
@@ -852,6 +917,7 @@ class MainWindow(QMainWindow):
         self.apply_filters()
 
     def reset_filters(self):
+        self.on_notify()
         self.search_input.clear()
         self.priority_filter_combo.setCurrentIndex(0)
         self.label_filter_combo.setCurrentIndex(0)
@@ -933,7 +999,9 @@ class MainWindow(QMainWindow):
             )
 
     def create_task(self):
+        self.on_notify()
         if not self.current_project_id:
+            self.on_error()
             QMessageBox.warning(self, 'Error', 'Please select a project first')
             return
 
@@ -942,6 +1010,7 @@ class MainWindow(QMainWindow):
             data = dialog.get_task_data()
 
             if not data['title']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Task title is required')
                 return
 
@@ -958,9 +1027,11 @@ class MainWindow(QMainWindow):
 
             self.update_label_filter_combo()
 
+            self.on_notify()
             QMessageBox.information(self, 'Success', f'Task "{task.title}" created')
 
     def edit_task(self, task_id: str):
+        self.on_notify()
         task = self.manager.get_task(task_id)
         if not task:
             return
@@ -973,6 +1044,7 @@ class MainWindow(QMainWindow):
             data = dialog.get_task_data()
 
             if not data['title']:
+                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Task title is required')
                 return
 
@@ -1009,6 +1081,7 @@ class MainWindow(QMainWindow):
             self.tasks_table.restore_selection()
 
     def delete_task(self, task_id: str):
+        self.on_notify()
         task = self.manager.get_task(task_id)
         if not task:
             return
@@ -1036,6 +1109,7 @@ class MainWindow(QMainWindow):
                 self.update_label_filter_combo()
 
     def manage_labels(self):
+        self.on_notify()
         dialog = LabelManagerDialog(self, self.manager)
         dialog.exec_()
         self.update_statistics()
@@ -1095,22 +1169,26 @@ class MainWindow(QMainWindow):
         menu = QMenu()
 
         view_action = QAction("👁 View Details")
+        view_action.triggered.connect(self.on_click)
         view_action.triggered.connect(lambda: self.view_task(task_id))
         menu.addAction(view_action)
 
         mark_action = QAction("✅ Mark as Complete" if not task.completed else "⏳ Mark as Pending")
+        mark_action.triggered.connect(self.on_click)
         mark_action.triggered.connect(lambda: self.toggle_task_status(task_id))
         menu.addAction(mark_action)
 
         menu.addSeparator()
 
         edit_action = QAction("✏️ Edit Task")
+        edit_action.triggered.connect(self.on_click)
         edit_action.triggered.connect(lambda: self.edit_task(task_id))
         menu.addAction(edit_action)
 
         menu.addSeparator()
 
         delete_action = QAction("🗑️ Delete Task")
+        delete_action.triggered.connect(self.on_click)
         delete_action.triggered.connect(lambda: self.delete_task(task_id))
         menu.addAction(delete_action)
 
@@ -1140,17 +1218,20 @@ class MainWindow(QMainWindow):
 
         if project.github_url:
             open_url_action = QAction("🌐 Open GitHub URL")
+            open_url_action.triggered.connect(self.on_click)
             open_url_action.triggered.connect(self.open_github_url)
             menu.addAction(open_url_action)
             menu.addSeparator()
 
         edit_action = QAction("✏️ Edit Project")
+        edit_action.triggered.connect(self.on_click)
         edit_action.triggered.connect(self.edit_current_project)
         menu.addAction(edit_action)
 
         menu.addSeparator()
 
         delete_action = QAction("🗑️ Delete Project")
+        delete_action.triggered.connect(self.on_click)
         delete_action.triggered.connect(self.delete_current_project)
         menu.addAction(delete_action)
 
@@ -1198,6 +1279,7 @@ class MainWindow(QMainWindow):
         self.statistics_widget.update_stats(stats)
 
     def import_data(self):
+        self.on_notify()
         home_dir = str(Path.home())
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -1209,6 +1291,7 @@ class MainWindow(QMainWindow):
         if not file_path:
             return
 
+        self.on_notify()
         reply = QMessageBox.warning(
             self,
             "Import Data",
@@ -1260,6 +1343,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "Import Complete", message)
                 self.status_bar.showMessage('Data imported successfully', 3000)
             else:
+                self.on_error()
                 QMessageBox.warning(
                     self,
                     "Import Failed",
@@ -1268,6 +1352,7 @@ class MainWindow(QMainWindow):
                 )
 
         except Exception as e:
+            self.on_error()
             QMessageBox.critical(
                 self,
                 "Import Error",
@@ -1275,6 +1360,7 @@ class MainWindow(QMainWindow):
             )
 
     def export_data(self):
+        self.on_notify()
         home_dir = str(Path.home())
 
         default_file_name = os.path.join(
@@ -1299,6 +1385,7 @@ class MainWindow(QMainWindow):
             result = self.manager.export_data(file_path)
 
             if result['success']:
+                self.on_notify()
                 message = (
                     f"✅ Export successful!\n\n"
                     f"File: {result['export_path']}\n"
@@ -1308,6 +1395,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "Export Complete", message)
                 self.status_bar.showMessage('Data exported successfully', 3000)
             else:
+                self.on_error()
                 QMessageBox.warning(
                     self,
                     "Export Failed",
@@ -1315,6 +1403,7 @@ class MainWindow(QMainWindow):
                 )
 
         except Exception as e:
+            self.on_error()
             QMessageBox.critical(
                 self,
                 "Export Error",
@@ -1322,6 +1411,7 @@ class MainWindow(QMainWindow):
             )
 
     def create_backup(self):
+        self.on_notify()
         try:
             backup_path = self.manager.create_backup()
 
@@ -1334,6 +1424,7 @@ class MainWindow(QMainWindow):
             self.status_bar.showMessage(f'Backup created', 3000)
 
         except FileNotFoundError as e:
+            self.on_notify()
             QMessageBox.warning(
                 self,
                 "No Data File",
@@ -1341,6 +1432,7 @@ class MainWindow(QMainWindow):
                 f"Please create at least one project first."
             )
         except Exception as e:
+            self.on_error()
             QMessageBox.critical(
                 self,
                 "Backup Error",
@@ -1358,6 +1450,7 @@ class MainWindow(QMainWindow):
             print(f"Backup cleanup error: {e}")
 
     def show_backup_manager(self):
+        self.on_notify()
         try:
             info = self.manager.get_backup_info()
 
@@ -1383,6 +1476,7 @@ class MainWindow(QMainWindow):
             msg_box.setIcon(QMessageBox.Information)
 
             clear_btn = msg_box.addButton("Clear All Backups", QMessageBox.ActionRole)
+            clear_btn.clicked.connect(self.on_click)
 
             if info['total'] == 0:
                 clear_btn.setEnabled(False)
@@ -1412,7 +1506,8 @@ class MainWindow(QMainWindow):
                     }
                 """)
 
-            msg_box.addButton("Close", QMessageBox.RejectRole)
+            close_btn = msg_box.addButton("Close", QMessageBox.RejectRole)
+            close_btn.clicked.connect(self.on_click)
 
             msg_box.exec_()
 
@@ -1420,6 +1515,7 @@ class MainWindow(QMainWindow):
                 self.clear_all_backups()
 
         except Exception as e:
+            self.on_notify()
             QMessageBox.warning(
                 self,
                 "Backup Error",
@@ -1475,7 +1571,22 @@ class MainWindow(QMainWindow):
                 f"Failed to clear backups:\n\n{str(e)}"
             )
 
+    def on_click(self):
+        self.sound_manager.play_click()
+
+    def on_notify(self):
+        self.sound_manager.play_notify()
+
+    def on_error(self):
+        self.sound_manager.play_error()
+
+    def toggle_sounds(self, enabled: bool):
+        self.sound_manager.set_enabled(enabled)
+        status = "enabled" if enabled else "disabled"
+        self.status_bar.showMessage(f'Sounds {status}', 2000)
+
     def show_about(self):
+        self.on_notify()
         QMessageBox.about(
             self,
             "About Smart Project Manager",
@@ -1495,6 +1606,7 @@ class MainWindow(QMainWindow):
         )
 
     def show_help(self):
+        self.on_notify()
         QMessageBox.information(
             self,
             "Help - Smart Project Manager",
