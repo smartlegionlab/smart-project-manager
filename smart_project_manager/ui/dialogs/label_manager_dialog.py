@@ -54,9 +54,9 @@ class LabelManagerDialog(QDialog):
         """)
         self.layout.addWidget(self.btn_new_label)
 
-        info_label = QLabel(f'Total labels: {len(self.manager.get_all_labels())}')
-        info_label.setStyleSheet("color: #888; font-size: 12px;")
-        self.layout.addWidget(info_label)
+        self.info_label = QLabel(f'Total labels: {len(self.manager.get_all_labels())}')
+        self.info_label.setStyleSheet("color: #888; font-size: 12px;")
+        self.layout.addWidget(self.info_label)
 
         self.labels_list = QListWidget()
         self.labels_list.itemDoubleClicked.connect(self.select_label)
@@ -174,6 +174,10 @@ class LabelManagerDialog(QDialog):
 
         self.load_labels()
 
+    def update_labels_count(self):
+        count = len(self.manager.get_all_labels())
+        self.info_label.setText(f'Total labels: {count}')
+
     def load_labels(self):
         self.labels_list.clear()
         labels = self.manager.get_all_labels()
@@ -212,6 +216,7 @@ class LabelManagerDialog(QDialog):
             self.labels_list.addItem(item)
             self.labels_list.setItemWidget(item, widget)
             item.label_id = label.id
+        self.update_labels_count()
 
     def on_selection_changed(self):
         has_selection = len(self.labels_list.selectedItems()) > 0
