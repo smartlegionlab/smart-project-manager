@@ -187,7 +187,8 @@ class LabelManagerDialog(QDialog):
             layout.setContentsMargins(10, 10, 10, 10)
             layout.setSpacing(15)
 
-            label_widget = LabelWidget(label.name, label.color)
+            text_color = label.text_color if hasattr(label, 'text_color') and label.text_color else "#ffffff"
+            label_widget = LabelWidget(label.name, label.color, text_color)
             label_widget.setMinimumHeight(40)
             label_widget.setMinimumWidth(120)
             layout.addWidget(label_widget)
@@ -202,8 +203,11 @@ class LabelManagerDialog(QDialog):
             color_code.setStyleSheet("color: #888; font-size: 11px; font-family: monospace;")
             layout.addWidget(color_code)
 
+            text_color_code = QLabel(f"Text: {text_color}")
+            text_color_code.setStyleSheet("color: #888; font-size: 11px; font-family: monospace;")
+            layout.addWidget(text_color_code)
+
             layout.addStretch()
-            widget.setLayout(layout)
 
             self.labels_list.addItem(item)
             self.labels_list.setItemWidget(item, widget)

@@ -230,9 +230,9 @@ class ProjectManager:
     def get_subtasks_by_task(self, task_id: str) -> List[SubTask]:
         return [subtask for subtask in self.subtasks.values() if subtask.task_id == task_id]
 
-    def create_label(self, name: str, color: str = "#3498db",
+    def create_label(self, name: str, color: str = "#3498db", text_color: str = "#ffffff",
                      description: Optional[str] = None) -> Label:
-        label = Label(name=name, color=color, description=description)
+        label = Label(name=name, color=color, text_color=text_color,description=description)
         self.labels[label.id] = label
         self.save_data()
         return label

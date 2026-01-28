@@ -26,7 +26,7 @@ class LabelDialog(QDialog):
         self.label = label
 
         self.setWindowTitle('Edit Label' if self.is_edit_mode else 'Create New Label')
-        self.setMinimumWidth(450)
+        self.setMinimumWidth(500)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(15)
@@ -53,41 +53,64 @@ class LabelDialog(QDialog):
         color_group.setFrameStyle(QFrame.StyledPanel)
         color_layout = QGridLayout(color_group)
         color_layout.setContentsMargins(15, 15, 15, 15)
+        color_layout.setVerticalSpacing(10)
+        color_layout.setColumnStretch(1, 1)
 
-        self.color_label = QLabel('Color:')
+        self.color_label = QLabel('Label Color:')
         self.color_label.setStyleSheet("font-weight: bold;")
         color_layout.addWidget(self.color_label, 0, 0)
 
+        color_button_layout = QHBoxLayout()
         self.color_button = QPushButton()
-        self.color_button.setFixedSize(50, 50)
+        self.color_button.setFixedSize(40, 40)
         self.color_button.clicked.connect(self.choose_color)
         if label:
             self.current_color = QColor(label.color)
         else:
             self.current_color = QColor("#3498db")
         self.update_color_button()
-        color_layout.addWidget(self.color_button, 0, 1)
+        color_button_layout.addWidget(self.color_button)
+        color_button_layout.addStretch()
+        color_layout.addLayout(color_button_layout, 0, 1)
+
+        self.text_color_label = QLabel('Text Color:')
+        self.text_color_label.setStyleSheet("font-weight: bold;")
+        color_layout.addWidget(self.text_color_label, 1, 0)
+
+        text_color_button_layout = QHBoxLayout()
+        self.text_color_button = QPushButton()
+        self.text_color_button.setFixedSize(40, 40)
+        self.text_color_button.clicked.connect(self.choose_text_color)
+        if label and hasattr(label, 'text_color') and label.text_color:
+            self.current_text_color = QColor(label.text_color)
+        else:
+            self.current_text_color = QColor("#ffffff")
+        self.update_text_color_button()
+        text_color_button_layout.addWidget(self.text_color_button)
+        text_color_button_layout.addStretch()
+        color_layout.addLayout(text_color_button_layout, 1, 1)
 
         self.preview_label = QLabel("Preview:")
         self.preview_label.setStyleSheet("font-weight: bold;")
-        color_layout.addWidget(self.preview_label, 1, 0)
+        color_layout.addWidget(self.preview_label, 2, 0)
 
         self.preview_container = QWidget()
         preview_container_layout = QHBoxLayout(self.preview_container)
         preview_container_layout.setContentsMargins(0, 0, 0, 0)
 
+        text_color_hex = self.current_text_color.name() if hasattr(self, 'current_text_color') else "#ffffff"
         self.preview_widget = LabelWidget(
             label.name if label else "Preview",
             self.current_color.name(),
+            text_color_hex,
             self
         )
-        self.preview_widget.setMinimumHeight(35)
+        self.preview_widget.setMinimumHeight(40)
         preview_container_layout.addWidget(self.preview_widget)
         preview_container_layout.addStretch()
 
-        color_layout.addWidget(self.preview_container, 1, 1)
+        color_layout.addWidget(self.preview_container, 2, 1)
 
-        color_layout.setColumnStretch(2, 1)
         self.layout.addWidget(color_group)
 
         desc_group = QFrame()
@@ -140,6 +163,25 @@ class LabelDialog(QDialog):
 
         self.name_input.textChanged.connect(self.update_preview)
 
+    def choose_text_color(self):
+        color = QColorDialog.getColor(self.current_text_color, self)
+        if color.isValid():
+            self.current_text_color = color
+            self.update_text_color_button()
+            self.update_preview()
+
+    def update_text_color_button(self):
+        self.text_color_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.current_text_color.name()};
+                border: 2px solid #444;
+                border-radius: 5px;
+            }}
+            QPushButton:hover {{
+                border: 2px solid #666;
+            }}
+        """)
+
     def choose_color(self):
         color = QColorDialog.getColor(self.current_color, self)
         if color.isValid():
@@ -156,7 +198,6 @@ class LabelDialog(QDialog):
             }}
             QPushButton:hover {{
                 border: 2px solid #666;
-                background-color: {self.adjust_color_brightness(self.current_color.name(), 0.1)};
             }}
         """)
 
@@ -168,11 +209,14 @@ class LabelDialog(QDialog):
 
     def update_preview(self):
         name = self.name_input.text() or "Preview"
-        self.preview_widget.set_label(name, self.current_color.name())
+        text_color = self.current_text_color.name() if hasattr(self, 'current_text_color') else "#ffffff"
+        self.preview_widget.set_label(name, self.current_color.name(), text_color)
 
     def get_label_data(self) -> dict:
+        text_color = self.current_text_color.name() if hasattr(self, 'current_text_color') else "#ffffff"
         return {
             'name': self.name_input.text().strip(),
             'color': self.current_color.name(),
+            'text_color': text_color,
             'description': self.desc_input.toPlainText().strip() or None
         }

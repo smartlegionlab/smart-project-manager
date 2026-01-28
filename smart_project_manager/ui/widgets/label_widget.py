@@ -6,10 +6,11 @@ from PyQt5.QtCore import Qt, QRect
 
 class LabelWidget(QWidget):
 
-    def __init__(self, label_name: str, color: str, parent=None):
+    def __init__(self, label_name: str, color: str,text_color: str = "#ffffff", parent=None):
         super().__init__(parent)
         self.label_name = label_name
         self.color = QColor(color)
+        self.text_color = QColor(text_color)
         self.setMinimumHeight(28)
         self.setMinimumWidth(60)
 
@@ -27,7 +28,7 @@ class LabelWidget(QWidget):
         painter.setPen(QColor(255, 255, 255, 50))
         painter.drawRoundedRect(0, 0, width, height, 4, 4)
 
-        painter.setPen(Qt.white)
+        painter.setPen(self.text_color)
         font = QFont("Arial", 9)
         font.setBold(True)
         painter.setFont(font)
@@ -35,7 +36,8 @@ class LabelWidget(QWidget):
         text_rect = QRect(0, 0, width, height)
         painter.drawText(text_rect, Qt.AlignCenter, self.label_name)
 
-    def set_label(self, label_name: str, color: str):
+    def set_label(self, label_name: str, color: str, text_color: str = "#ffffff"):
         self.label_name = label_name
         self.color = QColor(color)
+        self.text_color = QColor(text_color)
         self.update()

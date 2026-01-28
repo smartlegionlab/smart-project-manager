@@ -187,7 +187,7 @@ class TaskTableWidget(QTableWidget):
         for label_id in label_ids:
             label = manager.get_label(label_id)
             if label:
-                label_widget = LabelWidget(label.name, label.color)
+                label_widget = LabelWidget(label.name, label.color, label.text_color)
                 label_widget.setMinimumHeight(24)
                 label_widget.setMinimumWidth(60)
                 layout.addWidget(label_widget)

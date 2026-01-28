@@ -274,7 +274,7 @@ class TaskDialog(QDialog):
             for label_id in self.selected_label_ids:
                 label = self.manager.get_label(label_id)
                 if label:
-                    label_widget = LabelWidget(label.name, label.color)
+                    label_widget = LabelWidget(label.name, label.color, label.text_color)
 
                     remove_btn = QPushButton('×')
                     remove_btn.setFixedSize(20, 20)
