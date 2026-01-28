@@ -438,6 +438,7 @@ class MainWindow(QMainWindow):
 
     def toggle_task_status(self, task_id: str):
         task = self.manager.get_task(task_id)
+        self.tasks_table.save_selection()
         if task:
             task.toggle_complete()
             self.manager.update_task(task_id, completed=task.completed)
@@ -452,6 +453,7 @@ class MainWindow(QMainWindow):
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
         self.update_clear_completed_button()
+        self.tasks_table.restore_selection()
 
     def create_project(self):
         dialog = ProjectDialog(self, manager=self.manager)
