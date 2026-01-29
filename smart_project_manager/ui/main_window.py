@@ -137,7 +137,6 @@ class MainWindow(QMainWindow):
 
         exit_action = QAction('Exit', self)
         exit_action.setShortcut('Ctrl+Q')
-        exit_action.triggered.connect(self.on_error)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
@@ -1793,6 +1792,7 @@ class MainWindow(QMainWindow):
         )
 
     def closeEvent(self, event):
+        self.on_error()
         reply = QMessageBox.question(
             self,
             'Exit',
