@@ -23,8 +23,8 @@ class TaskTableWidget(QTableWidget):
     def save_selection(self):
         selected = self.selectedItems()
         if selected:
-            row = selected[0].row()
-            item = self.item(row, 0)
+            row = selected[1].row()
+            item = self.item(row, 1)
             self.selected_task_id = item.data(Qt.UserRole)
 
     def restore_selection(self):
@@ -32,7 +32,7 @@ class TaskTableWidget(QTableWidget):
             return
 
         for row in range(self.rowCount()):
-            item = self.item(row, 0)
+            item = self.item(row, 1)
             if item and item.data(Qt.UserRole) == self.selected_task_id:
                 self.selectRow(row)
                 break
@@ -44,7 +44,7 @@ class TaskTableWidget(QTableWidget):
     def setup_table(self):
         self.setColumnCount(8)
         self.setHorizontalHeaderLabels(
-            ['Title', 'Priority', 'Status', 'Progress', 'Due Date', 'Labels', '', '']
+            ['Status', 'Title', 'Priority', 'Progress', 'Due Date', 'Labels', '', '']
         )
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.setAlternatingRowColors(True)
@@ -61,8 +61,8 @@ class TaskTableWidget(QTableWidget):
             }
         """)
 
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
@@ -73,8 +73,12 @@ class TaskTableWidget(QTableWidget):
     def add_task_row(self, row, task, manager, status_callback, edit_callback, delete_callback):
         self.insertRow(row)
 
+        status_button = self._create_status_button(task.completed)
+        status_button.clicked.connect(lambda checked, tid=task.id: status_callback(tid))
+        self.setCellWidget(row, 0, status_button)
+
         title_item = QTableWidgetItem(task.title)
-        title_item.setData(Qt.UserRole, task.id)
+        title_item.setData(Qt.UserRole, task.id)  # Сохраняем ID задачи здесь
         if task.description:
             title_item.setToolTip(f"Double-click to view details\n\n{task.description}")
         else:
@@ -84,14 +88,10 @@ class TaskTableWidget(QTableWidget):
             font = title_item.font()
             font.setStrikeOut(True)
             title_item.setFont(font)
-        self.setItem(row, 0, title_item)
+        self.setItem(row, 1, title_item)
 
         priority_widget = PriorityIndicatorWidget(task.priority)
-        self.setCellWidget(row, 1, priority_widget)
-
-        status_button = self._create_status_button(task.completed)
-        status_button.clicked.connect(lambda checked, tid=task.id: status_callback(tid))
-        self.setCellWidget(row, 2, status_button)
+        self.setCellWidget(row, 2, priority_widget)
 
         progress_bar = self._create_progress_bar(manager.get_task_progress(task.id))
         self.setCellWidget(row, 3, progress_bar)
