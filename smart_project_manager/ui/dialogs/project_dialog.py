@@ -48,6 +48,7 @@ class ProjectDialog(QDialog):
         name_layout.addWidget(self.version_label, 1, 0)
 
         self.version_input = QLineEdit()
+        self.version_input.setInputMask("v9.9.9;_")
         self.version_input.setPlaceholderText("e.g., 1.0.0")
         if project:
             self.version_input.setText(project.version)
@@ -62,6 +63,8 @@ class ProjectDialog(QDialog):
         self.github_url_input.setPlaceholderText("https://github.com/user/repo")
         if project:
             self.github_url_input.setText(project.github_url)
+        else:
+            self.github_url_input.setText("https://")
         name_layout.addWidget(self.github_url_input, 2, 1)
 
         self.layout.addWidget(name_group)
