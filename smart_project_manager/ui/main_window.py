@@ -616,7 +616,7 @@ class MainWindow(QMainWindow):
         project = self.manager.get_project(self.current_project_id)
 
         if project:
-            self.tasks_header.setText('📋 Project info')
+            self.tasks_header.setText('📋 Project actions')
             self.project_progress_widget.update_progress(project, self.manager)
             self.apply_filters()
             if project.github_url:
@@ -1267,7 +1267,7 @@ class MainWindow(QMainWindow):
         if self.current_project_id:
             project = self.manager.get_project(self.current_project_id)
             if project:
-                self.tasks_header.setText('📋 Project info')
+                self.tasks_header.setText('📋 Project actions')
                 self.project_progress_widget.update_progress(project, self.manager)
                 self.apply_filters()
                 if project.github_url:
