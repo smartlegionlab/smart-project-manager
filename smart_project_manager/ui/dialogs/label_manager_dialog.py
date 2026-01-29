@@ -30,17 +30,7 @@ class LabelManagerDialog(QDialog):
         self.max_selection = max_selection
         self.selected_label_ids = pre_selected_ids or []
 
-        self.click_sound = QSound("data/sounds/click.wav")
-
-        self.notify_sound = QSound("data/sounds/notify.wav")
-
-        self.error_sound = QSound("data/sounds/error.wav")
-
         self.sound_manager = sound_manager
-
-        self.sound_manager.register_sound('click', self.click_sound)
-        self.sound_manager.register_sound('notify', self.notify_sound)
-        self.sound_manager.register_sound('error', self.error_sound)
 
         title_suffix = " (Select up to 3)" if multi_select else ""
         self.setWindowTitle(f'📝 Label Manager{title_suffix}')

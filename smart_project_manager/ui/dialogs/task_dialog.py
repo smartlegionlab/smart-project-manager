@@ -42,17 +42,7 @@ class TaskDialog(QDialog):
         self.project_id = project_id if project_id else (task.project_id if task else None)
         self.max_labels = 3
 
-        self.click_sound = QSound("data/sounds/click.wav")
-
-        self.notify_sound = QSound("data/sounds/notify.wav")
-
-        self.error_sound = QSound("data/sounds/error.wav")
-
         self.sound_manager = sound_manager
-
-        self.sound_manager.register_sound('click', self.click_sound)
-        self.sound_manager.register_sound('notify', self.notify_sound)
-        self.sound_manager.register_sound('error', self.error_sound)
 
         self.setWindowTitle('Edit Task' if self.is_edit_mode else 'Create New Task')
         self.setMinimumSize(700, 600)
