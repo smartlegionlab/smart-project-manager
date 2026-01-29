@@ -241,11 +241,11 @@ class LabelManagerDialog(QDialog):
             colors_layout = QVBoxLayout(colors_widget)
             colors_layout.setSpacing(2)
 
-            bg_color_label = QLabel(f"BG: {label.color}")
+            bg_color_label = QLabel()
             bg_color_label.setStyleSheet("color: #888; font-size: 11px; font-family: monospace;")
             colors_layout.addWidget(bg_color_label)
 
-            text_color_label = QLabel(f"Text: {text_color}")
+            text_color_label = QLabel()
             text_color_label.setStyleSheet("color: #888; font-size: 11px; font-family: monospace;")
             colors_layout.addWidget(text_color_label)
 
