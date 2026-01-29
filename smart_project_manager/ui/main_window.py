@@ -3,11 +3,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import markdown
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
-    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame
+    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame, QTextBrowser
 )
 from PyQt5.QtGui import QFont, QDesktopServices
 from PyQt5.QtCore import Qt, QUrl
@@ -77,6 +78,8 @@ class MainWindow(QMainWindow):
 
         self.load_projects()
         self.cleanup_old_backups_on_start()
+
+        self.show_readme_mode()
 
         self.center_window()
 
@@ -256,6 +259,88 @@ class MainWindow(QMainWindow):
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
 
+        self.readme_viewer = QTextBrowser()
+        self.readme_viewer.setOpenExternalLinks(True)
+        self.readme_viewer.setStyleSheet("""
+                    QTextBrowser {
+                        background-color: #2a2a2a;
+                        color: #ffffff;
+                        border: 1px solid #444;
+                        border-radius: 5px;
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                        font-size: 13px;
+                        padding: 20px;
+                    }
+                    QTextBrowser a {
+                        color: #3498db;
+                        text-decoration: none;
+                    }
+                    QTextBrowser a:hover {
+                        color: #2980b9;
+                        text-decoration: underline;
+                    }
+                    QTextBrowser h1 {
+                        color: #2a82da;
+                        font-size: 24px;
+                        margin-top: 20px;
+                        margin-bottom: 15px;
+                    }
+                    QTextBrowser h2 {
+                        color: #27ae60;
+                        font-size: 20px;
+                        margin-top: 18px;
+                        margin-bottom: 12px;
+                    }
+                    QTextBrowser h3 {
+                        color: #3498db;
+                        font-size: 16px;
+                        margin-top: 15px;
+                        margin-bottom: 10px;
+                    }
+                    QTextBrowser code {
+                        background-color: #3a3a3a;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        font-family: 'Consolas', 'Monaco', monospace;
+                    }
+                    QTextBrowser pre {
+                        background-color: #3a3a3a;
+                        padding: 10px;
+                        border-radius: 5px;
+                        font-family: 'Consolas', 'Monaco', monospace;
+                        white-space: pre-wrap;
+                    }
+                    QTextBrowser blockquote {
+                        border-left: 4px solid #555;
+                        padding-left: 15px;
+                        margin-left: 0;
+                        color: #aaa;
+                        font-style: italic;
+                    }
+                    QTextBrowser img {
+                        max-width: 100%;
+                        height: auto;
+                        border-radius: 5px;
+                        margin: 10px 0;
+                    }
+                    QScrollBar:vertical {
+                        border: none;
+                        background: #3a3a3a;
+                        width: 12px;
+                        margin: 0px;
+                    }
+                    QScrollBar::handle:vertical {
+                        background: #555;
+                        border-radius: 6px;
+                        min-height: 20px;
+                    }
+                    QScrollBar::handle:vertical:hover {
+                        background: #666;
+                    }
+                """)
+
+        self.load_readme()
+
         tasks_header_layout = QHBoxLayout()
 
         self.tasks_header = QLabel('Select a project to view tasks')
@@ -333,15 +418,13 @@ class MainWindow(QMainWindow):
         """)
         tasks_header_layout.addWidget(self.btn_delete_project)
 
-        right_layout.addLayout(tasks_header_layout)
-
-        self.project_progress_widget = ProjectProgressWidget(self)
-        right_layout.addWidget(self.project_progress_widget)
-
         self.table_container = QWidget()
         table_container_layout = QVBoxLayout(self.table_container)
         table_container_layout.setContentsMargins(0, 0, 0, 0)
         table_container_layout.setSpacing(5)
+
+        self.project_progress_widget = ProjectProgressWidget(self)
+        right_layout.addWidget(self.project_progress_widget)
 
         self.filters_panel = QFrame()
         self.filters_panel.setStyleSheet("""
@@ -558,9 +641,58 @@ class MainWindow(QMainWindow):
         self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
         table_container_layout.addWidget(self.tasks_table, 1)
 
-        right_layout.addWidget(self.table_container, 1)
+        right_layout.addLayout(tasks_header_layout)
+        right_layout.addWidget(self.project_progress_widget)
+        right_layout.addWidget(self.table_container)
+        right_layout.addWidget(self.readme_viewer, 1)
 
         main_layout.addWidget(right_panel, 1)
+
+        self.show_readme_mode()
+
+    def load_readme(self):
+        readme_paths = [
+            "README.md",
+            "./README.md",
+            "../README.md",
+            "readme.md",
+            "Readme.md",
+            "README.MD"
+        ]
+
+        for path in readme_paths:
+            if os.path.exists(path):
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        md_content = f.read()
+                        html_content = markdown.markdown(md_content)
+                        self.readme_viewer.setHtml(html_content)
+                        return
+                except Exception as e:
+                    print(f"Error loading README: {e}")
+                    continue
+
+        self.readme_viewer.setPlainText(
+            "No README.md file found.\n\nSelect a project from the left panel or create a new one.")
+
+    def show_readme_mode(self):
+        self.readme_viewer.show()
+
+        self.project_progress_widget.hide()
+        self.table_container.hide()
+
+        self.tasks_header.setText('📖 Smart Project Manager Documentation')
+
+    def show_tasks_mode(self):
+        self.readme_viewer.hide()
+
+        self.project_progress_widget.show()
+        self.table_container.show()
+
+        if self.current_project_id:
+            project = self.manager.get_project(self.current_project_id)
+            if project:
+                self.tasks_header.setText(f'📋 Project actions')
 
     def setup_status_bar(self):
         self.status_bar = QStatusBar()
@@ -600,23 +732,23 @@ class MainWindow(QMainWindow):
 
         self.current_project_id = item.project_id
         self.selected_project_item = item
+
+        self.show_tasks_mode()
+
         self.btn_delete_project.setEnabled(True)
         self.btn_edit_project.setEnabled(True)
 
         self.filters_panel.setVisible(True)
-
         self.btn_new_task.setVisible(True)
         self.btn_new_task.setEnabled(True)
-
         self.btn_clear_completed.setVisible(True)
         self.update_clear_completed_button()
 
         self.last_selected_project_id = self.current_project_id
 
         project = self.manager.get_project(self.current_project_id)
-
         if project:
-            self.tasks_header.setText('📋 Project actions')
+            self.tasks_header.setText(f'📋 Project actions')
             self.project_progress_widget.update_progress(project, self.manager)
             self.apply_filters()
             if project.github_url:
@@ -755,6 +887,9 @@ class MainWindow(QMainWindow):
 
             self.current_project_id = None
             self.selected_project_item = None
+
+            self.show_readme_mode()
+
             self.btn_delete_project.setEnabled(False)
             self.btn_edit_project.setEnabled(False)
             self.btn_open_url.setEnabled(False)
