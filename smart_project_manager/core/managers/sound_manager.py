@@ -46,3 +46,6 @@ class SoundManager(QObject):
 
     def play_error(self):
         return self.play('error')
+
+    def play_about(self):
+        return self.play('about')

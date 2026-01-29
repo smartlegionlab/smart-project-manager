@@ -37,6 +37,8 @@ class MainWindow(QMainWindow):
 
         self.click_sound = QSound("data/sounds/click.wav")
 
+        self.about_sound = QSound("data/sounds/about.wav")
+
         self.notify_sound = QSound("data/sounds/notify.wav")
 
         self.error_sound = QSound("data/sounds/error.wav")
@@ -44,6 +46,7 @@ class MainWindow(QMainWindow):
         self.sound_manager = SoundManager()
 
         self.sound_manager.register_sound('click', self.click_sound)
+        self.sound_manager.register_sound('about', self.about_sound)
         self.sound_manager.register_sound('notify', self.notify_sound)
         self.sound_manager.register_sound('error', self.error_sound)
 
@@ -1583,13 +1586,16 @@ class MainWindow(QMainWindow):
     def on_error(self):
         self.sound_manager.play_error()
 
+    def on_about(self):
+        self.sound_manager.play_about()
+
     def toggle_sounds(self, enabled: bool):
         self.sound_manager.set_enabled(enabled)
         status = "enabled" if enabled else "disabled"
         self.status_bar.showMessage(f'Sounds {status}', 2000)
 
     def show_about(self):
-        self.on_notify()
+        self.on_about()
         QMessageBox.about(
             self,
             "About Smart Project Manager",
