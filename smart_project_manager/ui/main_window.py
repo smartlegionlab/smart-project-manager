@@ -76,6 +76,8 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.setup_status_bar()
 
+        self.update_sound_button_style()
+
         self.load_projects()
         self.cleanup_old_backups_on_start()
 
@@ -417,6 +419,40 @@ class MainWindow(QMainWindow):
         """)
         tasks_header_layout.addWidget(self.btn_delete_project)
 
+        separator = QFrame()
+        separator.setFrameShape(QFrame.VLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        separator.setStyleSheet("color: #444;")
+        separator.setFixedWidth(2)
+        tasks_header_layout.addWidget(separator)
+
+        self.btn_sound_toggle = QPushButton('🔊')
+        self.btn_sound_toggle.setCheckable(True)
+        self.btn_sound_toggle.setChecked(self.sound_manager.is_enabled())
+        self.btn_sound_toggle.setFixedSize(35, 35)
+        self.btn_sound_toggle.setToolTip("Toggle sounds on/off")
+        self.btn_sound_toggle.clicked.connect(self.on_click)
+        self.btn_sound_toggle.clicked.connect(self.toggle_sounds_button)
+        self.btn_sound_toggle.setStyleSheet("""
+            QPushButton {
+                background-color: #2a82da;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background-color: #1a72ca;
+            }
+            QPushButton:checked {
+                background-color: #e74c3c;
+            }
+            QPushButton:checked:hover {
+                background-color: #c0392b;
+            }
+        """)
+        tasks_header_layout.addWidget(self.btn_sound_toggle)
+
         self.table_container = QWidget()
         table_container_layout = QVBoxLayout(self.table_container)
         table_container_layout.setContentsMargins(0, 0, 0, 0)
@@ -742,6 +778,8 @@ class MainWindow(QMainWindow):
         self.btn_new_task.setEnabled(True)
         self.btn_clear_completed.setVisible(True)
         self.update_clear_completed_button()
+
+        self.update_sound_button_style()
 
         self.last_selected_project_id = self.current_project_id
 
@@ -1725,8 +1763,59 @@ class MainWindow(QMainWindow):
 
     def toggle_sounds(self, enabled: bool):
         self.sound_manager.set_enabled(enabled)
+
+        self.update_sound_button_style()
+
         status = "enabled" if enabled else "disabled"
         self.status_bar.showMessage(f'Sounds {status}', 2000)
+
+    def toggle_sounds_button(self, checked=None):
+        if checked is None:
+            checked = self.btn_sound_toggle.isChecked()
+
+        self.toggle_sounds(checked)
+
+        self.toggle_sounds(checked)
+
+    def update_sound_button_style(self):
+        enabled = self.sound_manager.is_enabled()
+
+        if enabled:
+            self.btn_sound_toggle.setText('🔊')
+            self.btn_sound_toggle.setToolTip("Sounds are ON (click to turn off)")
+            self.btn_sound_toggle.setStyleSheet("""
+                QPushButton {
+                    background-color: #2a82da;
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 5px;
+                    font-size: 16px;
+                }
+                QPushButton:hover {
+                    background-color: #1a72ca;
+                }
+                QPushButton:pressed {
+                    background-color: #0a62ba;
+                }
+            """)
+        else:
+            self.btn_sound_toggle.setText('🔈')
+            self.btn_sound_toggle.setToolTip("Sounds are OFF (click to turn on)")
+            self.btn_sound_toggle.setStyleSheet("""
+                QPushButton {
+                    background-color: #e74c3c;
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 5px;
+                    font-size: 16px;
+                }
+                QPushButton:hover {
+                    background-color: #c0392b;
+                }
+                QPushButton:pressed {
+                    background-color: #a03022;
+                }
+            """)
 
     def show_about(self):
         self.on_about()
