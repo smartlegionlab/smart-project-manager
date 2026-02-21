@@ -48,7 +48,7 @@ class ProjectDialog(QDialog):
         name_layout.addWidget(self.version_label, 1, 0)
 
         self.version_input = QLineEdit()
-        self.version_input.setInputMask("v9.9.9;_")
+        self.version_input.setInputMask("9.9.9;_")
         self.version_input.setPlaceholderText("e.g., 1.0.0")
         if project:
             self.version_input.setText(project.version)
