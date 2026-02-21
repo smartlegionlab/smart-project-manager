@@ -78,7 +78,7 @@ class TaskTableWidget(QTableWidget):
         self.setCellWidget(row, 0, status_button)
 
         title_item = QTableWidgetItem(task.title)
-        title_item.setData(Qt.UserRole, task.id)  # Сохраняем ID задачи здесь
+        title_item.setData(Qt.UserRole, task.id)
         if task.description:
             title_item.setToolTip(f"Double-click to view details\n\n{task.description}")
         else:

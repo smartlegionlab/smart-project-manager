@@ -1,9 +1,9 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import markdown
 from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
@@ -57,7 +57,6 @@ class MainWindow(QMainWindow):
         self.show_completed = True
 
         self.setWindowTitle(f'Smart Project Manager {ver}')
-        self.showMaximized()
 
         self.setStyleSheet("""
             QMainWindow {
@@ -866,7 +865,10 @@ class MainWindow(QMainWindow):
     def toggle_task_status(self, task_id: str):
         self.on_notify()
         task = self.manager.get_task(task_id)
-        self.tasks_table.save_selection()
+
+        scroll_pos = self.tasks_table.verticalScrollBar().value()
+        current_row = self.get_task_row(task_id)
+
         if task:
             task.toggle_complete()
             self.manager.update_task(task_id, completed=task.completed)
@@ -874,14 +876,25 @@ class MainWindow(QMainWindow):
             if self.current_project_id:
                 self.apply_filters()
                 self.update_statistics()
-
                 self.load_projects()
 
                 project = self.manager.get_project(self.current_project_id)
                 if project:
                     self.project_progress_widget.update_progress(project, self.manager)
+
         self.update_clear_completed_button()
-        self.tasks_table.restore_selection()
+
+        self.tasks_table.verticalScrollBar().setValue(scroll_pos)
+
+        if 0 <= current_row < self.tasks_table.rowCount():
+            self.tasks_table.selectRow(current_row)
+
+    def get_task_row(self, task_id: str) -> int:
+        for row in range(self.tasks_table.rowCount()):
+            item = self.tasks_table.item(row, 1)
+            if item and item.data(Qt.UserRole) == task_id:
+                return row
+        return -1
 
     def create_project(self):
         self.on_notify()
@@ -1178,6 +1191,16 @@ class MainWindow(QMainWindow):
         if not self.current_project_id:
             return
 
+        selected_task_id = None
+        selected_items = self.tasks_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
+            item = self.tasks_table.item(row, 1)
+            if item:
+                selected_task_id = item.data(Qt.UserRole)
+
+        scroll_pos = self.tasks_table.verticalScrollBar().value()
+
         all_tasks = self.manager.get_tasks_by_project(self.current_project_id)
         filtered_tasks = []
 
@@ -1189,7 +1212,6 @@ class MainWindow(QMainWindow):
 
         all_labels = self.manager.get_all_labels()
         label_name_to_id = {label.name: label.id for label in all_labels}
-
 
         for task in all_tasks:
             search_ok = True
@@ -1219,8 +1241,16 @@ class MainWindow(QMainWindow):
             if search_ok and priority_ok and label_ok and completed_ok:
                 filtered_tasks.append(task)
 
-
         self.display_filtered_tasks(filtered_tasks)
+
+        if selected_task_id:
+            for row in range(self.tasks_table.rowCount()):
+                item = self.tasks_table.item(row, 1)
+                if item and item.data(Qt.UserRole) == selected_task_id:
+                    self.tasks_table.selectRow(row)
+                    break
+
+        self.tasks_table.verticalScrollBar().setValue(scroll_pos)
 
         filtered_count = len(filtered_tasks)
         total_count = len(all_tasks)
@@ -1240,6 +1270,9 @@ class MainWindow(QMainWindow):
                 self.edit_task,
                 self.delete_task
             )
+            item = self.tasks_table.item(row, 1)
+            if item:
+                item.setData(Qt.UserRole, task.id)
 
     def create_task(self):
         self.on_notify()
