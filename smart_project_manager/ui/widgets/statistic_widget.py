@@ -1,7 +1,11 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
+import os
+
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout,
     QGroupBox, QProgressBar, QPushButton
 )
+from PyQt5.QtCore import Qt
 
 
 class StatisticsWidget(QWidget):
@@ -174,36 +178,33 @@ class StatisticsWidget(QWidget):
 
         stats_layout.addWidget(completion_group)
 
-        data_info_layout = QHBoxLayout()
-        data_info_layout.setSpacing(5)
+        data_path_layout = QHBoxLayout()
+        data_path_layout.setSpacing(5)
 
-        data_info_label = QLabel("💾")
-        data_info_label.setStyleSheet("font-size: 11px;")
-        data_info_layout.addWidget(data_info_label)
+        data_path_prefix = QLabel("Data path:")
+        data_path_prefix.setStyleSheet("color: #888; font-size: 11px;")
+        data_path_layout.addWidget(data_path_prefix)
 
-        data_path_label = QLabel("~/.project_manager")
-        data_path_label.setStyleSheet("color: #888; font-size: 9px; font-family: monospace;")
-        data_info_layout.addWidget(data_path_label)
-
-        data_info_layout.addStretch()
-
-        refresh_stats_btn = QPushButton("🔄")
-        refresh_stats_btn.setFixedSize(20, 20)
-        refresh_stats_btn.setStyleSheet("""
-            QPushButton {
-                background-color: transparent;
-                border: none;
-                font-size: 12px;
+        full_path = os.path.expanduser("~/.project_manager")
+        self.data_path_link = QLabel(f'<a href="file://{full_path}"'
+                                     f' style="color: #3498db; text-decoration: none;">{full_path}</a>')
+        self.data_path_link.setOpenExternalLinks(True)
+        self.data_path_link.setTextFormat(Qt.RichText)
+        self.data_path_link.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.data_path_link.setStyleSheet("""
+            QLabel {
+                font-size: 11px;
+                font-family: monospace;
             }
-            QPushButton:hover {
-                color: #3498db;
+            QLabel:hover {
+                text-decoration: underline;
             }
         """)
-        refresh_stats_btn.clicked.connect(self.parent().update_statistics)
-        refresh_stats_btn.setToolTip("Refresh statistics")
-        data_info_layout.addWidget(refresh_stats_btn)
+        data_path_layout.addWidget(self.data_path_link)
 
-        stats_layout.addLayout(data_info_layout)
+        data_path_layout.addStretch()
+
+        stats_layout.addLayout(data_path_layout)
 
         layout.addWidget(stats_group)
 
