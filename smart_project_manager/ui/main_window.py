@@ -340,7 +340,7 @@ class MainWindow(QMainWindow):
                     }
                 """)
 
-        self.load_readme()
+        self.load_welcome_page()
 
         tasks_header_layout = QHBoxLayout()
 
@@ -685,38 +685,104 @@ class MainWindow(QMainWindow):
 
         self.show_readme_mode()
 
-    def load_readme(self):
-        readme_paths = [
-            "README.md",
-            "./README.md",
-            "../README.md",
-            "readme.md",
-            "Readme.md",
-            "README.MD"
-        ]
+    def load_welcome_page(self):
+        welcome_html = f"""
+        <div style="
+            color: #ffffff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        ">
+            <style>
+                h1, p, div {{
+                    background: none !important;
+                    border: none !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }}
+            </style>
 
-        for path in readme_paths:
-            if os.path.exists(path):
-                try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        md_content = f.read()
-                        html_content = markdown.markdown(md_content)
-                        self.readme_viewer.setHtml(html_content)
-                        return
-                except Exception as e:
-                    print(f"Error loading README: {e}")
-                    continue
+            <h1 style="
+                color: #2a82da;
+                font-size: 42px;
+                font-weight: bold;
+                margin-bottom: 15px !important;
+            ">📋 Smart Project Manager</h1>
 
-        self.readme_viewer.setPlainText(
-            "No README.md file found.\n\nSelect a project from the left panel or create a new one.")
+            <div style="
+                color: #888;
+                font-size: 14px;
+                margin-bottom: 25px !important;
+            ">version {ver}</div>
+
+            <p style="
+                color: #ccc;
+                font-size: 16px;
+                line-height: 1.6;
+                margin-bottom: 40px !important;
+                opacity: 0.9;
+            ">
+                Smart Project Manager is a desktop application for comprehensive project and task management, 
+                built with Python and PyQt5. It provides a hierarchical system for organizing projects, 
+                tasks, and subtasks, featuring visual labels, automatic progress tracking,
+                 and a dark-themed user interface.
+            </p>
+
+            <div style="
+                background: linear-gradient(90deg, #2a82da, #27ae60);
+                height: 2px;
+                width: 80px;
+                margin: 0 auto 40px auto !important;
+                border-radius: 1px;
+            "></div>
+
+            <div style="margin-bottom: 40px !important;">
+                <a href="https://github.com/smartlegionlab/" 
+                   style="
+                       color: #3498db;
+                       text-decoration: none;
+                       font-size: 14px;
+                       margin: 0 15px;
+                   ">GitHub</a>
+                <span style="color: #444;">•</span>
+                <a href="https://github.com/smartlegionlab/smart-project-manager/" 
+                   style="
+                       color: #3498db;
+                       text-decoration: none;
+                       font-size: 14px;
+                       margin: 0 15px;
+                   ">Documentation</a>
+                <span style="color: #444;">•</span>
+                <a href="https://github.com/smartlegionlab/smart-project-manager/releases" 
+                   style="
+                       color: #3498db;
+                       text-decoration: none;
+                       font-size: 14px;
+                       margin: 0 15px;
+                   ">Releases</a>
+            </div>
+
+            <div style="
+                color: #666;
+                font-size: 12px;
+            ">
+                © 2026 Alexander Suvorov. All rights reserved.
+            </div>
+        </div>
+        """
+
+        self.readme_viewer.setHtml(welcome_html)
 
     def show_readme_mode(self):
         self.readme_viewer.show()
+        self.load_welcome_page()
 
         self.project_progress_widget.hide()
         self.table_container.hide()
 
-        self.tasks_header.setText('📖 Smart Project Manager Documentation')
+        self.tasks_header.setText('📋 Smart Project Manager')
 
     def show_tasks_mode(self):
         self.readme_viewer.hide()
