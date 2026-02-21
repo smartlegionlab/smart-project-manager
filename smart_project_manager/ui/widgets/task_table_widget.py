@@ -1,9 +1,10 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar, QWidget,
-    QHBoxLayout, QPushButton, QAbstractItemView
+    QHBoxLayout, QPushButton, QAbstractItemView, QLabel
 )
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QDrag, QFont
+from PyQt5.QtCore import Qt, QMimeData, pyqtSignal
 from datetime import datetime
 
 from smart_project_manager.ui.widgets.priority_widget import PriorityIndicatorWidget
@@ -11,28 +12,41 @@ from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 
 class TaskTableWidget(QTableWidget):
+    task_dropped = pyqtSignal(int, int)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_selection_behavior()
         self.setup_table()
         self.setFocusPolicy(Qt.NoFocus)
         self.selected_task_id = None
+        self.manager = None
+        self.current_project_id = None
+
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDragDropMode(QAbstractItemView.InternalMove)
+        self.setDefaultDropAction(Qt.MoveAction)
+        self.setDragDropOverwriteMode(False)
+
+        self.task_order = []
 
         self.itemSelectionChanged.connect(self.save_selection)
 
     def save_selection(self):
         selected = self.selectedItems()
         if selected:
-            row = selected[1].row()
-            item = self.item(row, 1)
-            self.selected_task_id = item.data(Qt.UserRole)
+            row = selected[0].row()
+            item = self.item(row, 2)
+            if item:
+                self.selected_task_id = item.data(Qt.UserRole)
 
     def restore_selection(self):
         if not self.selected_task_id:
             return
 
         for row in range(self.rowCount()):
-            item = self.item(row, 1)
+            item = self.item(row, 2)
             if item and item.data(Qt.UserRole) == self.selected_task_id:
                 self.selectRow(row)
                 break
@@ -42,9 +56,9 @@ class TaskTableWidget(QTableWidget):
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
 
     def setup_table(self):
-        self.setColumnCount(8)
+        self.setColumnCount(9)
         self.setHorizontalHeaderLabels(
-            ['Status', 'Title', 'Priority', 'Progress', 'Due Date', 'Labels', '', '']
+            ['', 'Status', 'Title', 'Priority', 'Progress', 'Due Date', 'Labels', '', '']
         )
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.setAlternatingRowColors(True)
@@ -62,23 +76,51 @@ class TaskTableWidget(QTableWidget):
         """)
 
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(7, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(8, QHeaderView.ResizeToContents)
+
+        self.setSortingEnabled(True)
+
+    def create_drag_handle(self):
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignCenter)
+
+        handle = QLabel("⋮⋮")
+        handle.setStyleSheet("""
+            QLabel {
+                color: #888;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 0px;
+            }
+        """)
+        handle.setFont(QFont("Arial", 12))
+        layout.addWidget(handle)
+
+        return widget
 
     def add_task_row(self, row, task, manager, status_callback, edit_callback, delete_callback):
         self.insertRow(row)
+        self.setRowHeight(row, 40)
+
+        drag_handle = self.create_drag_handle()
+        self.setCellWidget(row, 0, drag_handle)
 
         status_button = self._create_status_button(task.completed)
         status_button.clicked.connect(lambda checked, tid=task.id: status_callback(tid))
-        self.setCellWidget(row, 0, status_button)
+        self.setCellWidget(row, 1, status_button)
 
         title_item = QTableWidgetItem(task.title)
         title_item.setData(Qt.UserRole, task.id)
+        title_item.setData(Qt.UserRole + 1, task.priority)
         if task.description:
             title_item.setToolTip(f"Double-click to view details\n\n{task.description}")
         else:
@@ -88,27 +130,30 @@ class TaskTableWidget(QTableWidget):
             font = title_item.font()
             font.setStrikeOut(True)
             title_item.setFont(font)
-        self.setItem(row, 1, title_item)
+        self.setItem(row, 2, title_item)
 
         priority_widget = PriorityIndicatorWidget(task.priority)
-        self.setCellWidget(row, 2, priority_widget)
+        self.setCellWidget(row, 3, priority_widget)
 
         progress_bar = self._create_progress_bar(manager.get_task_progress(task.id))
-        self.setCellWidget(row, 3, progress_bar)
+        self.setCellWidget(row, 4, progress_bar)
 
         due_item = self._create_due_item(task.due_date, task.completed)
-        self.setItem(row, 4, due_item)
+        due_item.setData(Qt.UserRole, task.id)
+        self.setItem(row, 5, due_item)
 
         labels_widget = self._create_labels_widget(task.labels, manager)
-        self.setCellWidget(row, 5, labels_widget)
+        self.setCellWidget(row, 6, labels_widget)
 
         edit_button = self._create_edit_button()
         edit_button.clicked.connect(lambda checked, tid=task.id: edit_callback(tid))
-        self.setCellWidget(row, 6, edit_button)
+        self.setCellWidget(row, 7, edit_button)
 
         delete_button = self._create_delete_button()
         delete_button.clicked.connect(lambda checked, tid=task.id: delete_callback(tid))
-        self.setCellWidget(row, 7, delete_button)
+        self.setCellWidget(row, 8, delete_button)
+
+        self.update_task_order()
 
     def _create_status_button(self, completed):
         button = QPushButton("✅" if completed else "⏳")
@@ -230,3 +275,179 @@ class TaskTableWidget(QTableWidget):
             }
         """)
         return button
+
+    def update_task_order(self):
+        self.task_order = []
+        for row in range(self.rowCount()):
+            item = self.item(row, 2)
+            if item:
+                task_id = item.data(Qt.UserRole)
+                if task_id:
+                    self.task_order.append(task_id)
+
+    def get_task_order(self):
+        self.update_task_order()
+        return self.task_order
+
+    def _move_row(self, from_row, to_row):
+        if from_row == to_row:
+            return
+
+        item = self.item(from_row, 2)
+        if not item:
+            return
+        task_id = item.data(Qt.UserRole)
+
+        main_window = self.get_main_window()
+        if not main_window:
+            return
+
+        self.setSortingEnabled(False)
+
+        row_items = {}
+        for col in range(self.columnCount()):
+            if col in [0, 1, 3, 4, 6, 7, 8]:
+                row_items[col] = ('widget', None)
+            else:
+                item = self.item(from_row, col)
+                if item:
+                    new_item = QTableWidgetItem(item.text())
+                    if col == 2:
+                        new_item.setData(Qt.UserRole, item.data(Qt.UserRole))
+                        new_item.setData(Qt.UserRole + 1, item.data(Qt.UserRole + 1))
+                        new_item.setToolTip(item.toolTip())
+                        if item.foreground().color() != Qt.black:
+                            new_item.setForeground(item.foreground())
+                        font = item.font()
+                        new_item.setFont(font)
+                    elif col == 5:
+                        new_item.setTextAlignment(item.textAlignment())
+                        if item.foreground().color() != Qt.black:
+                            new_item.setForeground(item.foreground())
+                    row_items[col] = ('item', new_item)
+
+        self.removeRow(from_row)
+
+        if to_row > from_row:
+            insert_pos = to_row
+        else:
+            insert_pos = to_row
+
+        self.insertRow(insert_pos)
+        self.setRowHeight(insert_pos, 40)
+
+        for col, (data_type, value) in row_items.items():
+            if data_type == 'item' and value:
+                self.setItem(insert_pos, col, value)
+
+        if self.current_project_id and task_id:
+            task = main_window.manager.get_task(task_id)
+            if task:
+                drag_handle = self.create_drag_handle()
+                self.setCellWidget(insert_pos, 0, drag_handle)
+
+                status_button = self._create_status_button(task.completed)
+                status_button.clicked.connect(lambda checked, tid=task_id: main_window.toggle_task_status(tid))
+                self.setCellWidget(insert_pos, 1, status_button)
+
+                priority_widget = PriorityIndicatorWidget(task.priority)
+                self.setCellWidget(insert_pos, 3, priority_widget)
+
+                progress = main_window.manager.get_task_progress(task_id)
+                progress_bar = self._create_progress_bar(progress)
+                self.setCellWidget(insert_pos, 4, progress_bar)
+
+                labels_widget = self._create_labels_widget(task.labels, main_window.manager)
+                self.setCellWidget(insert_pos, 6, labels_widget)
+
+                edit_button = self._create_edit_button()
+                edit_button.clicked.connect(lambda checked, tid=task_id: main_window.edit_task(tid))
+                self.setCellWidget(insert_pos, 7, edit_button)
+
+                delete_button = self._create_delete_button()
+                delete_button.clicked.connect(lambda checked, tid=task_id: main_window.delete_task(tid))
+                self.setCellWidget(insert_pos, 8, delete_button)
+
+        self.setSortingEnabled(True)
+
+    def startDrag(self, supportedActions):
+        selected = self.selectedItems()
+        if not selected:
+            return
+
+        row = selected[0].row()
+        item = self.item(row, 2)
+        if not item:
+            return
+
+        task_id = item.data(Qt.UserRole)
+
+        drag = QDrag(self)
+        mime_data = QMimeData()
+        mime_data.setText(str(task_id))
+        mime_data.setData("application/x-task-id", str(task_id).encode())
+
+        mime_data.setData("application/x-source-row", str(row).encode())
+
+        drag.setMimeData(mime_data)
+
+        drag.setHotSpot(self.viewport().mapFromGlobal(self.cursor().pos()))
+
+        drag.exec_(Qt.MoveAction)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat("application/x-task-id"):
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        if not event.mimeData().hasFormat("application/x-task-id"):
+            event.ignore()
+            return
+
+        task_id = event.mimeData().text()
+
+        drop_pos = event.pos()
+        target_row = self.rowAt(drop_pos.y())
+
+        if target_row < 0 or target_row >= self.rowCount():
+            target_row = self.rowCount()
+
+        source_row = -1
+        for row in range(self.rowCount()):
+            item = self.item(row, 2)
+            if item and str(item.data(Qt.UserRole)) == task_id:
+                source_row = row
+                break
+
+        if source_row >= 0 and source_row != target_row:
+            if source_row < target_row:
+                target_row -= 1
+
+            scroll_pos = self.verticalScrollBar().value()
+
+            main_window = self.get_main_window()
+            if main_window:
+                self.current_project_id = main_window.current_project_id
+
+            self._move_row(source_row, target_row)
+
+            self.update_task_order()
+
+            self.task_dropped.emit(source_row, target_row)
+
+            self.verticalScrollBar().setValue(scroll_pos)
+
+            self.selectRow(target_row)
+
+        event.acceptProposedAction()
+
+    def get_main_window(self):
+        parent = self.parent()
+        while parent:
+            if hasattr(parent, 'current_project_id') and hasattr(parent, 'manager'):
+                return parent
+            parent = parent.parent()
+        return None

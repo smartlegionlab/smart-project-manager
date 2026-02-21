@@ -75,6 +75,8 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.setup_status_bar()
 
+        self.tasks_table.task_dropped.connect(self.on_task_dropped)
+
         self.update_sound_button_style()
 
         self.load_projects()
@@ -670,6 +672,7 @@ class MainWindow(QMainWindow):
         table_container_layout.addLayout(table_header_layout)
 
         self.tasks_table = TaskTableWidget(self)
+        self.tasks_table.manager = self.manager
         self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
         self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
@@ -831,6 +834,7 @@ class MainWindow(QMainWindow):
             return
 
         self.current_project_id = item.project_id
+        self.tasks_table.current_project_id = self.current_project_id
         self.selected_project_item = item
 
         self.show_tasks_mode()
@@ -1202,6 +1206,9 @@ class MainWindow(QMainWindow):
         scroll_pos = self.tasks_table.verticalScrollBar().value()
 
         all_tasks = self.manager.get_tasks_by_project(self.current_project_id)
+
+        project = self.manager.get_project(self.current_project_id)
+
         filtered_tasks = []
 
         PRIORITY_MAP = {
@@ -1240,6 +1247,18 @@ class MainWindow(QMainWindow):
 
             if search_ok and priority_ok and label_ok and completed_ok:
                 filtered_tasks.append(task)
+
+        if project and project.task_order:
+            tasks_dict = {task.id: task for task in filtered_tasks}
+
+            sorted_tasks = []
+            for task_id in project.task_order:
+                if task_id in tasks_dict:
+                    sorted_tasks.append(tasks_dict.pop(task_id))
+
+            sorted_tasks.extend(tasks_dict.values())
+
+            filtered_tasks = sorted_tasks
 
         self.display_filtered_tasks(filtered_tasks)
 
@@ -1384,6 +1403,21 @@ class MainWindow(QMainWindow):
                     self.project_progress_widget.update_progress(project, self.manager)
 
                 self.update_label_filter_combo()
+
+    def on_task_dropped(self, from_row, to_row):
+        if not self.current_project_id:
+            return
+
+        new_order = self.tasks_table.get_task_order()
+
+        project = self.manager.get_project(self.current_project_id)
+        if not project:
+            return
+
+        project.task_order = new_order
+        self.manager.update_project(project.id, task_order=new_order)
+
+        self.status_bar.showMessage(f'Task order saved', 2000)
 
     def manage_labels(self):
         self.on_notify()

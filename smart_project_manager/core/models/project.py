@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
@@ -14,6 +13,7 @@ class Project:
     version: str
     description: Optional[str] = None
     tasks: List[str] = field(default_factory=list)
+    task_order: List[str] = field(default_factory=list)
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
@@ -23,7 +23,8 @@ class Project:
             github_url: str = "",
             version: str = "1.0.0",
             description: Optional[str] = None,
-            id: Optional[str] = None
+            id: Optional[str] = None,
+            task_order: Optional[List[str]] = None
     ):
         self.id = id or generate_id()
         self.name = name
@@ -31,6 +32,7 @@ class Project:
         self.version = version
         self.description = description
         self.tasks = []
+        self.task_order = task_order or []
         self.created_at = format_datetime()
         self.updated_at = self.created_at
 
@@ -48,6 +50,8 @@ class Project:
     def remove_task(self, task_id: str):
         if task_id in self.tasks:
             self.tasks.remove(task_id)
+            if task_id in self.task_order:
+                self.task_order.remove(task_id)
             self.updated_at = format_datetime()
 
     def get_progress(self, all_tasks: Dict[str, Task]) -> float:
@@ -70,6 +74,7 @@ class Project:
             "version": self.version,
             "description": self.description,
             "tasks": self.tasks,
+            "task_order": self.task_order,
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }
@@ -83,7 +88,8 @@ class Project:
             name=data['name'],
             github_url=github_url,
             version=data['version'],
-            description=data.get('description')
+            description=data.get('description'),
+            task_order=data.get('task_order', [])
         )
         project.tasks = data.get('tasks', [])
         project.created_at = data.get('created_at')

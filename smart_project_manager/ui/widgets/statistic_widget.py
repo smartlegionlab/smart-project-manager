@@ -1,9 +1,7 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import os
-
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QGroupBox, QProgressBar, QPushButton
+    QGroupBox, QProgressBar
 )
 from PyQt5.QtCore import Qt
 
