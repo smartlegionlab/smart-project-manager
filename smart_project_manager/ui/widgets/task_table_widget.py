@@ -1,10 +1,17 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
-    QTableWidget, QTableWidgetItem, QHeaderView, QProgressBar, QWidget,
-    QHBoxLayout, QPushButton, QAbstractItemView, QLabel
+    QTableWidget,
+    QTableWidgetItem,
+    QHeaderView,
+    QProgressBar,
+    QWidget,
+    QHBoxLayout,
+    QPushButton,
+    QAbstractItemView,
+    QLabel, QVBoxLayout
 )
-from PyQt5.QtGui import QColor, QDrag, QFont
-from PyQt5.QtCore import Qt, QMimeData, pyqtSignal
+from PyQt5.QtGui import QColor, QDrag, QFont, QBrush, QPen, QPainter, QPixmap
+from PyQt5.QtCore import Qt, QMimeData, pyqtSignal, QPoint, QRect
 from datetime import datetime
 
 from smart_project_manager.ui.widgets.priority_widget import PriorityIndicatorWidget
@@ -22,6 +29,10 @@ class TaskTableWidget(QTableWidget):
         self.selected_task_id = None
         self.manager = None
         self.current_project_id = None
+
+        self.drag_indicator_rect = None
+        self.drag_item_data = None
+        self.setMouseTracking(True)
 
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
@@ -93,17 +104,29 @@ class TaskTableWidget(QTableWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignCenter)
 
-        handle = QLabel("⋮⋮")
-        handle.setStyleSheet("""
-            QLabel {
-                color: #888;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 0px;
-            }
-        """)
-        handle.setFont(QFont("Arial", 12))
-        layout.addWidget(handle)
+        handle_container = QWidget()
+        handle_layout = QVBoxLayout(handle_container)
+        handle_layout.setContentsMargins(0, 0, 0, 0)
+        handle_layout.setSpacing(3)
+
+        for _ in range(2):
+            line = QLabel("—")
+            line.setStyleSheet("""
+                QLabel {
+                    color: #888;
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding: 0px;
+                    margin: -3px 0px;
+                }
+            """)
+            line.setFont(QFont("Arial", 14))
+            line.setAlignment(Qt.AlignCenter)
+            handle_layout.addWidget(line)
+
+        layout.addWidget(handle_container)
+
+        widget.setProperty("is_drag_handle", True)
 
         return widget
 
@@ -381,26 +404,65 @@ class TaskTableWidget(QTableWidget):
             return
 
         task_id = item.data(Qt.UserRole)
+        task_title = item.text()
+
+        self.drag_item_data = {
+            'row': row,
+            'id': task_id,
+            'title': task_title
+        }
+
+        pixmap = self.create_drag_preview(row)
 
         drag = QDrag(self)
         mime_data = QMimeData()
         mime_data.setText(str(task_id))
         mime_data.setData("application/x-task-id", str(task_id).encode())
-
         mime_data.setData("application/x-source-row", str(row).encode())
 
         drag.setMimeData(mime_data)
-
-        drag.setHotSpot(self.viewport().mapFromGlobal(self.cursor().pos()))
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(QPoint(pixmap.width() // 2, pixmap.height() // 2))
 
         drag.exec_(Qt.MoveAction)
+
+        self.drag_item_data = None
+        self.drag_indicator_rect = None
+        self.viewport().update()
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasFormat("application/x-task-id"):
             event.acceptProposedAction()
 
     def dragMoveEvent(self, event):
+        if not event.mimeData().hasFormat("application/x-task-id"):
+            event.ignore()
+            return
+
+        drop_pos = event.pos()
+        target_row = self.rowAt(drop_pos.y())
+
+        if target_row >= 0:
+            rect = self.visualRect(self.model().index(target_row, 0))
+            insert_above = drop_pos.y() < rect.center().y()
+
+            y_pos = rect.top() if insert_above else rect.bottom()
+            self.drag_indicator_rect = QRect(rect.left(), y_pos - 2, rect.width(), 4)
+        else:
+            last_row = self.rowCount() - 1
+            if last_row >= 0:
+                rect = self.visualRect(self.model().index(last_row, 0))
+                self.drag_indicator_rect = QRect(rect.left(), rect.bottom() - 2, rect.width(), 4)
+            else:
+                self.drag_indicator_rect = QRect(10, 10, self.width() - 20, 4)
+
+        self.viewport().update()
         event.acceptProposedAction()
+
+    def dragLeaveEvent(self, event):
+        self.drag_indicator_rect = None
+        self.viewport().update()
+        super().dragLeaveEvent(event)
 
     def dropEvent(self, event):
         if not event.mimeData().hasFormat("application/x-task-id"):
@@ -408,12 +470,17 @@ class TaskTableWidget(QTableWidget):
             return
 
         task_id = event.mimeData().text()
-
         drop_pos = event.pos()
         target_row = self.rowAt(drop_pos.y())
 
         if target_row < 0 or target_row >= self.rowCount():
             target_row = self.rowCount()
+
+        if target_row < self.rowCount():
+            rect = self.visualRect(self.model().index(target_row, 0))
+            insert_above = drop_pos.y() < rect.center().y()
+            if not insert_above:
+                target_row += 1
 
         source_row = -1
         for row in range(self.rowCount()):
@@ -433,16 +500,84 @@ class TaskTableWidget(QTableWidget):
                 self.current_project_id = main_window.current_project_id
 
             self._move_row(source_row, target_row)
-
             self.update_task_order()
-
             self.task_dropped.emit(source_row, target_row)
 
             self.verticalScrollBar().setValue(scroll_pos)
-
             self.selectRow(target_row)
 
+        self.drag_indicator_rect = None
+        self.viewport().update()
         event.acceptProposedAction()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        if self.drag_indicator_rect:
+            painter = QPainter(self.viewport())
+            painter.setRenderHint(QPainter.Antialiasing)
+
+            painter.setPen(QPen(QColor(100, 200, 255), 3))
+            painter.drawLine(
+                self.drag_indicator_rect.left() + 5,
+                self.drag_indicator_rect.center().y(),
+                self.drag_indicator_rect.right() - 5,
+                self.drag_indicator_rect.center().y()
+            )
+
+            painter.setBrush(QBrush(QColor(100, 200, 255)))
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(
+                self.drag_indicator_rect.left(),
+                self.drag_indicator_rect.center().y() - 4,
+                8, 8
+            )
+            painter.drawEllipse(
+                self.drag_indicator_rect.right() - 8,
+                self.drag_indicator_rect.center().y() - 4,
+                8, 8
+            )
+
+    def create_drag_preview(self, row):
+        width = self.columnWidth(2) + self.columnWidth(3) + 40
+        height = 40
+
+        pixmap = QPixmap(width, height)
+        pixmap.fill(Qt.transparent)
+
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        painter.setBrush(QBrush(QColor(70, 130, 180, 200)))
+        painter.setPen(QPen(QColor(255, 255, 255, 100), 1))
+        painter.drawRoundedRect(0, 0, width - 1, height - 1, 5, 5)
+
+        title_item = self.item(row, 2)
+
+        painter.setPen(Qt.white)
+        painter.setFont(QFont("Arial", 10, QFont.Bold))
+        title_text = title_item.text() if title_item else "Task"
+        if len(title_text) > 30:
+            title_text = title_text[:27] + "..."
+        painter.drawText(10, 5, width - 20, 30, Qt.AlignLeft | Qt.AlignVCenter, title_text)
+
+        if title_item:
+            priority = title_item.data(Qt.UserRole + 1)
+            if priority == 'high':
+                priority_color = QColor(255, 100, 100)
+            elif priority == 'medium':
+                priority_color = QColor(255, 200, 100)
+            elif priority == 'low':
+                priority_color = QColor(100, 200, 100)
+            else:
+                priority_color = QColor(150, 150, 150)
+
+            painter.setBrush(QBrush(priority_color))
+            painter.setPen(Qt.NoPen)
+            painter.drawEllipse(width - 30, 12, 16, 16)
+
+        painter.end()
+        return pixmap
 
     def get_main_window(self):
         parent = self.parent()
