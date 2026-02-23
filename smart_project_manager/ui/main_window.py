@@ -185,7 +185,7 @@ class MainWindow(QMainWindow):
 
         show_stats_action = QAction('Show Statistics', self)
         show_stats_action.setCheckable(True)
-        show_stats_action.setChecked(True)
+        show_stats_action.setChecked(False)
         show_stats_action.triggered.connect(self.on_click)
         show_stats_action.triggered.connect(self.toggle_statistics)
         view_menu.addAction(show_stats_action)
@@ -1006,7 +1006,6 @@ class MainWindow(QMainWindow):
                     self.on_project_selected(item, 0)
                     break
             self.on_notify()
-            QMessageBox.information(self, 'Success', f'Project "{project.name}" created')
 
     def open_github_url(self):
         self.on_notify()
@@ -1158,12 +1157,6 @@ class MainWindow(QMainWindow):
                 self.update_label_filter_combo()
 
             self.on_notify()
-
-            QMessageBox.information(
-                self,
-                'Success',
-                f'Cleared {deleted_count} completed task(s)'
-            )
 
             self.update_clear_completed_button()
 
@@ -1438,7 +1431,6 @@ class MainWindow(QMainWindow):
             self.update_label_filter_combo()
 
             self.on_notify()
-            QMessageBox.information(self, 'Success', f'Task "{task.title}" created')
 
     def edit_task(self, task_id: str):
         self.on_notify()

@@ -317,10 +317,8 @@ class TaskDialog(QDialog):
             if added_count < len(new_label_ids):
                 not_added = len(new_label_ids) - added_count
                 QMessageBox.information(self, 'Partial Selection',
-                                        f'Added {added_count} new label(s). {not_added} label(s) not added due to limit.')
-            else:
-                QMessageBox.information(self, 'Labels Added',
-                                        f'Successfully added {added_count} label(s).')
+                                        f'Added {added_count} new label(s).'
+                                        f' {not_added} label(s) not added due to limit.')
 
     def on_label_selected(self, label_id: str):
         if len(self.selected_label_ids) >= self.max_labels:
