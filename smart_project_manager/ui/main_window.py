@@ -8,7 +8,8 @@ from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
-    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame, QTextBrowser
+    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame, QTextBrowser,
+    QScrollArea, QSizePolicy, QTableWidget
 )
 from PyQt5.QtGui import QFont, QDesktopServices
 from PyQt5.QtCore import Qt, QUrl
@@ -37,15 +38,11 @@ class MainWindow(QMainWindow):
         self.last_selected_project_id = None
 
         self.click_sound = QSound("data/sounds/click.wav")
-
         self.about_sound = QSound("data/sounds/about.wav")
-
         self.notify_sound = QSound("data/sounds/notify.wav")
-
         self.error_sound = QSound("data/sounds/error.wav")
 
         self.sound_manager = SoundManager()
-
         self.sound_manager.register_sound('click', self.click_sound)
         self.sound_manager.register_sound('about', self.about_sound)
         self.sound_manager.register_sound('notify', self.notify_sound)
@@ -55,8 +52,11 @@ class MainWindow(QMainWindow):
         self.priority_filter = "All"
         self.label_filter = "All"
         self.show_completed = True
+        self.stats_visible = False
 
         self.setWindowTitle(f'Smart Project Manager {ver}')
+        self.setMinimumSize(800, 600)
+        self.resize(800, 600)
 
         self.setStyleSheet("""
             QMainWindow {
@@ -76,6 +76,7 @@ class MainWindow(QMainWindow):
         self.setup_status_bar()
 
         self.tasks_table.task_dropped.connect(self.on_task_dropped)
+        self.filters_changed = self.apply_filters
 
         self.update_sound_button_style()
 
@@ -182,6 +183,13 @@ class MainWindow(QMainWindow):
         show_completed_action.triggered.connect(self.toggle_show_completed_menu)
         view_menu.addAction(show_completed_action)
 
+        show_stats_action = QAction('Show Statistics', self)
+        show_stats_action.setCheckable(True)
+        show_stats_action.setChecked(True)
+        show_stats_action.triggered.connect(self.on_click)
+        show_stats_action.triggered.connect(self.toggle_statistics)
+        view_menu.addAction(show_stats_action)
+
         sounds_menu = menubar.addMenu('Sounds')
 
         sound_action = QAction('Enable Sounds', self)
@@ -213,8 +221,8 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(10)
 
         left_panel = QWidget()
-        left_panel.setMinimumWidth(320)
-        left_panel.setMaximumWidth(400)
+        left_panel.setMinimumWidth(280)
+        left_panel.setMaximumWidth(350)
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
@@ -253,126 +261,77 @@ class MainWindow(QMainWindow):
         self.projects_tree.customContextMenuRequested.connect(self.show_project_context_menu)
         left_layout.addWidget(self.projects_tree, 1)
 
+        stats_header_layout = QHBoxLayout()
+        stats_label = QLabel('📊 Statistics')
+        stats_label.setFont(QFont("Arial", 12, QFont.Bold))
+        stats_header_layout.addWidget(stats_label)
+
+        stats_header_layout.addStretch()
+
+        self.btn_toggle_stats = QPushButton('▼')
+        self.btn_toggle_stats.setFixedSize(25, 25)
+        self.btn_toggle_stats.setToolTip("Toggle statistics visibility")
+        self.btn_toggle_stats.clicked.connect(self.on_click)
+        self.btn_toggle_stats.clicked.connect(self.toggle_statistics_button)
+        self.btn_toggle_stats.setStyleSheet("""
+            QPushButton {
+                background-color: #3a3a3a;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4a4a4a;
+            }
+        """)
+        stats_header_layout.addWidget(self.btn_toggle_stats)
+
+        left_layout.addLayout(stats_header_layout)
+
         self.statistics_widget = StatisticsWidget(self)
+        self.statistics_widget.setVisible(False)
+        self.btn_toggle_stats.setText('▶')
         left_layout.addWidget(self.statistics_widget)
 
         main_layout.addWidget(left_panel)
 
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(10)
 
-        self.readme_viewer = QTextBrowser()
-        self.readme_viewer.setOpenExternalLinks(True)
-        self.readme_viewer.setStyleSheet("""
-                    QTextBrowser {
-                        background-color: #2a2a2a;
-                        color: #ffffff;
-                        border: 1px solid #444;
-                        border-radius: 5px;
-                        font-family: 'Segoe UI', Arial, sans-serif;
-                        font-size: 13px;
-                        padding: 20px;
-                    }
-                    QTextBrowser a {
-                        color: #3498db;
-                        text-decoration: none;
-                    }
-                    QTextBrowser a:hover {
-                        color: #2980b9;
-                        text-decoration: underline;
-                    }
-                    QTextBrowser h1 {
-                        color: #2a82da;
-                        font-size: 24px;
-                        margin-top: 20px;
-                        margin-bottom: 15px;
-                    }
-                    QTextBrowser h2 {
-                        color: #27ae60;
-                        font-size: 20px;
-                        margin-top: 18px;
-                        margin-bottom: 12px;
-                    }
-                    QTextBrowser h3 {
-                        color: #3498db;
-                        font-size: 16px;
-                        margin-top: 15px;
-                        margin-bottom: 10px;
-                    }
-                    QTextBrowser code {
-                        background-color: #3a3a3a;
-                        padding: 2px 6px;
-                        border-radius: 3px;
-                        font-family: 'Consolas', 'Monaco', monospace;
-                    }
-                    QTextBrowser pre {
-                        background-color: #3a3a3a;
-                        padding: 10px;
-                        border-radius: 5px;
-                        font-family: 'Consolas', 'Monaco', monospace;
-                        white-space: pre-wrap;
-                    }
-                    QTextBrowser blockquote {
-                        border-left: 4px solid #555;
-                        padding-left: 15px;
-                        margin-left: 0;
-                        color: #aaa;
-                        font-style: italic;
-                    }
-                    QTextBrowser img {
-                        max-width: 100%;
-                        height: auto;
-                        border-radius: 5px;
-                        margin: 10px 0;
-                    }
-                    QScrollBar:vertical {
-                        border: none;
-                        background: #3a3a3a;
-                        width: 12px;
-                        margin: 0px;
-                    }
-                    QScrollBar::handle:vertical {
-                        background: #555;
-                        border-radius: 6px;
-                        min-height: 20px;
-                    }
-                    QScrollBar::handle:vertical:hover {
-                        background: #666;
-                    }
-                """)
-
-        self.load_welcome_page()
-
-        tasks_header_layout = QHBoxLayout()
+        top_bar_layout = QHBoxLayout()
 
         self.tasks_header = QLabel('Select a project to view tasks')
         self.tasks_header.setFont(QFont("Arial", 14, QFont.Bold))
-        tasks_header_layout.addWidget(self.tasks_header)
+        top_bar_layout.addWidget(self.tasks_header)
 
-        tasks_header_layout.addStretch()
+        top_bar_layout.addStretch()
 
         self.btn_open_url = QPushButton('GitHub URL')
         self.btn_open_url.clicked.connect(self.on_click)
         self.btn_open_url.clicked.connect(self.open_github_url)
         self.btn_open_url.setEnabled(False)
         self.btn_open_url.setStyleSheet("""
-                    QPushButton {
-                        background-color: #3498db;
-                        color: black;
-                        font-weight: bold;
-                        padding: 8px 12px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                    }
-                    QPushButton:hover:enabled {
-                        background-color: #1976d2;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-        tasks_header_layout.addWidget(self.btn_open_url)
+            QPushButton {
+                background-color: #3498db;
+                color: black;
+                font-weight: bold;
+                padding: 8px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #1976d2;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        top_bar_layout.addWidget(self.btn_open_url)
 
         self.btn_edit_project = QPushButton('Edit')
         self.btn_edit_project.clicked.connect(self.on_click)
@@ -395,7 +354,7 @@ class MainWindow(QMainWindow):
                 color: #999;
             }
         """)
-        tasks_header_layout.addWidget(self.btn_edit_project)
+        top_bar_layout.addWidget(self.btn_edit_project)
 
         self.btn_delete_project = QPushButton('Delete')
         self.btn_delete_project.clicked.connect(self.on_click)
@@ -418,14 +377,14 @@ class MainWindow(QMainWindow):
                 color: #999;
             }
         """)
-        tasks_header_layout.addWidget(self.btn_delete_project)
+        top_bar_layout.addWidget(self.btn_delete_project)
 
         separator = QFrame()
         separator.setFrameShape(QFrame.VLine)
         separator.setFrameShadow(QFrame.Sunken)
         separator.setStyleSheet("color: #444;")
         separator.setFixedWidth(2)
-        tasks_header_layout.addWidget(separator)
+        top_bar_layout.addWidget(separator)
 
         self.btn_sound_toggle = QPushButton('🔊')
         self.btn_sound_toggle.setCheckable(True)
@@ -452,25 +411,126 @@ class MainWindow(QMainWindow):
                 background-color: #c0392b;
             }
         """)
-        tasks_header_layout.addWidget(self.btn_sound_toggle)
+        top_bar_layout.addWidget(self.btn_sound_toggle)
 
-        self.table_container = QWidget()
-        table_container_layout = QVBoxLayout(self.table_container)
-        table_container_layout.setContentsMargins(0, 0, 0, 0)
-        table_container_layout.setSpacing(5)
+        right_layout.addLayout(top_bar_layout)
 
         self.project_progress_widget = ProjectProgressWidget(self)
         right_layout.addWidget(self.project_progress_widget)
+
+        self.tasks_container = QScrollArea()
+        self.tasks_container.setWidgetResizable(True)
+        self.tasks_container.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.tasks_container.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.tasks_container.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+            QScrollBar:vertical, QScrollBar:horizontal {
+                border: none;
+                background: #3a3a3a;
+                width: 12px;
+                height: 12px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+                background: #555;
+                border-radius: 6px;
+                min-height: 20px;
+                min-width: 20px;
+            }
+            QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
+                background: #666;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+                border: none;
+                background: none;
+            }
+        """)
+
+        tasks_content = QWidget()
+        tasks_content.setStyleSheet("background-color: transparent;")
+        tasks_content.setAutoFillBackground(False)
+
+        tasks_content_layout = QVBoxLayout(tasks_content)
+        tasks_content_layout.setContentsMargins(0, 0, 0, 0)
+        tasks_content_layout.setSpacing(5)
+
+        tasks_header_layout = QHBoxLayout()
+
+        tasks_title = QLabel('Tasks')
+        tasks_title.setFont(QFont("Arial", 12, QFont.Bold))
+        tasks_header_layout.addWidget(tasks_title)
+
+        tasks_header_layout.addStretch()
+
+        self.btn_new_task = QPushButton('➕ Add Task')
+        self.btn_new_task.clicked.connect(self.on_click)
+        self.btn_new_task.clicked.connect(self.create_task)
+        self.btn_new_task.setEnabled(False)
+        self.btn_new_task.setVisible(False)
+        self.btn_new_task.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: black;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+                min-width: 90px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #219653;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        tasks_header_layout.addWidget(self.btn_new_task)
+
+        self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
+        self.btn_clear_completed.clicked.connect(self.on_click)
+        self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
+        self.btn_clear_completed.setEnabled(False)
+        self.btn_clear_completed.setVisible(False)
+        self.btn_clear_completed.setStyleSheet("""
+            QPushButton {
+                background-color: #f39c12;
+                color: black;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+                min-width: 140px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #d68910;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        tasks_header_layout.addWidget(self.btn_clear_completed)
+
+        tasks_content_layout.addLayout(tasks_header_layout)
 
         self.filters_panel = QFrame()
         self.filters_panel.setStyleSheet("""
             QFrame {
                 background-color: #3a3a3a;
                 border-radius: 5px;
-                padding: 5px;
+                padding: 8px;
             }
         """)
         self.filters_panel.setVisible(False)
+
         filters_layout = QHBoxLayout(self.filters_panel)
         filters_layout.setContentsMargins(8, 5, 8, 5)
         filters_layout.setSpacing(10)
@@ -496,7 +556,7 @@ class MainWindow(QMainWindow):
                 border: 1px solid #3498db;
             }
         """)
-        filters_layout.addWidget(self.search_input, 2)
+        filters_layout.addWidget(self.search_input)
 
         priority_label = QLabel("Priority:")
         priority_label.setStyleSheet("font-size: 11px; color: #aaa;")
@@ -584,11 +644,6 @@ class MainWindow(QMainWindow):
         """)
         filters_layout.addWidget(self.show_completed_checkbox)
 
-        self.search_input.textChanged.connect(self.on_search_changed)
-        self.priority_filter_combo.currentTextChanged.connect(self.on_priority_filter_changed)
-        self.label_filter_combo.currentTextChanged.connect(self.on_label_filter_changed)
-        self.show_completed_checkbox.stateChanged.connect(self.on_show_completed_changed)
-
         self.btn_reset_filters = QPushButton("Reset")
         self.btn_reset_filters.clicked.connect(self.on_click)
         self.btn_reset_filters.clicked.connect(self.reset_filters)
@@ -609,82 +664,112 @@ class MainWindow(QMainWindow):
         filters_layout.addWidget(self.btn_reset_filters)
 
         filters_layout.addStretch()
-        table_container_layout.addWidget(self.filters_panel)
 
-        table_header_layout = QHBoxLayout()
-
-        table_title = QLabel('Tasks')
-        table_title.setFont(QFont("Arial", 12, QFont.Bold))
-        table_header_layout.addWidget(table_title)
-
-        table_header_layout.addStretch()
-
-        self.btn_new_task = QPushButton('➕ Add Task')
-        self.btn_new_task.clicked.connect(self.on_click)
-        self.btn_new_task.clicked.connect(self.create_task)
-        self.btn_new_task.setEnabled(False)
-        self.btn_new_task.setVisible(False)
-        self.btn_new_task.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: black;
-                font-weight: bold;
-                padding: 6px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-                min-width: 90px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #219653;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
-        table_header_layout.addWidget(self.btn_new_task)
-
-        self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
-        self.btn_clear_completed.clicked.connect(self.on_click)
-        self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
-        self.btn_clear_completed.setEnabled(False)
-        self.btn_clear_completed.setVisible(False)
-        self.btn_clear_completed.setStyleSheet("""
-                QPushButton {
-                    background-color: #f39c12;
-                    color: black;
-                    font-weight: bold;
-                    padding: 6px 12px;
-                    border-radius: 5px;
-                    font-size: 12px;
-                    min-width: 140px;
-                }
-                QPushButton:hover:enabled {
-                    background-color: #d68910;
-                }
-                QPushButton:disabled {
-                    background-color: #666;
-                    color: #999;
-                }
-            """)
-        table_header_layout.addWidget(self.btn_clear_completed)
-
-        table_container_layout.addLayout(table_header_layout)
+        tasks_content_layout.addWidget(self.filters_panel)
 
         self.tasks_table = TaskTableWidget(self)
         self.tasks_table.manager = self.manager
         self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
         self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
-        table_container_layout.addWidget(self.tasks_table, 1)
 
-        right_layout.addLayout(tasks_header_layout)
-        right_layout.addWidget(self.project_progress_widget)
-        right_layout.addWidget(self.table_container)
+        self.tasks_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.tasks_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.tasks_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self.tasks_table.setFrameStyle(QTableWidget.NoFrame)
+
+        tasks_content_layout.addWidget(self.tasks_table, 1)
+
+        self.tasks_container.setWidget(tasks_content)
+
+        right_layout.addWidget(self.tasks_container, 1)
+
+        self.readme_viewer = QTextBrowser()
+        self.readme_viewer.setOpenExternalLinks(True)
+        self.readme_viewer.setStyleSheet("""
+            QTextBrowser {
+                background-color: #2a2a2a;
+                color: #ffffff;
+                border: 1px solid #444;
+                border-radius: 5px;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                font-size: 13px;
+                padding: 20px;
+            }
+            QTextBrowser a {
+                color: #3498db;
+                text-decoration: none;
+            }
+            QTextBrowser a:hover {
+                color: #2980b9;
+                text-decoration: underline;
+            }
+            QTextBrowser h1 {
+                color: #2a82da;
+                font-size: 24px;
+                margin-top: 20px;
+                margin-bottom: 15px;
+            }
+            QTextBrowser h2 {
+                color: #27ae60;
+                font-size: 20px;
+                margin-top: 18px;
+                margin-bottom: 12px;
+            }
+            QTextBrowser h3 {
+                color: #3498db;
+                font-size: 16px;
+                margin-top: 15px;
+                margin-bottom: 10px;
+            }
+            QTextBrowser code {
+                background-color: #3a3a3a;
+                padding: 2px 6px;
+                border-radius: 3px;
+                font-family: 'Consolas', 'Monaco', monospace;
+            }
+            QTextBrowser pre {
+                background-color: #3a3a3a;
+                padding: 10px;
+                border-radius: 5px;
+                font-family: 'Consolas', 'Monaco', monospace;
+                white-space: pre-wrap;
+            }
+            QTextBrowser blockquote {
+                border-left: 4px solid #555;
+                padding-left: 15px;
+                margin-left: 0;
+                color: #aaa;
+                font-style: italic;
+            }
+            QTextBrowser img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 5px;
+                margin: 10px 0;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #3a3a3a;
+                width: 12px;
+                margin: 0px;
+            }
+            QScrollBar::handle:vertical {
+                background: #555;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #666;
+            }
+        """)
         right_layout.addWidget(self.readme_viewer, 1)
 
         main_layout.addWidget(right_panel, 1)
 
+        self.load_welcome_page()
         self.show_readme_mode()
 
     def load_welcome_page(self):
@@ -782,7 +867,7 @@ class MainWindow(QMainWindow):
         self.load_welcome_page()
 
         self.project_progress_widget.hide()
-        self.table_container.hide()
+        self.tasks_container.hide()
 
         self.tasks_header.setText('📋 Smart Project Manager')
 
@@ -790,7 +875,7 @@ class MainWindow(QMainWindow):
         self.readme_viewer.hide()
 
         self.project_progress_widget.show()
-        self.table_container.show()
+        self.tasks_container.show()
 
         if self.current_project_id:
             project = self.manager.get_project(self.current_project_id)
@@ -1190,6 +1275,35 @@ class MainWindow(QMainWindow):
 
         self.apply_filters()
         self.status_bar.showMessage('Filters reset', 2000)
+
+    def toggle_statistics(self, show: bool = None):
+        if show is None:
+            show = not self.stats_visible
+
+        self.stats_visible = show
+        self.statistics_widget.setVisible(show)
+
+        self.statistics_widget.update()
+        self.repaint()
+
+        if show:
+            self.btn_toggle_stats.setText('▼')
+            self.btn_toggle_stats.setToolTip("Hide statistics")
+        else:
+            self.btn_toggle_stats.setText('▶')
+            self.btn_toggle_stats.setToolTip("Show statistics")
+
+        for action in self.menuBar().actions():
+            if action.text() == 'View':
+                view_menu = action.menu()
+                for view_action in view_menu.actions():
+                    if view_action.text() == 'Show Statistics':
+                        view_action.setChecked(show)
+                        break
+                break
+
+    def toggle_statistics_button(self):
+        self.toggle_statistics(not self.stats_visible)
 
     def apply_filters(self):
         if not self.current_project_id:
