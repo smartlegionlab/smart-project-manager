@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QLabel, QVBoxLayout
 )
 from PyQt5.QtGui import QColor, QDrag, QFont, QBrush, QPen, QPainter, QPixmap
-from PyQt5.QtCore import Qt, QMimeData, pyqtSignal, QPoint, QRect
+from PyQt5.QtCore import Qt, QMimeData, pyqtSignal, QPoint, QRect, QDate
 from datetime import datetime
 
 from smart_project_manager.ui.widgets.priority_widget import PriorityIndicatorWidget
@@ -20,6 +20,7 @@ from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 class TaskTableWidget(QTableWidget):
     task_dropped = pyqtSignal(int, int)
+    task_clicked = pyqtSignal(str)  # Новый сигнал для клика по задаче
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -43,6 +44,17 @@ class TaskTableWidget(QTableWidget):
         self.task_order = []
 
         self.itemSelectionChanged.connect(self.save_selection)
+        self.cellClicked.connect(self.on_cell_clicked)
+
+    def on_cell_clicked(self, row, column):
+        if column in [1, 7, 8]:
+            return
+
+        item = self.item(row, 2)
+        if item:
+            task_id = item.data(Qt.UserRole)
+            if task_id:
+                self.task_clicked.emit(task_id)
 
     def save_selection(self):
         selected = self.selectedItems()
@@ -73,22 +85,30 @@ class TaskTableWidget(QTableWidget):
         )
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.setAlternatingRowColors(True)
+
         self.setStyleSheet("""
-                QTableWidget {
-                    background-color: #2a2a2a;
-                    gridline-color: #444;
-                }
-                QHeaderView::section {
-                    background-color: #353535;
-                    padding: 8px;
-                    border: 1px solid #444;
-                    font-weight: bold;
-                }
-                QTableCornerButton::section {
-                    background-color: #353535;
-                    border: 1px solid #444;
-                }
-            """)
+            QTableWidget {
+                background-color: #2a2a2a;
+                gridline-color: #444;
+            }
+            QHeaderView::section {
+                background-color: #353535;
+                padding: 8px;
+                border: 1px solid #444;
+                font-weight: bold;
+            }
+            QTableCornerButton::section {
+                background-color: #353535;
+                border: 1px solid #444;
+            }
+            QTableWidget::item:selected {
+                background-color: #2a82da;
+                color: white;
+            }
+            QTableWidget::item:selected:!active {
+                background-color: #3a3a3a;
+            }
+        """)
 
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -165,8 +185,7 @@ class TaskTableWidget(QTableWidget):
         progress_bar = self._create_progress_bar(manager.get_task_progress(task.id))
         self.setCellWidget(row, 4, progress_bar)
 
-        due_item = self._create_due_item(task.due_date, task.completed)
-        due_item.setData(Qt.UserRole, task.id)
+        due_item = self._create_due_item(task.due_date, task.completed, task.id)
         self.setItem(row, 5, due_item)
 
         labels_widget = self._create_labels_widget(task.labels, manager)
@@ -235,18 +254,38 @@ class TaskTableWidget(QTableWidget):
         """)
         return progress_bar
 
-    def _create_due_item(self, due_date, completed):
+    def _create_due_item(self, due_date, completed, task_id=None):
         due_text = due_date if due_date else "No due date"
         item = QTableWidgetItem(due_text)
         item.setTextAlignment(Qt.AlignCenter)
 
+        if task_id:
+            item.setData(Qt.UserRole, task_id)
+
+        if due_date:
+            item.setData(Qt.UserRole + 1, due_date)
+
         if due_date and not completed:
             try:
-                due_date_obj = datetime.fromisoformat(due_date).date()
-                if due_date_obj < datetime.now().date():
+                due_date_obj = None
+
+                try:
+                    due_date_obj = datetime.fromisoformat(due_date).date()
+                except (ValueError, TypeError):
+                    pass
+
+                if not due_date_obj:
+                    try:
+                        qdate = QDate.fromString(due_date, Qt.ISODate)
+                        if qdate.isValid():
+                            due_date_obj = datetime(qdate.year(), qdate.month(), qdate.day()).date()
+                    except:
+                        pass
+
+                if due_date_obj and due_date_obj < datetime.now().date():
                     item.setForeground(QColor(255, 100, 100))
-            except:
-                pass
+            except Exception as e:
+                print(f"Error parsing date {due_date}: {e}")
 
         return item
 

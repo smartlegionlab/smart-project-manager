@@ -1,5 +1,4 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
-from PyQt5.QtMultimedia import QSound
 from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -15,26 +14,20 @@ from PyQt5.QtWidgets import (
     QComboBox,
     QDateEdit,
     QTabWidget,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
     QProgressBar
 )
-from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtCore import Qt, QDate, pyqtSignal
 
 from smart_project_manager.core.models.task import Task
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
-from smart_project_manager.ui.dialogs.subtask_dialog import SubTaskDialog
 from smart_project_manager.ui.widgets.label_widget import LabelWidget
-from smart_project_manager.ui.widgets.priority_widget import PriorityIndicatorWidget
 
 
 class TaskDialog(QDialog):
     task_updated = pyqtSignal()
 
     def __init__(self, parent=None, task: Task = None,
-                 manager=None, project_id: str = None, sound_manager = None):
+                 manager=None, project_id: str = None, sound_manager=None):
         super().__init__(parent)
         self.is_edit_mode = task is not None
         self.task = task
@@ -51,15 +44,9 @@ class TaskDialog(QDialog):
         self.layout.setSpacing(10)
 
         self.tabs = QTabWidget()
-
         self.main_tab = QWidget()
         self.setup_main_tab()
         self.tabs.addTab(self.main_tab, "Task Details")
-
-        if self.is_edit_mode:
-            self.subtasks_tab = QWidget()
-            self.setup_subtasks_tab()
-            self.tabs.addTab(self.subtasks_tab, f"Subtasks ({len(task.subtasks)})")
 
         self.layout.addWidget(self.tabs)
 
@@ -208,66 +195,6 @@ class TaskDialog(QDialog):
 
         layout.addStretch()
 
-    def setup_subtasks_tab(self):
-        layout = QVBoxLayout(self.subtasks_tab)
-        layout.setSpacing(10)
-
-        header_layout = QHBoxLayout()
-
-        header_label = QLabel(f'Subtasks for "{self.task.title}"')
-        header_label.setFont(QFont("Arial", 12, QFont.Bold))
-        header_layout.addWidget(header_label)
-
-        header_layout.addStretch()
-
-        self.btn_add_subtask = QPushButton('+ Add Subtask')
-        self.btn_add_subtask.clicked.connect(self.on_click)
-        self.btn_add_subtask.clicked.connect(self.add_subtask)
-        self.btn_add_subtask.setStyleSheet("""
-            QPushButton {
-                background-color: #2a82da;
-                color: white;
-                padding: 8px 16px;
-                border-radius: 5px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #1a72ca;
-            }
-        """)
-        header_layout.addWidget(self.btn_add_subtask)
-
-        layout.addLayout(header_layout)
-
-        self.subtasks_table = QTableWidget()
-        self.subtasks_table.setColumnCount(6)
-        self.subtasks_table.setHorizontalHeaderLabels(['Title', 'Priority', 'Status', 'Due Date', 'Edit', 'Delete'])
-        self.subtasks_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.subtasks_table.setAlternatingRowColors(True)
-        self.subtasks_table.setStyleSheet("""
-            QTableWidget {
-                background-color: #2a2a2a;
-                gridline-color: #444;
-            }
-            QHeaderView::section {
-                background-color: #353535;
-                padding: 8px;
-                border: 1px solid #444;
-                font-weight: bold;
-            }
-        """)
-
-        self.subtasks_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.subtasks_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.subtasks_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.subtasks_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        self.subtasks_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        self.subtasks_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
-
-        layout.addWidget(self.subtasks_table)
-
-        self.load_subtasks()
-
     def add_label(self):
         self.on_notify()
         if len(self.selected_label_ids) >= self.max_labels:
@@ -396,166 +323,36 @@ class TaskDialog(QDialog):
             self.selected_label_ids.remove(label_id)
             self.update_selected_labels_display()
 
-    def add_subtask(self):
-        self.on_notify()
-        dialog = SubTaskDialog(self, manager=self.manager, task_id=self.task.id, project_id=self.task.project_id)
-        if dialog.exec_() == QDialog.Accepted:
-            data = dialog.get_subtask_data()
-
-            if not data['title']:
-                self.on_error()
-                QMessageBox.warning(self, 'Error', 'Subtask title is required')
-                return
-
-            self.manager.create_subtask(**data)
-            self.load_subtasks()
-            self.task_updated.emit()
-
-    def load_subtasks(self):
-        self.subtasks_table.setRowCount(0)
-
-        subtasks = self.manager.get_subtasks_by_task(self.task.id)
-
-        for row, subtask in enumerate(subtasks):
-            self.subtasks_table.insertRow(row)
-
-            title_item = QTableWidgetItem(subtask.title)
-            if subtask.description:
-                title_item.setToolTip(subtask.description)
-            if subtask.completed:
-                title_item.setForeground(QColor(100, 100, 100))
-                font = title_item.font()
-                font.setStrikeOut(True)
-                title_item.setFont(font)
-            self.subtasks_table.setItem(row, 0, title_item)
-
-            priority_widget = PriorityIndicatorWidget(subtask.priority)
-            self.subtasks_table.setCellWidget(row, 1, priority_widget)
-
-            status_button = QPushButton("✅ Completed" if subtask.completed else "⏳ Pending")
-            status_button.setCheckable(True)
-            status_button.setChecked(subtask.completed)
-            status_button.setStyleSheet("""
-                QPushButton {
-                    border-radius: 3px;
-                    padding: 5px 10px;
-                    min-width: 100px;
-                }
-                QPushButton:checked {
-                    background-color: #2e7d32;
-                    color: white;
-                }
-                QPushButton:!checked {
-                    background-color: #ff9800;
-                    color: white;
-                }
-            """)
-            status_button.clicked.connect(lambda checked, sid=subtask.id: self.toggle_subtask_status(sid))
-            self.subtasks_table.setCellWidget(row, 2, status_button)
-
-            due_text = subtask.due_date if subtask.due_date else "No due date"
-            due_item = QTableWidgetItem(due_text)
-            due_item.setTextAlignment(Qt.AlignCenter)
-            self.subtasks_table.setItem(row, 3, due_item)
-
-            edit_button = QPushButton("✏️ Edit")
-            edit_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #ff9800;
-                    color: white;
-                    border-radius: 3px;
-                    padding: 5px 10px;
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background-color: #e68900;
-                }
-            """)
-            edit_button.clicked.connect(lambda checked, sid=subtask.id: self.edit_subtask(sid))
-            self.subtasks_table.setCellWidget(row, 4, edit_button)
-
-            delete_button = QPushButton("Delete")
-            delete_button.setStyleSheet("""
-                QPushButton {
-                    background-color: #da2a2a;
-                    color: white;
-                    border-radius: 3px;
-                    padding: 5px 10px;
-                    min-width: 80px;
-                }
-                QPushButton:hover {
-                    background-color: #ca1a1a;
-                }
-            """)
-            delete_button.clicked.connect(lambda checked, sid=subtask.id: self.delete_subtask(sid))
-            self.subtasks_table.setCellWidget(row, 5, delete_button)
-
-    def toggle_subtask_status(self, subtask_id: str):
-        self.on_notify()
-        subtask = self.manager.get_subtask(subtask_id)
-        if subtask:
-            subtask.toggle_complete()
-            self.manager.update_subtask(subtask_id, completed=subtask.completed)
-            self.load_subtasks()
-            self.task_updated.emit()
-
-    def edit_subtask(self, subtask_id: str):
-        self.on_notify()
-        subtask = self.manager.get_subtask(subtask_id)
-        if not subtask:
-            return
-
-        dialog = SubTaskDialog(self, subtask=subtask, manager=self.manager)
-        if dialog.exec_() == QDialog.Accepted:
-            data = dialog.get_subtask_data()
-
-            if not data['title']:
-                QMessageBox.warning(self, 'Error', 'Subtask title is required')
-                return
-
-            self.manager.update_subtask(subtask_id, **data)
-            self.load_subtasks()
-            self.task_updated.emit()
-
-    def delete_subtask(self, subtask_id: str):
-        self.on_notify()
-        subtask = self.manager.get_subtask(subtask_id)
-        if not subtask:
-            return
-
-        reply = QMessageBox.question(
-            self,
-            'Confirm Delete',
-            f'Delete subtask "{subtask.title}"?',
-            QMessageBox.Yes | QMessageBox.No
-        )
-
-        if reply == QMessageBox.Yes:
-            self.manager.delete_subtask(subtask_id)
-            self.load_subtasks()
-            self.task_updated.emit()
-
     def get_task_data(self) -> dict:
         priority_map = {"High": 1, "Medium": 2, "Low": 3}
+
+        selected_date = self.due_input.date()
+
+        if selected_date.isValid():
+            due_date = selected_date.toString(Qt.ISODate)
+        else:
+            due_date = None
 
         return {
             'title': self.title_input.text().strip(),
             'description': self.desc_input.toPlainText().strip() or None,
             'priority': priority_map[self.priority_combo.currentText()],
-            'due_date': self.due_input.date().toString(
-                Qt.ISODate) if self.due_input.date() != QDate.currentDate().addDays(7) else None,
+            'due_date': due_date,
             'labels': self.selected_label_ids,
             'project_id': self.project_id
         }
 
     def on_click(self):
-        self.sound_manager.play_click()
+        if self.sound_manager:
+            self.sound_manager.play_click()
 
     def on_notify(self):
-        self.sound_manager.play_notify()
+        if self.sound_manager:
+            self.sound_manager.play_notify()
 
     def on_error(self):
-        self.sound_manager.play_error()
+        if self.sound_manager:
+            self.sound_manager.play_error()
 
     def accept(self):
         data = self.get_task_data()

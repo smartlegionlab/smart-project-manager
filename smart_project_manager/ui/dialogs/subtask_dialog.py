@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
     QDateEdit
 )
 from PyQt5.QtCore import Qt, QDate
+from datetime import datetime
 
 from smart_project_manager.core.models.subtask import SubTask
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
@@ -91,8 +92,26 @@ class SubTaskDialog(QDialog):
         self.due_input = QDateEdit()
         self.due_input.setCalendarPopup(True)
         self.due_input.setDate(QDate.currentDate().addDays(7))
+        self.due_input.setSpecialValueText("No due date")
+
         if subtask and subtask.due_date:
-            self.due_input.setDate(QDate.fromString(subtask.due_date, Qt.ISODate))
+            print(f"Subtask has due_date: {subtask.due_date}")
+            try:
+                qdate = QDate.fromString(subtask.due_date, Qt.ISODate)
+                if qdate.isValid():
+                    self.due_input.setDate(qdate)
+                    print(f"Set due_input to: {qdate.toString(Qt.ISODate)}")
+                else:
+                    try:
+                        date_obj = datetime.fromisoformat(subtask.due_date)
+                        qdate = QDate(date_obj.year, date_obj.month, date_obj.day)
+                        self.due_input.setDate(qdate)
+                        print(f"Set due_input from datetime to: {qdate.toString(Qt.ISODate)}")
+                    except:
+                        print(f"Could not parse subtask due_date: {subtask.due_date}")
+            except Exception as e:
+                print(f"Error setting subtask due_date: {e}")
+
         settings_layout.addWidget(self.due_input, 1, 1)
 
         settings_layout.setColumnStretch(2, 1)
@@ -216,12 +235,20 @@ class SubTaskDialog(QDialog):
     def get_subtask_data(self) -> dict:
         priority_map = {"High": 1, "Medium": 2, "Low": 3}
 
+        selected_date = self.due_input.date()
+        due_date = None
+
+        if selected_date.isValid():
+            due_date = selected_date.toString(Qt.ISODate)
+            print(f"Saving due date: {due_date}")
+        else:
+            print("No due date selected")
+
         return {
             'title': self.title_input.text().strip(),
             'description': self.desc_input.toPlainText().strip() or None,
             'priority': priority_map[self.priority_combo.currentText()],
-            'due_date': self.due_input.date().toString(
-                Qt.ISODate) if self.due_input.date() != QDate.currentDate().addDays(7) else None,
+            'due_date': due_date,
             'labels': self.selected_label_ids,
             'task_id': self.task_id,
             'project_id': self.project_id
