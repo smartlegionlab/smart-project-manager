@@ -24,18 +24,19 @@ from smart_project_manager.ui.widgets.project_progress_widget import ProjectProg
 from smart_project_manager.ui.widgets.project_tree_widget import ProjectsTreeWidget
 from smart_project_manager.ui.widgets.statistic_widget import StatisticsWidget
 from smart_project_manager.ui.widgets.task_table_widget import TaskTableWidget
+from smart_project_manager.ui.widgets.subtask_panel_widget import SubtaskPanelWidget
 
 from smart_project_manager import __version__ as ver
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self):
         super().__init__()
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
         self.selected_project_item = None
         self.last_selected_project_id = None
+        self.selected_task_id = None
 
         self.click_sound = QSound("data/sounds/click.wav")
         self.about_sound = QSound("data/sounds/about.wav")
@@ -297,10 +298,10 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(left_panel)
 
-        right_panel = QWidget()
-        right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(10)
+        right_container = QWidget()
+        right_container_layout = QVBoxLayout(right_container)
+        right_container_layout.setContentsMargins(0, 0, 0, 0)
+        right_container_layout.setSpacing(10)
 
         top_bar_layout = QHBoxLayout()
 
@@ -315,22 +316,22 @@ class MainWindow(QMainWindow):
         self.btn_open_url.clicked.connect(self.open_github_url)
         self.btn_open_url.setEnabled(False)
         self.btn_open_url.setStyleSheet("""
-            QPushButton {
-                background-color: #3498db;
-                color: black;
-                font-weight: bold;
-                padding: 8px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #1976d2;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
+                    QPushButton {
+                        background-color: #3498db;
+                        color: black;
+                        font-weight: bold;
+                        padding: 8px 12px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                    }
+                    QPushButton:hover:enabled {
+                        background-color: #1976d2;
+                    }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
+                """)
         top_bar_layout.addWidget(self.btn_open_url)
 
         self.btn_edit_project = QPushButton('Edit')
@@ -338,22 +339,22 @@ class MainWindow(QMainWindow):
         self.btn_edit_project.clicked.connect(self.edit_current_project)
         self.btn_edit_project.setEnabled(False)
         self.btn_edit_project.setStyleSheet("""
-            QPushButton {
-                background-color: #FFC107;
-                color: black;
-                font-weight: bold;
-                padding: 8px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #FFA000;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
+                    QPushButton {
+                        background-color: #FFC107;
+                        color: black;
+                        font-weight: bold;
+                        padding: 8px 12px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                    }
+                    QPushButton:hover:enabled {
+                        background-color: #FFA000;
+                    }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
+                """)
         top_bar_layout.addWidget(self.btn_edit_project)
 
         self.btn_delete_project = QPushButton('Delete')
@@ -361,22 +362,22 @@ class MainWindow(QMainWindow):
         self.btn_delete_project.clicked.connect(self.delete_current_project)
         self.btn_delete_project.setEnabled(False)
         self.btn_delete_project.setStyleSheet("""
-            QPushButton {
-                background-color: #e74c3c;
-                color: black;
-                font-weight: bold;
-                padding: 8px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #c0392b;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
+                    QPushButton {
+                        background-color: #e74c3c;
+                        color: black;
+                        font-weight: bold;
+                        padding: 8px 12px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                    }
+                    QPushButton:hover:enabled {
+                        background-color: #c0392b;
+                    }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
+                """)
         top_bar_layout.addWidget(self.btn_delete_project)
 
         separator = QFrame()
@@ -394,29 +395,29 @@ class MainWindow(QMainWindow):
         self.btn_sound_toggle.clicked.connect(self.on_click)
         self.btn_sound_toggle.clicked.connect(self.toggle_sounds_button)
         self.btn_sound_toggle.setStyleSheet("""
-            QPushButton {
-                background-color: #2a82da;
-                color: white;
-                font-weight: bold;
-                border-radius: 5px;
-                font-size: 16px;
-            }
-            QPushButton:hover {
-                background-color: #1a72ca;
-            }
-            QPushButton:checked {
-                background-color: #e74c3c;
-            }
-            QPushButton:checked:hover {
-                background-color: #c0392b;
-            }
-        """)
+                    QPushButton {
+                        background-color: #2a82da;
+                        color: white;
+                        font-weight: bold;
+                        border-radius: 5px;
+                        font-size: 16px;
+                    }
+                    QPushButton:hover {
+                        background-color: #1a72ca;
+                    }
+                    QPushButton:checked {
+                        background-color: #e74c3c;
+                    }
+                    QPushButton:checked:hover {
+                        background-color: #c0392b;
+                    }
+                """)
         top_bar_layout.addWidget(self.btn_sound_toggle)
 
-        right_layout.addLayout(top_bar_layout)
+        right_container_layout.addLayout(top_bar_layout)
 
         self.project_progress_widget = ProjectProgressWidget(self)
-        right_layout.addWidget(self.project_progress_widget)
+        right_container_layout.addWidget(self.project_progress_widget)
 
         self.tasks_container = QScrollArea()
         self.tasks_container.setWidgetResizable(True)
@@ -455,8 +456,6 @@ class MainWindow(QMainWindow):
 
         tasks_content = QWidget()
         tasks_content.setStyleSheet("background-color: transparent;")
-        tasks_content.setAutoFillBackground(False)
-
         tasks_content_layout = QVBoxLayout(tasks_content)
         tasks_content_layout.setContentsMargins(0, 0, 0, 0)
         tasks_content_layout.setSpacing(5)
@@ -671,20 +670,32 @@ class MainWindow(QMainWindow):
         self.tasks_table.manager = self.manager
         self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
+        self.tasks_table.task_clicked.connect(self.on_task_clicked)
         self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
 
         self.tasks_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         self.tasks_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.tasks_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
         self.tasks_table.setFrameStyle(QTableWidget.NoFrame)
 
         tasks_content_layout.addWidget(self.tasks_table, 1)
 
         self.tasks_container.setWidget(tasks_content)
+        right_container_layout.addWidget(self.tasks_container, 1)
 
-        right_layout.addWidget(self.tasks_container, 1)
+        self.subtask_panel = SubtaskPanelWidget(self, manager=self.manager, sound_manager=self.sound_manager)
+        self.subtask_panel.subtask_updated.connect(self.on_subtask_updated)
+        self.subtask_panel.panel_closed.connect(self.on_subtask_panel_closed)
+        self.subtask_panel.setMaximumHeight(400)
+        self.subtask_panel.setMinimumHeight(200)
+        self.subtask_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        self.subtask_panel.setStyleSheet("""
+            SubtaskPanelWidget {
+                background-color: #353535;
+                border-top: 2px solid #444;
+            }
+        """)
+        right_container_layout.addWidget(self.subtask_panel)
 
         self.readme_viewer = QTextBrowser()
         self.readme_viewer.setOpenExternalLinks(True)
@@ -765,9 +776,9 @@ class MainWindow(QMainWindow):
                 background: #666;
             }
         """)
-        right_layout.addWidget(self.readme_viewer, 1)
+        right_container_layout.addWidget(self.readme_viewer, 1)
 
-        main_layout.addWidget(right_panel, 1)
+        main_layout.addWidget(right_container, 1)
 
         self.load_welcome_page()
         self.show_readme_mode()
@@ -859,24 +870,20 @@ class MainWindow(QMainWindow):
             </div>
         </div>
         """
-
         self.readme_viewer.setHtml(welcome_html)
 
     def show_readme_mode(self):
         self.readme_viewer.show()
         self.load_welcome_page()
-
         self.project_progress_widget.hide()
         self.tasks_container.hide()
-
+        self.subtask_panel.hide()
         self.tasks_header.setText('📋 Smart Project Manager')
 
     def show_tasks_mode(self):
         self.readme_viewer.hide()
-
         self.project_progress_widget.show()
         self.tasks_container.show()
-
         if self.current_project_id:
             project = self.manager.get_project(self.current_project_id)
             if project:
@@ -892,7 +899,6 @@ class MainWindow(QMainWindow):
             self.last_selected_project_id = self.current_project_id
 
         self.projects_tree.clear()
-
         projects = self.manager.get_all_projects()
 
         for project in projects:
@@ -903,7 +909,6 @@ class MainWindow(QMainWindow):
                 item = self.projects_tree.topLevelItem(i)
                 if hasattr(item, 'project_id') and item.project_id == self.last_selected_project_id:
                     self.projects_tree.setCurrentItem(item)
-
                     self.current_project_id = self.last_selected_project_id
                     self.selected_project_item = item
                     self.btn_delete_project.setEnabled(True)
@@ -917,6 +922,10 @@ class MainWindow(QMainWindow):
     def on_project_selected(self, item, column):
         if not item or not hasattr(item, 'project_id'):
             return
+
+        if self.subtask_panel.isVisible():
+            self.subtask_panel.hide_panel()
+            self.selected_task_id = None
 
         self.current_project_id = item.project_id
         self.tasks_table.current_project_id = self.current_project_id
@@ -933,8 +942,6 @@ class MainWindow(QMainWindow):
         self.btn_clear_completed.setVisible(True)
         self.update_clear_completed_button()
 
-        self.update_sound_button_style()
-
         self.last_selected_project_id = self.current_project_id
 
         project = self.manager.get_project(self.current_project_id)
@@ -947,6 +954,107 @@ class MainWindow(QMainWindow):
             else:
                 self.btn_open_url.setEnabled(False)
         self.reset_filters()
+
+    def on_task_clicked(self, task_id: str):
+        if task_id:
+            if task_id == self.selected_task_id:
+                self.subtask_panel.hide_panel()
+                self.selected_task_id = None
+            else:
+                task = self.manager.get_task(task_id)
+                if task and self.current_project_id:
+                    self.subtask_panel.show_for_task(task, self.current_project_id)
+                    self.selected_task_id = task_id
+
+    def on_subtask_updated(self):
+        if self.current_project_id:
+            project = self.manager.get_project(self.current_project_id)
+            if project:
+                self.project_progress_widget.update_progress(project, self.manager)
+
+            self.apply_filters()
+
+            self.update_statistics()
+
+            self.load_projects()
+
+    def on_subtask_panel_closed(self):
+        self.selected_task_id = None
+
+    def get_task_id_from_row(self, row: int) -> Optional[str]:
+        if not self.current_project_id:
+            return None
+
+        all_tasks = self.manager.get_tasks_by_project(self.current_project_id)
+        project = self.manager.get_project(self.current_project_id)
+
+        if project and project.task_order:
+            tasks_dict = {task.id: task for task in all_tasks}
+            ordered_tasks = []
+            for task_id in project.task_order:
+                if task_id in tasks_dict:
+                    ordered_tasks.append(tasks_dict.pop(task_id))
+            ordered_tasks.extend(tasks_dict.values())
+        else:
+            ordered_tasks = all_tasks
+
+        filtered_tasks = []
+        PRIORITY_MAP = {"Low": 3, "Medium": 2, "High": 1}
+        all_labels = self.manager.get_all_labels()
+        label_name_to_id = {label.name: label.id for label in all_labels}
+
+        for task in ordered_tasks:
+            search_ok = True
+            if self.search_text:
+                search_in_title = self.search_text in task.title.lower()
+                search_in_desc = task.description and self.search_text in task.description.lower()
+                search_ok = search_in_title or search_in_desc
+
+            priority_ok = True
+            if self.priority_filter != "All":
+                expected_priority = PRIORITY_MAP.get(self.priority_filter)
+                if expected_priority is not None:
+                    priority_ok = (task.priority == expected_priority)
+
+            label_ok = True
+            if self.label_filter != "All":
+                label_id = label_name_to_id.get(self.label_filter)
+                if label_id:
+                    label_ok = (label_id in task.labels)
+                else:
+                    label_ok = False
+
+            completed_ok = True
+            if not self.show_completed:
+                completed_ok = not task.completed
+
+            if search_ok and priority_ok and label_ok and completed_ok:
+                filtered_tasks.append(task)
+
+        if 0 <= row < len(filtered_tasks):
+            return filtered_tasks[row].id
+        return None
+
+    def display_filtered_tasks(self, tasks):
+        self.tasks_table.setRowCount(0)
+
+        for row, task in enumerate(tasks):
+            self.tasks_table.add_task_row(
+                row, task, self.manager,
+                self.toggle_task_status,
+                self.edit_task,
+                self.delete_task
+            )
+            item = self.tasks_table.item(row, 2)
+            if item:
+                item.setData(Qt.UserRole, task.id)
+
+        if self.selected_task_id:
+            for row in range(self.tasks_table.rowCount()):
+                item = self.tasks_table.item(row, 2)
+                if item and item.data(Qt.UserRole) == self.selected_task_id:
+                    self.tasks_table.selectRow(row)
+                    break
 
     def load_tasks_for_project(self, project_id: str):
         self.apply_filters()
@@ -961,6 +1069,10 @@ class MainWindow(QMainWindow):
         if task:
             task.toggle_complete()
             self.manager.update_task(task_id, completed=task.completed)
+
+            if task.completed and self.selected_task_id == task_id:
+                self.subtask_panel.hide_panel()
+                self.selected_task_id = None
 
             if self.current_project_id:
                 self.apply_filters()
@@ -1386,20 +1498,6 @@ class MainWindow(QMainWindow):
         else:
             self.status_bar.showMessage(f'Showing {filtered_count} of {total_count} tasks', 2000)
 
-    def display_filtered_tasks(self, tasks):
-        self.tasks_table.setRowCount(0)
-
-        for row, task in enumerate(tasks):
-            self.tasks_table.add_task_row(
-                row, task, self.manager,
-                self.toggle_task_status,
-                self.edit_task,
-                self.delete_task
-            )
-            item = self.tasks_table.item(row, 1)
-            if item:
-                item.setData(Qt.UserRole, task.id)
-
     def create_task(self):
         self.on_notify()
         if not self.current_project_id:
@@ -1417,7 +1515,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, 'Error', 'Task title is required')
                 return
 
-            task = self.manager.create_task(**data)
+            self.manager.create_task(**data)
 
             self.apply_filters()
             self.update_statistics()
@@ -1496,6 +1594,10 @@ class MainWindow(QMainWindow):
         )
 
         if reply == QMessageBox.Yes:
+            if self.selected_task_id == task_id:
+                self.subtask_panel.hide_panel()
+                self.selected_task_id = None
+
             self.manager.delete_task(task_id)
 
             if self.current_project_id:
@@ -1568,49 +1670,6 @@ class MainWindow(QMainWindow):
         if task_id:
             self.show_task_menu(task_id, self.tasks_table.viewport().mapToGlobal(position))
 
-    def get_task_id_from_row(self, row: int) -> Optional[str]:
-        if not self.current_project_id:
-            return None
-
-        tasks = self.manager.get_tasks_by_project(self.current_project_id)
-        if row < len(tasks):
-            return tasks[row].id
-
-        return None
-
-    def show_task_menu(self, task_id: str, position):
-        task = self.manager.get_task(task_id)
-        if not task:
-            return
-
-        menu = QMenu()
-
-        view_action = QAction("👁 View Details")
-        view_action.triggered.connect(self.on_click)
-        view_action.triggered.connect(lambda: self.view_task(task_id))
-        menu.addAction(view_action)
-
-        mark_action = QAction("✅ Mark as Complete" if not task.completed else "⏳ Mark as Pending")
-        mark_action.triggered.connect(self.on_click)
-        mark_action.triggered.connect(lambda: self.toggle_task_status(task_id))
-        menu.addAction(mark_action)
-
-        menu.addSeparator()
-
-        edit_action = QAction("✏️ Edit Task")
-        edit_action.triggered.connect(self.on_click)
-        edit_action.triggered.connect(lambda: self.edit_task(task_id))
-        menu.addAction(edit_action)
-
-        menu.addSeparator()
-
-        delete_action = QAction("🗑️ Delete Task")
-        delete_action.triggered.connect(self.on_click)
-        delete_action.triggered.connect(lambda: self.delete_task(task_id))
-        menu.addAction(delete_action)
-
-        menu.exec_(position)
-
     def show_empty_project_context_menu(self, position):
         menu = QMenu()
 
@@ -1650,6 +1709,39 @@ class MainWindow(QMainWindow):
         delete_action = QAction("🗑️ Delete Project")
         delete_action.triggered.connect(self.on_click)
         delete_action.triggered.connect(self.delete_current_project)
+        menu.addAction(delete_action)
+
+        menu.exec_(position)
+
+    def show_task_menu(self, task_id: str, position):
+        task = self.manager.get_task(task_id)
+        if not task:
+            return
+
+        menu = QMenu()
+
+        view_action = QAction("👁 View Details")
+        view_action.triggered.connect(self.on_click)
+        view_action.triggered.connect(lambda: self.view_task(task_id))
+        menu.addAction(view_action)
+
+        mark_action = QAction("✅ Mark as Complete" if not task.completed else "⏳ Mark as Pending")
+        mark_action.triggered.connect(self.on_click)
+        mark_action.triggered.connect(lambda: self.toggle_task_status(task_id))
+        menu.addAction(mark_action)
+
+        menu.addSeparator()
+
+        edit_action = QAction("✏️ Edit Task")
+        edit_action.triggered.connect(self.on_click)
+        edit_action.triggered.connect(lambda: self.edit_task(task_id))
+        menu.addAction(edit_action)
+
+        menu.addSeparator()
+
+        delete_action = QAction("🗑️ Delete Task")
+        delete_action.triggered.connect(self.on_click)
+        delete_action.triggered.connect(lambda: self.delete_task(task_id))
         menu.addAction(delete_action)
 
         menu.exec_(position)
@@ -2002,18 +2094,13 @@ class MainWindow(QMainWindow):
 
     def toggle_sounds(self, enabled: bool):
         self.sound_manager.set_enabled(enabled)
-
         self.update_sound_button_style()
-
         status = "enabled" if enabled else "disabled"
         self.status_bar.showMessage(f'Sounds {status}', 2000)
 
     def toggle_sounds_button(self, checked=None):
         if checked is None:
             checked = self.btn_sound_toggle.isChecked()
-
-        self.toggle_sounds(checked)
-
         self.toggle_sounds(checked)
 
     def update_sound_button_style(self):
