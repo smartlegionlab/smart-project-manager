@@ -74,17 +74,21 @@ class TaskTableWidget(QTableWidget):
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.setAlternatingRowColors(True)
         self.setStyleSheet("""
-            QTableWidget {
-                background-color: #2a2a2a;
-                gridline-color: #444;
-            }
-            QHeaderView::section {
-                background-color: #353535;
-                padding: 8px;
-                border: 1px solid #444;
-                font-weight: bold;
-            }
-        """)
+                QTableWidget {
+                    background-color: #2a2a2a;
+                    gridline-color: #444;
+                }
+                QHeaderView::section {
+                    background-color: #353535;
+                    padding: 8px;
+                    border: 1px solid #444;
+                    font-weight: bold;
+                }
+                QTableCornerButton::section {
+                    background-color: #353535;
+                    border: 1px solid #444;
+                }
+            """)
 
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
