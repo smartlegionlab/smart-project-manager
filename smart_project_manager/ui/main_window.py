@@ -1629,7 +1629,7 @@ class MainWindow(QMainWindow):
 
     def manage_labels(self):
         self.on_notify()
-        dialog = LabelManagerDialog(self, self.manager)
+        dialog = LabelManagerDialog(self, self.manager, sound_manager=self.sound_manager)
         dialog.exec_()
         self.update_statistics()
         self.update_label_filter_combo()

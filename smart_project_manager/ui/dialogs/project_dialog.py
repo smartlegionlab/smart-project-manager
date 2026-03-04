@@ -40,6 +40,7 @@ class ProjectDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Enter project name")
+        self.name_input.setFocus()
         if project:
             self.name_input.setText(project.name)
         name_layout.addWidget(self.name_input, 0, 1)

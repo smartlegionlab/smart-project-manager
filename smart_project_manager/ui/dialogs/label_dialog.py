@@ -42,6 +42,7 @@ class LabelDialog(QDialog):
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Enter label name")
+        self.name_input.setFocus()
         self.name_input.setMaxLength(8)
         if label:
             self.name_input.setText(label.name)

@@ -65,6 +65,8 @@ class TaskDialog(QDialog):
         self.submit_button.clicked.connect(self.accept)
         button_layout.addWidget(self.submit_button)
 
+        self.title_input.setFocus()
+
         self.layout.addLayout(button_layout)
 
     def setup_main_tab(self):

@@ -226,7 +226,8 @@ class SubtaskPanelWidget(QWidget):
             self,
             manager=self.manager,
             task_id=self.current_task.id,
-            project_id=self.current_project_id
+            project_id=self.current_project_id,
+            sound_manager=self.sound_manager
         )
 
         if dialog.exec_() == QDialog.Accepted:
@@ -256,7 +257,7 @@ class SubtaskPanelWidget(QWidget):
         if not subtask:
             return
 
-        dialog = SubTaskDialog(self, subtask=subtask, manager=self.manager)
+        dialog = SubTaskDialog(self, subtask=subtask, manager=self.manager, sound_manager=self.sound_manager)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_subtask_data()
 

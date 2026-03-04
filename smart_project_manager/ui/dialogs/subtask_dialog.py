@@ -26,13 +26,15 @@ from smart_project_manager.ui.widgets.label_widget import LabelWidget
 class SubTaskDialog(QDialog):
 
     def __init__(self, parent=None, subtask: SubTask = None, manager=None,
-                 task_id: str = None, project_id: str = None):
+                 task_id: str = None, project_id: str = None, sound_manager=None):
         super().__init__(parent)
         self.is_edit_mode = subtask is not None
         self.subtask = subtask
         self.manager = manager
         self.task_id = task_id if task_id else (subtask.task_id if subtask else None)
         self.project_id = project_id if project_id else (subtask.project_id if subtask else None)
+
+        self.sound_manager = sound_manager
 
         self.setWindowTitle('Edit Subtask' if self.is_edit_mode else 'Create New Subtask')
         self.setMinimumWidth(450)
@@ -49,6 +51,7 @@ class SubTaskDialog(QDialog):
 
         self.title_input = QLineEdit()
         self.title_input.setPlaceholderText("Enter subtask title")
+        self.title_label.setFocus()
         if subtask:
             self.title_input.setText(subtask.title)
         title_layout.addWidget(self.title_input)
@@ -181,7 +184,7 @@ class SubTaskDialog(QDialog):
         self.layout.addLayout(button_layout)
 
     def add_label(self):
-        dialog = LabelManagerDialog(self, self.manager)
+        dialog = LabelManagerDialog(self, self.manager, sound_manager=self.sound_manager)
         dialog.label_selected.connect(self.on_label_selected)
         dialog.exec_()
 
