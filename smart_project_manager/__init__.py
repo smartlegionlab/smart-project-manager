@@ -1,2 +1,2 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
-__version__ = 'v1.0.0'
+__version__ = 'v1.0.1'
