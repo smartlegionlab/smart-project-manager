@@ -2188,7 +2188,7 @@ class MainWindow(QMainWindow):
             <li>Progress bars show completion percentage</li>
             <li>Right-click tasks for quick actions</li>
             </ul>
-            <p>Data is automatically saved to ~/.project_manager/projects.json</p>
+            <p>Data is automatically saved to ~/.smart_project_manager/projects.json</p>
             <hr>
             <p>Github: <a href="https://github.com/smartlegionlab/smart-project-manager/">Smart Project Manager</a></p>
             """

@@ -12,7 +12,7 @@ from smart_project_manager.core.utils import load_json, save_json, format_dateti
 
 class ProjectManager:
 
-    def __init__(self, data_dir: str = "~/.project_manager"):
+    def __init__(self, data_dir: str = "~/.smart_project_manager"):
         self.data_dir = os.path.expanduser(data_dir)
         self.data_file = os.path.join(self.data_dir, "projects.json")
 

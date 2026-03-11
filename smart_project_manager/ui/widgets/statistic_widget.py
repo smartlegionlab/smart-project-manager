@@ -183,7 +183,7 @@ class StatisticsWidget(QWidget):
         data_path_prefix.setStyleSheet("color: #888; font-size: 11px;")
         data_path_layout.addWidget(data_path_prefix)
 
-        full_path = os.path.expanduser("~/.project_manager")
+        full_path = os.path.expanduser("~/.smart_project_manager")
         self.data_path_link = QLabel(f'<a href="file://{full_path}"'
                                      f' style="color: #3498db; text-decoration: none;">{full_path}</a>')
         self.data_path_link.setOpenExternalLinks(True)

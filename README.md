@@ -42,7 +42,7 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 *   Interactive tables with buttons for editing, deleting, and toggling status.
 
 ### 6. Data Persistence
-*   Automatic saving to `~/.project_manager/projects.json`.
+*   Automatic saving to `~/.smart_project_manager/projects.json`.
 *   JSON-based storage for projects, tasks, subtasks, and labels.
 *   Data is automatically loaded on application startup.
 
