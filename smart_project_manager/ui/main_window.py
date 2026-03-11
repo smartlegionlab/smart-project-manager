@@ -56,8 +56,8 @@ class MainWindow(QMainWindow):
         self.stats_visible = False
 
         self.setWindowTitle(f'Smart Project Manager {ver}')
-        self.setMinimumSize(800, 600)
-        self.resize(800, 600)
+        self.setMinimumSize(830, 600)
+        self.resize(830, 600)
 
         self.setStyleSheet("""
             QMainWindow {

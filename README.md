@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v1.0.2</sup>
+# Smart Project Manager <sup>v1.0.3</sup>
 
 ---
 
