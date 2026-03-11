@@ -1,15 +1,24 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
+from datetime import datetime
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox,
-    QFrame, QDialog
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QHeaderView,
+    QMessageBox,
+    QFrame,
+    QDialog
 )
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from smart_project_manager.ui.dialogs.subtask_dialog import SubTaskDialog
 from smart_project_manager.ui.widgets.priority_widget import PriorityIndicatorWidget
+from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 
 class SubtaskPanelWidget(QWidget):
@@ -86,8 +95,9 @@ class SubtaskPanelWidget(QWidget):
         layout.addLayout(button_layout)
 
         self.subtasks_table = QTableWidget()
-        self.subtasks_table.setColumnCount(6)
-        self.subtasks_table.setHorizontalHeaderLabels(['Title', 'Priority', 'Status', 'Due Date', 'Edit', 'Delete'])
+        self.subtasks_table.setColumnCount(7)
+        self.subtasks_table.setHorizontalHeaderLabels(
+            ['Title', 'Priority', 'Status', 'Due Date', 'Labels', 'Edit', 'Delete'])
         self.subtasks_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.subtasks_table.setAlternatingRowColors(True)
         self.subtasks_table.setStyleSheet("""
@@ -109,6 +119,7 @@ class SubtaskPanelWidget(QWidget):
         self.subtasks_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
         self.subtasks_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
         self.subtasks_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
+        self.subtasks_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)
 
         layout.addWidget(self.subtasks_table)
 
@@ -145,16 +156,28 @@ class SubtaskPanelWidget(QWidget):
 
         for row, subtask in enumerate(subtasks):
             self.subtasks_table.insertRow(row)
+            self.subtasks_table.setRowHeight(row, 40)
 
-            title_item = QTableWidgetItem(subtask.title)
-            if subtask.description:
-                title_item.setToolTip(subtask.description)
+            title_widget = QWidget()
+            title_layout = QVBoxLayout(title_widget)
+            title_layout.setContentsMargins(5, 2, 5, 2)
+            title_layout.setSpacing(2)
+
+            title_label = QLabel(subtask.title)
             if subtask.completed:
-                title_item.setForeground(QColor(100, 100, 100))
-                font = title_item.font()
-                font.setStrikeOut(True)
-                title_item.setFont(font)
-            self.subtasks_table.setItem(row, 0, title_item)
+                title_label.setStyleSheet("color: #888; text-decoration: line-through;")
+            else:
+                title_label.setStyleSheet("color: #fff;")
+
+            title_layout.addWidget(title_label)
+
+            if subtask.description:
+                desc_label = QLabel(
+                    subtask.description[:50] + "..." if len(subtask.description) > 50 else subtask.description)
+                desc_label.setStyleSheet("color: #888; font-size: 10px;")
+                title_layout.addWidget(desc_label)
+
+            self.subtasks_table.setCellWidget(row, 0, title_widget)
 
             priority_widget = PriorityIndicatorWidget(subtask.priority)
             self.subtasks_table.setCellWidget(row, 1, priority_widget)
@@ -180,10 +203,61 @@ class SubtaskPanelWidget(QWidget):
             status_button.clicked.connect(lambda checked, sid=subtask.id: self.toggle_subtask_status(sid))
             self.subtasks_table.setCellWidget(row, 2, status_button)
 
-            due_text = subtask.due_date if subtask.due_date else "No due date"
-            due_item = QTableWidgetItem(due_text)
-            due_item.setTextAlignment(Qt.AlignCenter)
-            self.subtasks_table.setItem(row, 3, due_item)
+            due_widget = QWidget()
+            due_layout = QHBoxLayout(due_widget)
+            due_layout.setContentsMargins(5, 0, 5, 0)
+            due_layout.setAlignment(Qt.AlignCenter)
+
+            if subtask.due_date:
+                due_label = QLabel(subtask.due_date)
+                try:
+                    due_date = datetime.fromisoformat(subtask.due_date).date()
+                    today = datetime.now().date()
+                    if due_date < today and not subtask.completed:
+                        due_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
+                    elif due_date == today and not subtask.completed:
+                        due_label.setStyleSheet("color: #f39c12; font-weight: bold;")
+                    else:
+                        due_label.setStyleSheet("color: #888;")
+                except:
+                    due_label.setStyleSheet("color: #888;")
+            else:
+                due_label = QLabel("—")
+                due_label.setStyleSheet("color: #666; font-style: italic;")
+
+            due_layout.addWidget(due_label)
+            self.subtasks_table.setCellWidget(row, 3, due_widget)
+
+            labels_widget = QWidget()
+            labels_layout = QHBoxLayout(labels_widget)
+            labels_layout.setContentsMargins(5, 2, 5, 2)
+            labels_layout.setSpacing(3)
+
+            if subtask.labels:
+                for label_id in subtask.labels[:3]:
+                    label = self.manager.get_label(label_id)
+                    if label:
+                        label_widget = LabelWidget(label.name, label.color, label.text_color)
+                        label_widget.setFixedHeight(24)
+                        labels_layout.addWidget(label_widget)
+
+                if len(subtask.labels) > 3:
+                    more_label = QLabel(f"+{len(subtask.labels) - 3}")
+                    more_label.setStyleSheet("""
+                        color: #888;
+                        font-size: 10px;
+                        padding: 2px 4px;
+                        background-color: #3a3a3a;
+                        border-radius: 3px;
+                    """)
+                    labels_layout.addWidget(more_label)
+            else:
+                no_labels = QLabel("—")
+                no_labels.setStyleSheet("color: #666; font-style: italic; font-size: 10px;")
+                labels_layout.addWidget(no_labels)
+
+            labels_layout.addStretch()
+            self.subtasks_table.setCellWidget(row, 4, labels_widget)
 
             edit_button = QPushButton("✏️ Edit")
             edit_button.setStyleSheet("""
@@ -199,7 +273,7 @@ class SubtaskPanelWidget(QWidget):
                 }
             """)
             edit_button.clicked.connect(lambda checked, sid=subtask.id: self.edit_subtask(sid))
-            self.subtasks_table.setCellWidget(row, 4, edit_button)
+            self.subtasks_table.setCellWidget(row, 5, edit_button)
 
             delete_button = QPushButton("Delete")
             delete_button.setStyleSheet("""
@@ -215,7 +289,7 @@ class SubtaskPanelWidget(QWidget):
                 }
             """)
             delete_button.clicked.connect(lambda checked, sid=subtask.id: self.delete_subtask(sid))
-            self.subtasks_table.setCellWidget(row, 5, delete_button)
+            self.subtasks_table.setCellWidget(row, 6, delete_button)
 
     def add_subtask(self):
         self.on_notify()
