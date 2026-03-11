@@ -670,8 +670,7 @@ class MainWindow(QMainWindow):
         self.tasks_table.manager = self.manager
         self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
-        self.tasks_table.task_clicked.connect(self.on_task_clicked)
-        self.tasks_table.itemDoubleClicked.connect(self.on_task_double_clicked)
+        self.tasks_table.task_double_clicked.connect(self.on_task_double_clicked)
 
         self.tasks_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.tasks_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -954,17 +953,6 @@ class MainWindow(QMainWindow):
             else:
                 self.btn_open_url.setEnabled(False)
         self.reset_filters()
-
-    def on_task_clicked(self, task_id: str):
-        if task_id:
-            if task_id == self.selected_task_id:
-                self.subtask_panel.hide_panel()
-                self.selected_task_id = None
-            else:
-                task = self.manager.get_task(task_id)
-                if task and self.current_project_id:
-                    self.subtask_panel.show_for_task(task, self.current_project_id)
-                    self.selected_task_id = task_id
 
     def on_subtask_updated(self):
         if self.current_project_id:
@@ -1754,16 +1742,16 @@ class MainWindow(QMainWindow):
         dialog = TaskDetailsDialog(self, task=task, manager=self.manager)
         dialog.exec_()
 
-    def on_task_double_clicked(self, item):
-        row = item.row()
-        column = item.column()
-
-        if column in [2, 6, 7]:
-            return
-
-        task_id = self.get_task_id_from_row(row)
+    def on_task_double_clicked(self, task_id):
         if task_id:
-            self.view_task(task_id)
+            task = self.manager.get_task(task_id)
+            if task and self.current_project_id:
+                if self.selected_task_id == task_id:
+                    self.subtask_panel.hide_panel()
+                    self.selected_task_id = None
+                else:
+                    self.subtask_panel.show_for_task(task, self.current_project_id)
+                    self.selected_task_id = task_id
 
     def refresh_view(self):
         self.load_projects()

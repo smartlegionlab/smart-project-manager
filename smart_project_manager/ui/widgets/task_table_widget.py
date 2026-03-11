@@ -20,7 +20,8 @@ from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 class TaskTableWidget(QTableWidget):
     task_dropped = pyqtSignal(int, int)
-    task_clicked = pyqtSignal(str)  # Новый сигнал для клика по задаче
+    task_clicked = pyqtSignal(str)
+    task_double_clicked = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -45,9 +46,10 @@ class TaskTableWidget(QTableWidget):
 
         self.itemSelectionChanged.connect(self.save_selection)
         self.cellClicked.connect(self.on_cell_clicked)
+        self.cellDoubleClicked.connect(self.on_cell_double_clicked)
 
     def on_cell_clicked(self, row, column):
-        if column in [1, 7, 8]:
+        if column in [0, 1, 7, 8]:
             return
 
         item = self.item(row, 2)
@@ -55,6 +57,16 @@ class TaskTableWidget(QTableWidget):
             task_id = item.data(Qt.UserRole)
             if task_id:
                 self.task_clicked.emit(task_id)
+
+    def on_cell_double_clicked(self, row, column):
+        if column in [0, 1, 7, 8]:
+            return
+
+        item = self.item(row, 2)
+        if item:
+            task_id = item.data(Qt.UserRole)
+            if task_id:
+                self.task_double_clicked.emit(task_id)
 
     def save_selection(self):
         selected = self.selectedItems()
@@ -169,9 +181,7 @@ class TaskTableWidget(QTableWidget):
         title_item.setData(Qt.UserRole, task.id)
         title_item.setData(Qt.UserRole + 1, task.priority)
         if task.description:
-            title_item.setToolTip(f"Double-click to view details\n\n{task.description}")
-        else:
-            title_item.setToolTip("Double-click to view details")
+            title_item.setToolTip(f"{task.description}")
         if task.completed:
             title_item.setForeground(QColor(100, 100, 100))
             font = title_item.font()
