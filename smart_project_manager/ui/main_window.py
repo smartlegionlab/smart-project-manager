@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         self.stats_visible = False
 
         self.setWindowTitle(f'Smart Project Manager {ver}')
-        self.setMinimumSize(830, 600)
+        self.setMinimumSize(800, 600)
         self.resize(830, 600)
 
         self.setStyleSheet("""
@@ -1239,6 +1239,12 @@ class MainWindow(QMainWindow):
         )
 
         if reply == QMessageBox.Yes:
+            if self.selected_task_id:
+                task_to_check = self.manager.get_task(self.selected_task_id)
+                if task_to_check and task_to_check.completed:
+                    self.subtask_panel.hide_panel()
+                    self.selected_task_id = None
+
             deleted_count = 0
             for task in completed_tasks:
                 if self.manager.delete_task(task.id):
@@ -1247,7 +1253,6 @@ class MainWindow(QMainWindow):
             if self.current_project_id:
                 self.apply_filters()
                 self.update_statistics()
-
                 self.load_projects()
 
                 project = self.manager.get_project(self.current_project_id)
@@ -1257,7 +1262,6 @@ class MainWindow(QMainWindow):
                 self.update_label_filter_combo()
 
             self.on_notify()
-
             self.update_clear_completed_button()
 
     def update_clear_completed_button(self):

@@ -325,6 +325,10 @@ class SubtaskPanelWidget(QWidget):
             self.load_subtasks()
             self.subtask_updated.emit()
 
+            main_window = self.get_main_window()
+            if main_window and main_window.current_project_id:
+                main_window.update_clear_completed_button()
+
     def edit_subtask(self, subtask_id: str):
         self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
@@ -372,3 +376,11 @@ class SubtaskPanelWidget(QWidget):
     def on_error(self):
         if self.sound_manager:
             self.sound_manager.play_error()
+
+    def get_main_window(self):
+        parent = self.parent()
+        while parent:
+            if hasattr(parent, 'update_clear_completed_button'):
+                return parent
+            parent = parent.parent()
+        return None
