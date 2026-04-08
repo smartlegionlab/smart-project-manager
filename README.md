@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v1.0.4</sup>
+# Smart Project Manager <sup>v1.0.5</sup>
 
 ---
 
@@ -10,6 +10,24 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 *   **Author:** Alexander Suvorov
 *   **GitHub:** [smartlegionlab](https://github.com/smartlegionlab)
+
+---
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/smartlegionlab/smart-project-manager)](https://github.com/smartlegionlab/smart-project-manager/)
+![GitHub top language](https://img.shields.io/github/languages/top/smartlegionlab/smart-project-manager)
+[![GitHub](https://img.shields.io/github/license/smartlegionlab/smart-project-manager)](https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/smartlegionlab/smart-project-manager?style=social)](https://github.com/smartlegionlab/smart-project-manager/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/smartlegionlab/smart-project-manager?style=social)](https://github.com/smartlegionlab/smart-project-manager/network/members)
+
+---
+
+## ⚠️ Disclaimer
+
+**By using this software, you agree to the full disclaimer terms.**
+
+**Summary:** Software provided "AS IS" without warranty. You assume all risks.
+
+**Full legal disclaimer:** See [DISCLAIMER.md](https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md)
 
 ---
 
@@ -99,19 +117,6 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 ---
 
-## Disclaimer
-
-**Smart Project Manager** is provided "as is", without warranty of any kind, express or implied, 
-including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement. 
-In no event shall the authors or copyright holders be liable for any claim, damages, or other liability, 
-whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or 
-the use or other dealings in the software.
-
-The user is solely responsible for maintaining backups of their project data. 
-The developers are not responsible for any data loss.
-
----
-
 ## License
 
 This project is licensed under the **BSD 3-Clause License**. See the [`LICENSE`](LICENSE) file in the project 
@@ -123,7 +128,7 @@ repository for full details.
 
 The following features are identified in the code as future implementation targets:
 
-### 🚧 **Planned Features**
+### **Planned Features**
     
 *   **Task Filtering System** - The "Show Completed Tasks" toggle in the `View` menu is implemented as a placeholder. Future implementation will:
     *   Enable filtering of completed vs. pending tasks in the task table
