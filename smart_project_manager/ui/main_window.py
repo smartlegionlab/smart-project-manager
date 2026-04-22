@@ -1,5 +1,6 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -11,7 +12,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame, QTextBrowser,
     QScrollArea, QSizePolicy, QTableWidget
 )
-from PyQt5.QtGui import QFont, QDesktopServices
+from PyQt5.QtGui import QFont, QDesktopServices, QIcon
 from PyQt5.QtCore import Qt, QUrl
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
@@ -59,6 +60,8 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(800, 600)
         self.resize(830, 600)
 
+        self.setup_application_icon()
+
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #2d2d2d;
@@ -88,6 +91,22 @@ class MainWindow(QMainWindow):
 
         self.center_window()
 
+    def setup_application_icon(self):
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "icons", "icon.png")
+
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(os.path.dirname(__file__), "icon.png")
+
+        if os.path.exists(icon_path):
+            icon = QIcon(icon_path)
+            self.setWindowIcon(icon)
+
+    def create_desktop_entry(self):
+        from smart_project_manager.ui.dialogs.desktop_entry_dialog import DesktopEntryDialog
+
+        dialog = DesktopEntryDialog(self)
+        dialog.exec_()
+
     def center_window(self):
         frame = self.frameGeometry()
         center_point = QDesktopWidget().availableGeometry().center()
@@ -98,6 +117,12 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
 
         file_menu = menubar.addMenu('File')
+
+        if sys.platform.startswith('linux'):
+            desktop_entry_action = QAction('Create Desktop Entry...', self)
+            desktop_entry_action.triggered.connect(self.create_desktop_entry)
+            file_menu.addAction(desktop_entry_action)
+            file_menu.addSeparator()
 
         new_project_action = QAction('New Project', self)
         new_project_action.setShortcut('Ctrl+N')
