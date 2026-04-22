@@ -2162,11 +2162,30 @@ class MainWindow(QMainWindow):
 
     def show_about(self):
         self.on_about()
-        QMessageBox.about(
-            self,
-            "About Smart Project Manager",
-            f"""<h2>Smart Project Manager {ver}</h2>
-            <p>A powerful project and task management tool for developers and researchers.</p>
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("About Smart Project Manager")
+        dialog.setMinimumWidth(500)
+        dialog.setMinimumHeight(400)
+
+        layout = QVBoxLayout(dialog)
+        layout.setSpacing(10)
+
+        title_label = QLabel(f"<h2 style='color: #2a82da;'>Smart Project Manager {ver}</h2>")
+        title_label.setTextFormat(Qt.RichText)
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+
+        about_label = QLabel(
+            f"""<p style='text-align: center;'>A powerful project and task management tool for developers and researchers.</p>
+
             <p><b>Features:</b></p>
             <ul>
             <li>Manage unlimited projects with versions</li>
@@ -2175,18 +2194,92 @@ class MainWindow(QMainWindow):
             <li>Label system</li>
             <li>Automatic progress tracking</li>
             <li>Dark theme interface</li>
+            <li>Linux desktop integration (Application Menu / Desktop shortcuts)</li>
             </ul>
-            <p><b>Copyright © 2026, <a href="https://github.com/smartlegionlab/">Alexander Suvorov</a>. All rights reserved.</b></p>
+
+            <p style='text-align: center; margin-top: 20px;'>
+            <b>Copyright © 2026, <a href="https://github.com/smartlegionlab/" style="color: #2a82da;">Alexander Suvorov</a>. All rights reserved.</b>
+            </p>
             """
         )
+        about_label.setTextFormat(Qt.RichText)
+        about_label.setWordWrap(True)
+        about_label.setOpenExternalLinks(True)
+        about_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        about_label.setStyleSheet("""
+            QLabel {
+                background-color: #2a2a2a;
+                padding: 15px;
+                border-radius: 5px;
+            }
+            a {
+                color: #2a82da;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        """)
+
+        content_layout.addWidget(about_label)
+        scroll_area.setWidget(content_widget)
+        layout.addWidget(scroll_area)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        ok_button = QPushButton("OK")
+        ok_button.setMinimumWidth(100)
+        ok_button.setMinimumHeight(35)
+        ok_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2a82da;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #1a72ca;
+            }
+        """)
+        ok_button.clicked.connect(dialog.accept)
+        button_layout.addWidget(ok_button)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+
+        dialog.setModal(True)
+        x = self.x() + (self.width() - dialog.width()) // 2
+        y = self.y() + (self.height() - dialog.height()) // 2
+        dialog.move(x, y)
+
+        dialog.exec_()
 
     def show_help(self):
         self.on_notify()
-        QMessageBox.information(
-            self,
-            "Help - Smart Project Manager",
-            """<h3>Smart Project Manager Help</h3>
-            <p><b>Getting Started:</b></p>
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Help - Smart Project Manager")
+        dialog.setMinimumWidth(650)
+        dialog.setMinimumHeight(500)
+
+        layout = QVBoxLayout(dialog)
+        layout.setSpacing(10)
+
+        title_label = QLabel("<h2 style='color: #2a82da;'>Smart Project Manager Help</h2>")
+        title_label.setTextFormat(Qt.RichText)
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+
+        help_label = QLabel(
+            """<p><b>Getting Started:</b></p>
             <ol>
             <li>Create a project using File → New Project or the New Project button</li>
             <li>Select a project from the left panel</li>
@@ -2194,6 +2287,15 @@ class MainWindow(QMainWindow):
             <li>Add subtasks by editing a task and going to the Subtasks tab</li>
             <li>Use labels to categorize tasks and subtasks</li>
             </ol>
+
+            <p><b>Desktop Integration:</b></p>
+            <ul>
+            <li><b>File → Create Desktop Entry</b> — Create application shortcut in your system menu (Linux only)</li>
+            <li>Choose between Application Menu (~/.local/share/applications/) and/or Desktop (~/Desktop/)</li>
+            <li>After creation, you may need to log out and back in for the entry to appear</li>
+            <li>Desktop shortcuts may show "Unsecured Application Launcher" — right-click → "Allow Launching" (one-time only)</li>
+            </ul>
+
             <p><b>Keyboard Shortcuts:</b></p>
             <ul>
             <li>Ctrl+N: New Project</li>
@@ -2208,6 +2310,7 @@ class MainWindow(QMainWindow):
             <li>F1: Help</li>
             <li>Ctrl+Q: Exit</li>
             </ul>
+
             <p><b>Features:</b></p>
             <ul>
             <li>Projects have name, version, description</li>
@@ -2217,11 +2320,65 @@ class MainWindow(QMainWindow):
             <li>Progress bars show completion percentage</li>
             <li>Right-click tasks for quick actions</li>
             </ul>
+
             <p>Data is automatically saved to ~/.smart_project_manager/projects.json</p>
+
             <hr>
-            <p>Github: <a href="https://github.com/smartlegionlab/smart-project-manager/">Smart Project Manager</a></p>
+            <p>Github: <a href="https://github.com/smartlegionlab/smart-project-manager/" style="color: #2a82da;">Smart Project Manager</a></p>
             """
         )
+        help_label.setTextFormat(Qt.RichText)
+        help_label.setWordWrap(True)
+        help_label.setOpenExternalLinks(True)
+        help_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        help_label.setStyleSheet("""
+            QLabel {
+                background-color: #2a2a2a;
+                padding: 15px;
+                border-radius: 5px;
+            }
+            a {
+                color: #2a82da;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        """)
+
+        content_layout.addWidget(help_label)
+        scroll_area.setWidget(content_widget)
+        layout.addWidget(scroll_area)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        ok_button = QPushButton("OK")
+        ok_button.setMinimumWidth(100)
+        ok_button.setMinimumHeight(35)
+        ok_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2a82da;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #1a72ca;
+            }
+        """)
+        ok_button.clicked.connect(dialog.accept)
+        button_layout.addWidget(ok_button)
+        button_layout.addStretch()
+        layout.addLayout(button_layout)
+
+        dialog.setModal(True)
+        x = self.x() + (self.width() - dialog.width()) // 2
+        y = self.y() + (self.height() - dialog.height()) // 2
+        dialog.move(x, y)
+
+        dialog.exec_()
 
     def closeEvent(self, event):
         self.on_error()

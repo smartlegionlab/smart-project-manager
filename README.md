@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v1.0.5</sup>
+# Smart Project Manager <sup>v1.0.6</sup>
 
 ---
 
@@ -101,6 +101,35 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 3.  **Create a Task:** With a project selected, use `File → New Task` or the "New Task" button.
 4.  **Add Subtasks:** Edit a task and navigate to the "Subtasks" tab to add detailed steps.
 5.  **Manage Labels:** Use `Edit → Manage Labels` to create and organize your label system.
+
+---
+
+### Desktop Integration (Linux)
+
+**Creating Application Shortcuts:**
+
+The application allows you to create desktop entries directly from the menu:
+
+1. **Go to File → Create Desktop Entry**
+2. **Choose locations:**
+   - ✓ Application Menu (`~/.local/share/applications/`) - adds to system app menu
+   - □ Desktop (`~/Desktop/`) - creates shortcut on desktop
+3. **Click "Create Entry"**
+
+**What happens:**
+- Creates `.desktop` file(s) with proper configuration
+- Sets executable permissions automatically
+- Uses application icon if available
+
+**After creation:**
+- **Application Menu**: Log out and back in (or restart desktop) for entry to appear
+- **Desktop shortcut**: May show "Unsecured Application Launcher" warning
+  - Right-click on shortcut → "Allow Launching" or "Trust"
+  - This is a one-time security confirmation
+
+**Note:** This feature is only available on Linux systems with desktop environments that support `.desktop` files (GNOME, KDE, XFCE, etc.).
+
+---
 
 ### Keyboard Shortcuts
 *   `Ctrl+N`: New Project
