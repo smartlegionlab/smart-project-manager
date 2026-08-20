@@ -485,35 +485,29 @@ class MainWindow(QMainWindow):
 
         tasks_header_layout = QHBoxLayout()
 
-        tasks_title = QLabel('Tasks')
-        tasks_title.setFont(QFont("Arial", 12, QFont.Bold))
-        tasks_header_layout.addWidget(tasks_title)
-
-        tasks_header_layout.addStretch()
-
         self.btn_new_task = QPushButton('➕ Add Task')
         self.btn_new_task.clicked.connect(self.on_click)
         self.btn_new_task.clicked.connect(self.create_task)
         self.btn_new_task.setEnabled(False)
         self.btn_new_task.setVisible(False)
         self.btn_new_task.setStyleSheet("""
-            QPushButton {
-                background-color: #27ae60;
-                color: black;
-                font-weight: bold;
-                padding: 6px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-                min-width: 90px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #219653;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
+                    QPushButton {
+                        background-color: #27ae60;
+                        color: black;
+                        font-weight: bold;
+                        padding: 6px 12px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                        min-width: 90px;
+                    }
+                    QPushButton:hover:enabled {
+                        background-color: #219653;
+                    }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
+                """)
         tasks_header_layout.addWidget(self.btn_new_task)
 
         self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
@@ -522,24 +516,30 @@ class MainWindow(QMainWindow):
         self.btn_clear_completed.setEnabled(False)
         self.btn_clear_completed.setVisible(False)
         self.btn_clear_completed.setStyleSheet("""
-            QPushButton {
-                background-color: #f39c12;
-                color: black;
-                font-weight: bold;
-                padding: 6px 12px;
-                border-radius: 5px;
-                font-size: 12px;
-                min-width: 140px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #d68910;
-            }
-            QPushButton:disabled {
-                background-color: #666;
-                color: #999;
-            }
-        """)
+                    QPushButton {
+                        background-color: #f39c12;
+                        color: black;
+                        font-weight: bold;
+                        padding: 6px 12px;
+                        border-radius: 5px;
+                        font-size: 12px;
+                        min-width: 140px;
+                    }
+                    QPushButton:hover:enabled {
+                        background-color: #d68910;
+                    }
+                    QPushButton:disabled {
+                        background-color: #666;
+                        color: #999;
+                    }
+                """)
         tasks_header_layout.addWidget(self.btn_clear_completed)
+
+        tasks_header_layout.addStretch()
+
+        tasks_title = QLabel('Tasks')
+        tasks_title.setFont(QFont("Arial", 12, QFont.Bold))
+        tasks_header_layout.addWidget(tasks_title)
 
         tasks_content_layout.addLayout(tasks_header_layout)
 
