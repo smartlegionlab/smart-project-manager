@@ -32,6 +32,7 @@ def main():
     app.setPalette(dark_palette)
 
     window = MainWindow()
+    window.showMaximized()
     window.show()
 
     sys.exit(app.exec_())
