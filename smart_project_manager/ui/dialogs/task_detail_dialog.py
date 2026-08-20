@@ -235,7 +235,7 @@ class TaskDetailsDialog(QDialog):
         for label_id in self.task.labels:
             label = self.manager.get_label(label_id)
             if label:
-                label_widget = LabelWidget(label.name, label.color)
+                label_widget = LabelWidget(label.name, label.color, label.text_color)
                 label_widget.setMinimumHeight(24)
                 label_widget.setMinimumWidth(70)
                 labels_container_layout.addWidget(label_widget)
