@@ -66,30 +66,153 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 ---
 
-## Installation & Launch
+## Requirements
 
-### Prerequisites
 *   Python 3.7 or higher
-*   Required Python packages: `PyQt5`
+*   Git (only for the installer)
+*   curl (only for the installer)
+*   PyQt5
 
-### Steps
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/smartlegionlab/smart-project-manager.git
-    cd smart-project-manager
-    ```
+---
 
-2.  **Install Dependencies:**
-    It is recommended to use a virtual environment.
-    ```bash
-    pip install -r requirements.txt
-    ```
+## Installation
 
-3.  **Run the Application:**
-    Execute the main entry point:
-    ```bash
-    python app.py
-    ```
+There are **two independent ways** to use this application:
+
+- **Run from source** — clone the repo, create a virtual environment, launch manually. Nothing is installed system-wide.
+- **Install system-wide** — one command creates a menu entry. Desktop shortcut is opt-in.
+
+Choose one. They are not meant to be combined.
+
+### Option 1 — Run from Source (no system install)
+
+Use this if you just want to try the app or run it manually from a folder.
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/smartlegionlab/smart-project-manager.git
+cd smart-project-manager
+
+# 2. Create a virtual environment
+python3 -m venv venv
+
+# 3. Activate it
+source venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Launch the app
+python app.py
+```
+
+To run it again later:
+
+```bash
+cd smart-project-manager
+source venv/bin/activate
+python app.py
+```
+
+Nothing is installed system-wide. The app runs from this folder.
+
+### Option 2 — Install System-Wide (recommended)
+
+Use this if you want the app in your application menu.
+
+#### One-command install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manager/master/install.sh | bash
+```
+
+**What the installer does:**
+
+1. Downloads the source code from GitHub.
+2. Installs the application to `~/.local/share/smart-project-manager/`.
+   No root, no sudo — everything lives inside your home directory.
+3. Creates a dedicated Python virtual environment at
+   `~/.local/share/smart-project-manager/venv/` and installs dependencies into it.
+4. Registers the app in your desktop environment by creating
+   `~/.local/share/applications/smart-project-manager.desktop`.
+5. Refreshes the desktop database so the menu entry appears without a full re-login on most systems.
+
+**Launch after install:**
+- Application menu → **Smart Project Manager**
+
+**Desktop shortcut (opt-in):**
+
+By default, no Desktop shortcut is created. This is intentional — on GNOME
+(default on Ubuntu), desktop icons are hidden by default, which would make
+a shortcut invisible and confusing.
+
+To also create a Desktop shortcut during install, pass the
+`SPM_CREATE_DESKTOP_SHORTCUT=1` environment variable to **bash** — the
+second command in the pipeline:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manager/master/install.sh | SPM_CREATE_DESKTOP_SHORTCUT=1 bash
+```
+
+Or export it first, then run the normal installer:
+
+```bash
+export SPM_CREATE_DESKTOP_SHORTCUT=1
+curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manager/master/install.sh | bash
+```
+
+> **Note:** Writing `SPM_CREATE_DESKTOP_SHORTCUT=1 curl ... | bash` does
+> **not** work — in a shell pipeline, an environment variable prefix applies
+> only to the command on the **left** side of the `|`. The variable never
+> reaches `bash`, which is on the right side. Pass it to `bash` directly, or
+> `export` it beforehand.
+
+**Notes:**
+- On GNOME (default on Ubuntu), desktop icons may be hidden by default. Enable Desktop Icons in GNOME Tweaks to see the shortcut.
+- The Desktop shortcut may show an **"Unsecured Application Launcher"** warning. Right-click → **Allow Launching** (one-time action).
+- If the menu entry does not appear immediately, log out and back in.
+
+#### Alternative — install from a cloned repo
+
+If you already cloned the repository, you can run the installer locally:
+
+```bash
+cd smart-project-manager
+./install.sh
+```
+
+It works the same way. It ignores any local `venv/` and creates its own under `~/.local/share/smart-project-manager/venv/`.
+
+### Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manager/master/uninstall.sh | bash
+```
+
+**What the uninstaller removes:**
+- `~/.local/share/smart-project-manager/` — the application and its venv
+- `~/.local/share/applications/smart-project-manager.desktop` — the menu entry
+- `~/Desktop/smart-project-manager.desktop` — the Desktop shortcut (if present)
+
+**What the uninstaller never touches:**
+- `~/.smart_project_manager/projects.json` — your projects, tasks, subtasks, and labels.
+  It is your data. Only you decide what to do with it.
+
+If you want to remove your data as well, run after uninstall:
+
+```bash
+rm -rf ~/.smart_project_manager
+```
+
+### Installation Paths
+
+| Item                       | Path                                                              |
+|----------------------------|-------------------------------------------------------------------|
+| Application files          | `~/.local/share/smart-project-manager/`                           |
+| Virtual environment        | `~/.local/share/smart-project-manager/venv/`                      |
+| Application menu entry     | `~/.local/share/applications/smart-project-manager.desktop`       |
+| Desktop shortcut (opt-in)  | `~/Desktop/smart-project-manager.desktop`                         |
+| User data (projects)       | `~/.smart_project_manager/projects.json`                          |
 
 ---
 
@@ -105,6 +228,14 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 ---
 
 ### Desktop Integration (Linux)
+
+> **Note:** If you installed the app via `install.sh`, the application menu
+> entry is already created automatically. The in-app option described below
+> is useful when you run the app manually from a custom location, or when
+> you want to add a Desktop shortcut on demand. It is also the recommended
+> way for development: it creates a shortcut pointing to the **currently
+> running instance** (your working copy), not to a copy under
+> `~/.local/share/`.
 
 **Creating Application Shortcuts:**
 
@@ -173,3 +304,4 @@ The following features are identified in the code as future implementation targe
 ## Screenshot
 
 ![Smart Project Manager Logo](https://github.com/smartlegionlab/smart-project-manager/blob/master/data/images/smart-project-manager.png)
+
