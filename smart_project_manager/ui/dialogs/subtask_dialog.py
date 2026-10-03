@@ -26,7 +26,7 @@ class SubTaskDialog(QDialog):
     subtask_updated = pyqtSignal()
 
     def __init__(self, parent=None, subtask: SubTask = None, manager=None,
-                 task_id: str = None, project_id: str = None, sound_manager=None):
+                 task_id: str = None, project_id: str = None):
         super().__init__(parent)
         self.is_edit_mode = subtask is not None
         self.subtask = subtask
@@ -34,8 +34,6 @@ class SubTaskDialog(QDialog):
         self.task_id = task_id if task_id else (subtask.task_id if subtask else None)
         self.project_id = project_id if project_id else (subtask.project_id if subtask else None)
         self.max_labels = 3
-
-        self.sound_manager = sound_manager
 
         self.setWindowTitle('Edit Subtask' if self.is_edit_mode else 'Create New Subtask')
         self.setFixedSize(600, 450)
@@ -130,7 +128,6 @@ class SubTaskDialog(QDialog):
         labels_header.addWidget(self.labels_counter)
 
         self.btn_add_label = QPushButton('+ Add Labels')
-        self.btn_add_label.clicked.connect(self.on_click)
         self.btn_add_label.clicked.connect(self.add_label)
         self.btn_add_label.setStyleSheet("""
             QPushButton {
@@ -175,7 +172,6 @@ class SubTaskDialog(QDialog):
         button_layout = QHBoxLayout()
 
         self.cancel_button = QPushButton('Cancel')
-        self.cancel_button.clicked.connect(self.on_click)
         self.cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(self.cancel_button)
 
@@ -185,7 +181,6 @@ class SubTaskDialog(QDialog):
         self.submit_button = QPushButton(button_text)
         self.submit_button.setDefault(True)
         self.submit_button.setStyleSheet("background-color: #2a82da; color: white; padding: 8px 20px;")
-        self.submit_button.clicked.connect(self.on_click)
         self.submit_button.clicked.connect(self.accept)
         button_layout.addWidget(self.submit_button)
 
@@ -194,9 +189,7 @@ class SubTaskDialog(QDialog):
         self.title_input.setFocus()
 
     def add_label(self):
-        self.on_notify()
         if len(self.selected_label_ids) >= self.max_labels:
-            self.on_error()
             QMessageBox.warning(self, 'Limit Reached',
                                 f'You can only select up to {self.max_labels} labels.')
             return
@@ -206,8 +199,7 @@ class SubTaskDialog(QDialog):
             self.manager,
             multi_select=True,
             max_selection=self.max_labels,
-            pre_selected_ids=self.selected_label_ids,
-            sound_manager=self.sound_manager
+            pre_selected_ids=self.selected_label_ids
         )
         dialog.multiple_labels_selected.connect(self.on_labels_selected)
         dialog.exec_()
@@ -333,23 +325,10 @@ class SubTaskDialog(QDialog):
             'project_id': self.project_id
         }
 
-    def on_click(self):
-        if self.sound_manager:
-            self.sound_manager.play_click()
-
-    def on_notify(self):
-        if self.sound_manager:
-            self.sound_manager.play_notify()
-
-    def on_error(self):
-        if self.sound_manager:
-            self.sound_manager.play_error()
-
     def accept(self):
         data = self.get_subtask_data()
 
         if not data['title']:
-            self.on_error()
             QMessageBox.warning(self, 'Error', 'Subtask title is required')
             return
 

@@ -25,10 +25,9 @@ class SubtaskPanelWidget(QWidget):
     panel_closed = pyqtSignal()
     subtask_updated = pyqtSignal()
 
-    def __init__(self, parent=None, manager=None, sound_manager=None):
+    def __init__(self, parent=None, manager=None):
         super().__init__(parent)
         self.manager = manager
-        self.sound_manager = sound_manager
         self.current_task = None
         self.current_project_id = None
 
@@ -70,7 +69,6 @@ class SubtaskPanelWidget(QWidget):
         button_layout = QHBoxLayout()
 
         self.btn_add_subtask = QPushButton('+ Add Subtask')
-        self.btn_add_subtask.clicked.connect(self.on_click)
         self.btn_add_subtask.clicked.connect(self.add_subtask)
         self.btn_add_subtask.setStyleSheet("""
             QPushButton {
@@ -144,7 +142,6 @@ class SubtaskPanelWidget(QWidget):
         self.panel_closed.emit()
 
     def on_close_clicked(self):
-        self.on_click()
         self.hide_panel()
 
     def load_subtasks(self):
@@ -292,7 +289,6 @@ class SubtaskPanelWidget(QWidget):
             self.subtasks_table.setCellWidget(row, 6, delete_button)
 
     def add_subtask(self):
-        self.on_notify()
         if not self.current_task:
             return
 
@@ -300,15 +296,13 @@ class SubtaskPanelWidget(QWidget):
             self,
             manager=self.manager,
             task_id=self.current_task.id,
-            project_id=self.current_project_id,
-            sound_manager=self.sound_manager
+            project_id=self.current_project_id
         )
 
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_subtask_data()
 
             if not data['title']:
-                self.on_error()
                 QMessageBox.warning(self, 'Error', 'Subtask title is required')
                 return
 
@@ -317,7 +311,6 @@ class SubtaskPanelWidget(QWidget):
             self.subtask_updated.emit()
 
     def toggle_subtask_status(self, subtask_id: str):
-        self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
         if subtask:
             subtask.toggle_complete()
@@ -330,12 +323,11 @@ class SubtaskPanelWidget(QWidget):
                 main_window.update_clear_completed_button()
 
     def edit_subtask(self, subtask_id: str):
-        self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
         if not subtask:
             return
 
-        dialog = SubTaskDialog(self, subtask=subtask, manager=self.manager, sound_manager=self.sound_manager)
+        dialog = SubTaskDialog(self, subtask=subtask, manager=self.manager)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_subtask_data()
 
@@ -348,7 +340,6 @@ class SubtaskPanelWidget(QWidget):
             self.subtask_updated.emit()
 
     def delete_subtask(self, subtask_id: str):
-        self.on_notify()
         subtask = self.manager.get_subtask(subtask_id)
         if not subtask:
             return
@@ -364,18 +355,6 @@ class SubtaskPanelWidget(QWidget):
             self.manager.delete_subtask(subtask_id)
             self.load_subtasks()
             self.subtask_updated.emit()
-
-    def on_click(self):
-        if self.sound_manager:
-            self.sound_manager.play_click()
-
-    def on_notify(self):
-        if self.sound_manager:
-            self.sound_manager.play_notify()
-
-    def on_error(self):
-        if self.sound_manager:
-            self.sound_manager.play_error()
 
     def get_main_window(self):
         parent = self.parent()

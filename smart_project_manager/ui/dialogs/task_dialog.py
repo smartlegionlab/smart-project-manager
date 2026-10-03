@@ -27,15 +27,13 @@ class TaskDialog(QDialog):
     task_updated = pyqtSignal()
 
     def __init__(self, parent=None, task: Task = None,
-                 manager=None, project_id: str = None, sound_manager=None):
+                 manager=None, project_id: str = None):
         super().__init__(parent)
         self.is_edit_mode = task is not None
         self.task = task
         self.manager = manager
         self.project_id = project_id if project_id else (task.project_id if task else None)
         self.max_labels = 3
-
-        self.sound_manager = sound_manager
 
         self.setWindowTitle('Edit Task' if self.is_edit_mode else 'Create New Task')
         self.setMinimumSize(700, 600)
@@ -53,13 +51,11 @@ class TaskDialog(QDialog):
         button_layout = QHBoxLayout()
 
         self.cancel_button = QPushButton('Cancel')
-        self.cancel_button.clicked.connect(self.on_click)
         self.cancel_button.clicked.connect(self.reject)
         button_layout.addWidget(self.cancel_button)
 
         button_text = 'Update Task' if self.is_edit_mode else 'Create Task'
         self.submit_button = QPushButton(button_text)
-        self.submit_button.clicked.connect(self.on_click)
         self.submit_button.setDefault(True)
         self.submit_button.setStyleSheet("background-color: #2a82da; color: white;")
         self.submit_button.clicked.connect(self.accept)
@@ -153,7 +149,6 @@ class TaskDialog(QDialog):
         labels_header.addWidget(self.labels_counter)
 
         self.btn_add_label = QPushButton('+ Add Labels')
-        self.btn_add_label.clicked.connect(self.on_click)
         self.btn_add_label.clicked.connect(self.add_label)
         self.btn_add_label.setStyleSheet("""
                     QPushButton {
@@ -198,9 +193,7 @@ class TaskDialog(QDialog):
         layout.addStretch()
 
     def add_label(self):
-        self.on_notify()
         if len(self.selected_label_ids) >= self.max_labels:
-            self.on_error()
             QMessageBox.warning(self, 'Limit Reached',
                                 f'You can only select up to {self.max_labels} labels.')
             return
@@ -210,8 +203,7 @@ class TaskDialog(QDialog):
             self.manager,
             multi_select=True,
             max_selection=self.max_labels,
-            pre_selected_ids=self.selected_label_ids,
-            sound_manager=self.sound_manager
+            pre_selected_ids=self.selected_label_ids
         )
         dialog.multiple_labels_selected.connect(self.on_labels_selected)
 
@@ -343,18 +335,6 @@ class TaskDialog(QDialog):
             'labels': self.selected_label_ids,
             'project_id': self.project_id
         }
-
-    def on_click(self):
-        if self.sound_manager:
-            self.sound_manager.play_click()
-
-    def on_notify(self):
-        if self.sound_manager:
-            self.sound_manager.play_notify()
-
-    def on_error(self):
-        if self.sound_manager:
-            self.sound_manager.play_error()
 
     def accept(self):
         data = self.get_task_data()
