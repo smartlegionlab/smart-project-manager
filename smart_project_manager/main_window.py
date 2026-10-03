@@ -1995,8 +1995,16 @@ class MainWindow(QMainWindow):
             <li>Linux desktop integration (Application Menu / Desktop shortcuts)</li>
             </ul>
 
+            <p style='text-align: center; margin-top: 20px;'><b>Links:</b></p>
+            <ul style='list-style: none; padding-left: 0; text-align: center;'>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager">GitHub Repository</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE">License (BSD 3-Clause)</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md">Disclaimer</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/releases">Releases</a></li>
+            </ul>
+
             <p style='text-align: center; margin-top: 20px;'>
-            <b>Copyright © 2026, <a href="https://github.com/smartlegionlab/" style="color: #2a82da;">Alexander Suvorov</a>. All rights reserved.</b>
+            <b>Copyright © 2026, <a href="https://smartlegionlab.github.io/" style="color: #2a82da;">Smart Legion Lab</a>. All rights reserved.</b>
             </p>
             """
         )
