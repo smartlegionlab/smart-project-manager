@@ -26,7 +26,7 @@ class TaskDetailsDialog(QDialog):
         scroll_area.setWidgetResizable(True)
         scroll_area.setStyleSheet("""
             QScrollArea {
-                background-color: #2d2d2d;
+                background-color: #181a1e;
                 border: none;
             }
         """)
@@ -57,7 +57,7 @@ class TaskDetailsDialog(QDialog):
 
         button_frame = QFrame()
         button_frame.setFrameStyle(QFrame.NoFrame)
-        button_frame.setStyleSheet("background-color: #353535;")
+        button_frame.setStyleSheet("background-color: #23262d;")
         button_frame.setFixedHeight(50)
         button_layout = QHBoxLayout(button_frame)
         button_layout.setContentsMargins(20, 0, 20, 0)
@@ -68,13 +68,13 @@ class TaskDetailsDialog(QDialog):
         close_button.setFixedSize(100, 30)
         close_button.setStyleSheet("""
             QPushButton {
-                background-color: #555;
+                background-color: #4a4d55;
                 color: white;
                 border: none;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #666;
+                background-color: #5a5d65;
             }
         """)
         close_button.clicked.connect(self.accept)
@@ -96,7 +96,7 @@ class TaskDetailsDialog(QDialog):
                 font-weight: bold;
                 color: #ffffff;
                 padding-bottom: 5px;
-                border-bottom: 1px solid #444;
+                border-bottom: 1px solid #3a3d45;
             }
         """)
         title_label.setWordWrap(True)
@@ -122,7 +122,7 @@ class TaskDetailsDialog(QDialog):
         meta_layout.addWidget(priority_label)
 
         priority_value = QLabel(["High", "Medium", "Low"][self.task.priority - 1])
-        priority_colors = ["#e74c3c", "#f39c12", "#3498db"]
+        priority_colors = ["#e74c3c", "#f39c12", "#007acc"]
         priority_value.setStyleSheet(f"color: {priority_colors[self.task.priority - 1]};")
         meta_layout.addWidget(priority_value)
 
@@ -141,7 +141,7 @@ class TaskDetailsDialog(QDialog):
         desc_label = QLabel("Description")
         desc_label.setStyleSheet("""
             QLabel {
-                color: #3498db;
+                color: #007acc;
                 font-weight: bold;
                 font-size: 13px;
             }
@@ -154,8 +154,8 @@ class TaskDetailsDialog(QDialog):
         desc_text.setMaximumHeight(100)
         desc_text.setStyleSheet("""
             QTextEdit {
-                background-color: #353535;
-                border: 1px solid #444;
+                background-color: #23262d;
+                border: 1px solid #3a3d45;
                 border-radius: 3px;
                 color: #cccccc;
                 font-size: 13px;
@@ -176,7 +176,7 @@ class TaskDetailsDialog(QDialog):
         info_label = QLabel("Task Information")
         info_label.setStyleSheet("""
             QLabel {
-                color: #3498db;
+                color: #007acc;
                 font-weight: bold;
                 font-size: 13px;
             }
@@ -220,7 +220,7 @@ class TaskDetailsDialog(QDialog):
         labels_label = QLabel("Labels")
         labels_label.setStyleSheet("""
             QLabel {
-                color: #3498db;
+                color: #007acc;
                 font-weight: bold;
                 font-size: 13px;
             }
@@ -255,7 +255,7 @@ class TaskDetailsDialog(QDialog):
         subtasks_label = QLabel(f"Subtasks ({len(subtasks)})")
         subtasks_label.setStyleSheet("""
             QLabel {
-                color: #3498db;
+                color: #007acc;
                 font-weight: bold;
                 font-size: 13px;
             }
@@ -295,7 +295,7 @@ class TaskDetailsDialog(QDialog):
         widget.setFrameStyle(QFrame.NoFrame)
         widget.setStyleSheet("""
             QFrame {
-                background-color: #353535;
+                background-color: #23262d;
                 padding: 8px;
                 border-radius: 3px;
             }
@@ -338,7 +338,7 @@ class TaskDetailsDialog(QDialog):
             layout.addWidget(due_label)
 
         priority_label = QLabel(["High", "Med", "Low"][subtask.priority - 1])
-        priority_colors = ["#e74c3c", "#f39c12", "#3498db"]
+        priority_colors = ["#e74c3c", "#f39c12", "#007acc"]
         priority_label.setStyleSheet(f"""
             QLabel {{
                 color: {priority_colors[subtask.priority - 1]};

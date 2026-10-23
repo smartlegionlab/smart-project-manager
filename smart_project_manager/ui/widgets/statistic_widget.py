@@ -19,7 +19,7 @@ class StatisticsWidget(QWidget):
         stats_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                border: 2px solid #444;
+                border: 2px solid #3a3d45;
                 border-radius: 8px;
                 padding-top: 10px;
                 margin-top: 5px;
@@ -28,7 +28,7 @@ class StatisticsWidget(QWidget):
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 5px 0 5px;
-                color: #2a82da;
+                color: #007acc;
             }
         """)
         stats_layout = QVBoxLayout(stats_group)
@@ -38,7 +38,7 @@ class StatisticsWidget(QWidget):
         main_stats_layout.setSpacing(5)
         main_stats_layout.setContentsMargins(5, 5, 5, 5)
 
-        self.projects_box = self._create_stat_box("📁", "Projects", "#3498db")
+        self.projects_box = self._create_stat_box("📁", "Projects", "#007acc")
         self.stats_projects = QLabel("0")
         self.stats_projects.setStyleSheet("""
             QLabel {
@@ -95,7 +95,7 @@ class StatisticsWidget(QWidget):
         completion_group = QGroupBox("Completion")
         completion_group.setStyleSheet("""
             QGroupBox {
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 5px;
                 margin-top: 5px;
             }
@@ -123,7 +123,7 @@ class StatisticsWidget(QWidget):
         self.tasks_progress_bar.setStyleSheet("""
             QProgressBar {
                 height: 14px;
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 7px;
                 text-align: center;
                 padding: 0px 2px;
@@ -158,7 +158,7 @@ class StatisticsWidget(QWidget):
         self.subtasks_progress_bar.setStyleSheet("""
             QProgressBar {
                 height: 14px;
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 7px;
                 text-align: center;
                 padding: 0px 2px;
@@ -185,7 +185,7 @@ class StatisticsWidget(QWidget):
 
         full_path = os.path.expanduser("~/.smart_project_manager")
         self.data_path_link = QLabel(f'<a href="file://{full_path}"'
-                                     f' style="color: #3498db; text-decoration: none;">{full_path}</a>')
+                                     f' style="color: #007acc; text-decoration: none;">{full_path}</a>')
         self.data_path_link.setOpenExternalLinks(True)
         self.data_path_link.setTextFormat(Qt.RichText)
         self.data_path_link.setTextInteractionFlags(Qt.TextBrowserInteraction)
@@ -210,9 +210,9 @@ class StatisticsWidget(QWidget):
         box = QGroupBox()
         box.setStyleSheet(f"""
             QGroupBox {{
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 6px;
-                background-color: #2a2a2a;
+                background-color: #1e2026;
                 min-height: 70px;
             }}
         """)

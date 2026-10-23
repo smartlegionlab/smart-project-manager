@@ -39,7 +39,7 @@ class LabelManagerDialog(QDialog):
 
         header_label = QLabel(f'📝 Label Manager{title_suffix}')
         header_label.setFont(QFont("Arial", 18, QFont.Bold))
-        header_label.setStyleSheet("color: #2a82da;")
+        header_label.setStyleSheet("color: #007acc;")
         self.layout.addWidget(header_label)
 
         self.btn_new_label = QPushButton('+ Create New Label')
@@ -66,7 +66,7 @@ class LabelManagerDialog(QDialog):
 
         if self.multi_select:
             self.selection_counter = QLabel(f'Selected: 0/{self.max_selection}')
-            self.selection_counter.setStyleSheet("color: #2a82da; font-size: 12px; font-weight: bold;")
+            self.selection_counter.setStyleSheet("color: #007acc; font-size: 12px; font-weight: bold;")
             self.layout.addWidget(self.selection_counter)
 
         self.labels_list = QListWidget()
@@ -78,24 +78,24 @@ class LabelManagerDialog(QDialog):
         self.labels_list.itemDoubleClicked.connect(self.select_label)
         self.labels_list.setStyleSheet("""
                QListWidget {
-                   background-color: #2a2a2a;
-                   border: 2px solid #444;
+                   background-color: #1e2026;
+                   border: 2px solid #3a3d45;
                    border-radius: 8px;
                    padding: 5px;
                }
                QListWidget::item {
-                   background-color: #353535;
+                   background-color: #23262d;
                    border-radius: 5px;
                    margin: 1px;
                    padding: 10px;
                }
                QListWidget::item:hover {
-                   background-color: #3a3a3a;
+                   background-color: #2a2d34;
                }
                QListWidget::item:selected {
                    background-color: rgba(42, 130, 218, 90);
                    color: white;
-                   border: 1px solid #2a82da;
+                   border: 1px solid #007acc;
                }
            """)
         self.layout.addWidget(self.labels_list)
@@ -118,7 +118,7 @@ class LabelManagerDialog(QDialog):
                    background-color: #e68900;
                }
                QPushButton:disabled {
-                   background-color: #666;
+                   background-color: #5a5d65;
                    color: #999;
                }
            """)
@@ -139,7 +139,7 @@ class LabelManagerDialog(QDialog):
                    background-color: #c0392b;
                }
                QPushButton:disabled {
-                   background-color: #666;
+                   background-color: #5a5d65;
                    color: #999;
                }
            """)
@@ -164,7 +164,7 @@ class LabelManagerDialog(QDialog):
                    background-color: #219653;
                }
                QPushButton:disabled {
-                   background-color: #666;
+                   background-color: #5a5d65;
                    color: #999;
                }
            """)
@@ -177,13 +177,13 @@ class LabelManagerDialog(QDialog):
         self.btn_close.setFixedSize(100, 35)
         self.btn_close.setStyleSheet("""
                QPushButton {
-                   background-color: #555;
+                   background-color: #4a4d55;
                    color: white;
                    border-radius: 4px;
                    font-weight: bold;
                }
                QPushButton:hover {
-                   background-color: #666;
+                   background-color: #5a5d65;
                }
            """)
         button_layout.addWidget(self.btn_close)
@@ -296,7 +296,7 @@ class LabelManagerDialog(QDialog):
                 self.selection_counter.setStyleSheet("color: #e74c3c; font-size: 12px; font-weight: bold;")
                 self.btn_select.setEnabled(False)
             else:
-                self.selection_counter.setStyleSheet("color: #2a82da; font-size: 12px; font-weight: bold;")
+                self.selection_counter.setStyleSheet("color: #007acc; font-size: 12px; font-weight: bold;")
                 self.btn_select.setEnabled(selected_count > 0)
         else:
             has_selection = len(self.labels_list.selectedItems()) > 0

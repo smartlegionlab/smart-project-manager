@@ -94,11 +94,11 @@ class ProjectDialog(QDialog):
             QPushButton {
                 padding: 8px 16px;
                 border-radius: 4px;
-                background-color: #555;
+                background-color: #4a4d55;
                 color: white;
             }
             QPushButton:hover {
-                background-color: #666;
+                background-color: #5a5d65;
             }
         """)
         button_layout.addWidget(self.cancel_button)
@@ -110,14 +110,14 @@ class ProjectDialog(QDialog):
         self.submit_button.setDefault(True)
         self.submit_button.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 padding: 8px 24px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
         """)
         self.submit_button.clicked.connect(self.accept)

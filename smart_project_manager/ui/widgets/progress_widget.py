@@ -19,12 +19,12 @@ class ProgressWidget(QWidget):
         self.progress_bar.setFixedHeight(20)
         self.progress_bar.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 3px;
-                background-color: #2a2a2a;
+                background-color: #1e2026;
             }
             QProgressBar::chunk {
-                background-color: #2a82da;
+                background-color: #007acc;
                 border-radius: 3px;
             }
         """)

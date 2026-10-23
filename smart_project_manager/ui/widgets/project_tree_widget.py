@@ -10,8 +10,8 @@ class ProjectsTreeWidget(QTreeWidget):
         self.setHeaderLabel('Projects')
         self.setStyleSheet("""
             QTreeWidget {
-                background-color: #2a2a2a;
-                border: 1px solid #444;
+                background-color: #1e2026;
+                border: 1px solid #3a3d45;
                 border-radius: 5px;
             }
             QTreeWidget::item {
@@ -19,11 +19,11 @@ class ProjectsTreeWidget(QTreeWidget):
                 border-bottom: 1px solid #333;
             }
             QTreeWidget::item:selected {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
             }
             QTreeWidget::item:hover:!selected {
-                background-color: #3a3a3a;
+                background-color: #2a2d34;
             }
         """)
 

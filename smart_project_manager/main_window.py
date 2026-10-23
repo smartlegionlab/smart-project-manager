@@ -52,7 +52,7 @@ class ProjectTab(QWidget):
         self.btn_open_url.clicked.connect(self.open_github_url)
         self.btn_open_url.setStyleSheet("""
             QPushButton {
-                background-color: #3498db;
+                background-color: #007acc;
                 color: black;
                 font-weight: bold;
                 padding: 6px 10px;
@@ -60,10 +60,10 @@ class ProjectTab(QWidget):
                 font-size: 11px;
             }
             QPushButton:hover:enabled {
-                background-color: #1976d2;
+                background-color: #0066b3;
             }
             QPushButton:disabled {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: #999;
             }
         """)
@@ -84,7 +84,7 @@ class ProjectTab(QWidget):
                 background-color: #FFA000;
             }
             QPushButton:disabled {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: #999;
             }
         """)
@@ -105,7 +105,7 @@ class ProjectTab(QWidget):
                 background-color: #c0392b;
             }
             QPushButton:disabled {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: #999;
             }
         """)
@@ -119,7 +119,7 @@ class ProjectTab(QWidget):
         self.filters_panel = QFrame()
         self.filters_panel.setStyleSheet("""
             QFrame {
-                background-color: #3a3a3a;
+                background-color: #2a2d34;
                 border-radius: 5px;
                 padding: 8px;
             }
@@ -139,15 +139,15 @@ class ProjectTab(QWidget):
         self.search_input.textChanged.connect(self.on_search_changed)
         self.search_input.setStyleSheet("""
             QLineEdit {
-                background-color: #2a2a2a;
-                border: 1px solid #555;
+                background-color: #1e2026;
+                border: 1px solid #4a4d55;
                 border-radius: 4px;
                 padding: 5px 10px;
                 font-size: 12px;
                 min-width: 150px;
             }
             QLineEdit:focus {
-                border: 1px solid #3498db;
+                border: 1px solid #007acc;
             }
         """)
         filters_layout.addWidget(self.search_input)
@@ -161,15 +161,15 @@ class ProjectTab(QWidget):
         self.priority_filter_combo.currentTextChanged.connect(self.on_priority_filter_changed)
         self.priority_filter_combo.setStyleSheet("""
             QComboBox {
-                background-color: #2a2a2a;
-                border: 1px solid #555;
+                background-color: #1e2026;
+                border: 1px solid #4a4d55;
                 border-radius: 4px;
                 padding: 4px 8px;
                 font-size: 11px;
                 min-width: 80px;
             }
             QComboBox:hover {
-                border: 1px solid #666;
+                border: 1px solid #5a5d65;
             }
         """)
         filters_layout.addWidget(self.priority_filter_combo)
@@ -183,15 +183,15 @@ class ProjectTab(QWidget):
         self.label_filter_combo.currentTextChanged.connect(self.on_label_filter_changed)
         self.label_filter_combo.setStyleSheet("""
             QComboBox {
-                background-color: #2a2a2a;
-                border: 1px solid #555;
+                background-color: #1e2026;
+                border: 1px solid #4a4d55;
                 border-radius: 4px;
                 padding: 4px 8px;
                 font-size: 11px;
                 min-width: 100px;
             }
             QComboBox:hover {
-                border: 1px solid #666;
+                border: 1px solid #5a5d65;
             }
         """)
         filters_layout.addWidget(self.label_filter_combo)
@@ -212,7 +212,7 @@ class ProjectTab(QWidget):
         self.btn_reset_filters.clicked.connect(self.reset_filters)
         self.btn_reset_filters.setStyleSheet("""
             QPushButton {
-                background-color: #555;
+                background-color: #4a4d55;
                 color: white;
                 font-weight: bold;
                 padding: 4px 10px;
@@ -221,7 +221,7 @@ class ProjectTab(QWidget):
                 min-width: 60px;
             }
             QPushButton:hover {
-                background-color: #666;
+                background-color: #5a5d65;
             }
         """)
         filters_layout.addWidget(self.btn_reset_filters)
@@ -247,7 +247,7 @@ class ProjectTab(QWidget):
                 background-color: #219653;
             }
             QPushButton:disabled {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: #999;
             }
         """)
@@ -269,7 +269,7 @@ class ProjectTab(QWidget):
                 background-color: #d68910;
             }
             QPushButton:disabled {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: #999;
             }
         """)
@@ -299,11 +299,11 @@ class ProjectTab(QWidget):
         self.subtasks_tab_widget.setMinimumHeight(0)
         self.subtasks_tab_widget.setStyleSheet("""
             QTabWidget::pane {
-                background-color: #353535;
-                border-top: 2px solid #444;
+                background-color: #23262d;
+                border-top: 2px solid #3a3d45;
             }
             QTabBar::tab {
-                background-color: #3a3a3a;
+                background-color: #2a2d34;
                 color: #aaa;
                 padding: 6px 12px;
                 border-top-left-radius: 4px;
@@ -311,12 +311,12 @@ class ProjectTab(QWidget):
                 margin-right: 2px;
             }
             QTabBar::tab:selected {
-                background-color: #353535;
+                background-color: #23262d;
                 color: white;
-                border-bottom: 2px solid #2a82da;
+                border-bottom: 2px solid #007acc;
             }
             QTabBar::tab:hover:!selected {
-                background-color: #444;
+                background-color: #3a3d45;
             }
         """)
         self.subtasks_tab_widget.hide()
@@ -766,7 +766,7 @@ class MainWindow(QMainWindow):
 
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #2d2d2d;
+                background-color: #181a1e;
             }
             QWidget {
                 color: #ffffff;
@@ -912,7 +912,7 @@ class MainWindow(QMainWindow):
         self.btn_new_project.clicked.connect(self.create_project)
         self.btn_new_project.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 font-weight: bold;
                 padding: 8px 12px;
@@ -920,7 +920,7 @@ class MainWindow(QMainWindow):
                 font-size: 12px;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
         """)
         project_buttons_layout.addWidget(self.btn_new_project)
@@ -946,9 +946,9 @@ class MainWindow(QMainWindow):
         self.btn_toggle_stats.clicked.connect(self.toggle_statistics_button)
         self.btn_toggle_stats.setStyleSheet("""
             QPushButton {
-                background-color: #3a3a3a;
+                background-color: #2a2d34;
                 color: white;
-                border: 1px solid #555;
+                border: 1px solid #4a4d55;
                 border-radius: 4px;
                 font-size: 12px;
                 font-weight: bold;
@@ -974,12 +974,12 @@ class MainWindow(QMainWindow):
         self.project_tabs.currentChanged.connect(self.on_project_tab_changed)
         self.project_tabs.setStyleSheet("""
             QTabWidget::pane {
-                background-color: #2a2a2a;
-                border: 1px solid #444;
+                background-color: #1e2026;
+                border: 1px solid #3a3d45;
                 border-radius: 4px;
             }
             QTabBar::tab {
-                background-color: #3a3a3a;
+                background-color: #2a2d34;
                 color: #aaa;
                 padding: 8px 16px;
                 border-top-left-radius: 4px;
@@ -988,12 +988,12 @@ class MainWindow(QMainWindow):
                 min-width: 100px;
             }
             QTabBar::tab:selected {
-                background-color: #2a2a2a;
+                background-color: #1e2026;
                 color: white;
-                border-bottom: 2px solid #2a82da;
+                border-bottom: 2px solid #007acc;
             }
             QTabBar::tab:hover:!selected {
-                background-color: #444;
+                background-color: #3a3d45;
             }
         """)
         splitter.addWidget(self.project_tabs)
@@ -1008,7 +1008,7 @@ class MainWindow(QMainWindow):
         self.empty_label.setAlignment(Qt.AlignCenter)
         self.empty_label.setStyleSheet("""
             QLabel {
-                color: #666;
+                color: #5a5d65;
                 font-size: 16px;
                 padding: 40px;
             }

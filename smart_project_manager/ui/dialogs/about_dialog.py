@@ -25,7 +25,7 @@ class AboutDialog(QDialog):
         layout.setSpacing(10)
         layout.setContentsMargins(15, 15, 15, 15)
 
-        title_label = QLabel(f"<h2 style='color: #2a82da;'>Smart Project Manager {ver}</h2>")
+        title_label = QLabel(f"<h2 style='color: #007acc;'>Smart Project Manager {ver}</h2>")
         title_label.setTextFormat(Qt.RichText)
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setFont(QFont("Arial", 14, QFont.Bold))
@@ -36,27 +36,27 @@ class AboutDialog(QDialog):
         scroll_area.setFrameShape(QFrame.NoFrame)
         scroll_area.setStyleSheet("""
             QScrollArea {
-                background-color: #2d2d2d;
+                background-color: #181a1e;
                 border: none;
             }
             QScrollBar:vertical {
                 border: none;
-                background: #3a3a3a;
+                background: #2a2d34;
                 width: 12px;
                 margin: 0px;
             }
             QScrollBar::handle:vertical {
-                background: #555;
+                background: #4a4d55;
                 border-radius: 6px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #666;
+                background: #5a5d65;
             }
         """)
 
         content_widget = QWidget()
-        content_widget.setStyleSheet("background-color: #2d2d2d;")
+        content_widget.setStyleSheet("background-color: #181a1e;")
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(10, 10, 10, 10)
 
@@ -65,7 +65,7 @@ class AboutDialog(QDialog):
             A powerful project and task management tool for developers and researchers.
             </p>
 
-            <p style='color: #2a82da; font-weight: bold;'>Features:</p>
+            <p style='color: #007acc; font-weight: bold;'>Features:</p>
             <ul style='color: #ddd;'>
             <li>Manage unlimited projects with versions</li>
             <li>Create tasks with priorities and due dates</li>
@@ -78,16 +78,16 @@ class AboutDialog(QDialog):
             <li>Linux desktop integration (Application Menu / Desktop shortcuts)</li>
             </ul>
 
-            <p style='text-align: center; margin-top: 20px; color: #2a82da; font-weight: bold;'>Links:</p>
+            <p style='text-align: center; margin-top: 20px; color: #007acc; font-weight: bold;'>Links:</p>
             <ul style='list-style: none; padding-left: 0; text-align: center;'>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager" style="color: #3498db;">GitHub Repository</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE" style="color: #3498db;">License (BSD 3-Clause)</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md" style="color: #3498db;">Disclaimer</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/releases" style="color: #3498db;">Releases</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager" style="color: #007acc;">GitHub Repository</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE" style="color: #007acc;">License (BSD 3-Clause)</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md" style="color: #007acc;">Disclaimer</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/releases" style="color: #007acc;">Releases</a></li>
             </ul>
 
             <p style='text-align: center; margin-top: 20px; color: #999;'>
-            <b>Copyright © 2026, <a href="https://smartlegionlab.github.io/" style="color: #2a82da;">Smart Legion Lab</a>. All rights reserved.</b>
+            <b>Copyright © 2026, <a href="https://smartlegionlab.github.io/" style="color: #007acc;">Smart Legion Lab</a>. All rights reserved.</b>
             </p>
             """
         )
@@ -97,13 +97,13 @@ class AboutDialog(QDialog):
         about_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         about_label.setStyleSheet("""
             QLabel {
-                background-color: #2a2a2a;
+                background-color: #1e2026;
                 padding: 15px;
                 border-radius: 5px;
                 color: #ddd;
             }
             a {
-                color: #2a82da;
+                color: #007acc;
                 text-decoration: none;
             }
             a:hover {
@@ -123,14 +123,14 @@ class AboutDialog(QDialog):
         ok_button.setMinimumHeight(35)
         ok_button.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 font-weight: bold;
                 border-radius: 5px;
                 padding: 8px 16px;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
         """)
         ok_button.clicked.connect(self.accept)

@@ -68,7 +68,7 @@ class LabelDialog(QDialog):
         if label:
             self.current_color = QColor(label.color)
         else:
-            self.current_color = QColor("#3498db")
+            self.current_color = QColor("#007acc")
         self.update_color_button()
         color_button_layout.addWidget(self.color_button)
         color_button_layout.addStretch()
@@ -148,13 +148,13 @@ class LabelDialog(QDialog):
         self.submit_button.setFixedSize(150, 35)
         self.submit_button.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 font-weight: bold;
                 border-radius: 4px;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
         """)
         self.submit_button.clicked.connect(self.accept)
@@ -175,11 +175,11 @@ class LabelDialog(QDialog):
         self.text_color_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {self.current_text_color.name()};
-                border: 2px solid #444;
+                border: 2px solid #3a3d45;
                 border-radius: 5px;
             }}
             QPushButton:hover {{
-                border: 2px solid #666;
+                border: 2px solid #5a5d65;
             }}
         """)
 
@@ -194,11 +194,11 @@ class LabelDialog(QDialog):
         self.color_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {self.current_color.name()};
-                border: 2px solid #444;
+                border: 2px solid #3a3d45;
                 border-radius: 5px;
             }}
             QPushButton:hover {{
-                border: 2px solid #666;
+                border: 2px solid #5a5d65;
             }}
         """)
 

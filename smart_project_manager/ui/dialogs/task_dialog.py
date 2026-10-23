@@ -57,7 +57,7 @@ class TaskDialog(QDialog):
         button_text = 'Update Task' if self.is_edit_mode else 'Create Task'
         self.submit_button = QPushButton(button_text)
         self.submit_button.setDefault(True)
-        self.submit_button.setStyleSheet("background-color: #2a82da; color: white;")
+        self.submit_button.setStyleSheet("background-color: #007acc; color: white;")
         self.submit_button.clicked.connect(self.accept)
         button_layout.addWidget(self.submit_button)
 
@@ -159,7 +159,7 @@ class TaskDialog(QDialog):
                         font-size: 11px;
                     }
                     QPushButton:disabled {
-                        background-color: #666;
+                        background-color: #5a5d65;
                         color: #999;
                     }
                 """)
@@ -171,8 +171,8 @@ class TaskDialog(QDialog):
         self.selected_labels_container = QWidget()
         self.selected_labels_container.setStyleSheet("""
             QWidget {
-                background-color: #2a2a2a;
-                border: 1px solid #444;
+                background-color: #1e2026;
+                border: 1px solid #3a3d45;
                 border-radius: 3px;
             }
         """)
@@ -290,7 +290,7 @@ class TaskDialog(QDialog):
                     remove_btn.clicked.connect(lambda checked, lid=label_id: self.remove_label(lid))
 
                     container = QWidget()
-                    container.setStyleSheet("background-color: #353535; border-radius: 3px;")
+                    container.setStyleSheet("background-color: #23262d; border-radius: 3px;")
                     container_layout = QHBoxLayout(container)
                     container_layout.setContentsMargins(5, 2, 5, 2)
                     container_layout.setSpacing(5)

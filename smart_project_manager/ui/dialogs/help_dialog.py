@@ -23,7 +23,7 @@ class HelpDialog(QDialog):
         layout.setSpacing(10)
         layout.setContentsMargins(15, 15, 15, 15)
 
-        title_label = QLabel("<h2 style='color: #2a82da;'>Smart Project Manager Help</h2>")
+        title_label = QLabel("<h2 style='color: #007acc;'>Smart Project Manager Help</h2>")
         title_label.setTextFormat(Qt.RichText)
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setFont(QFont("Arial", 14, QFont.Bold))
@@ -34,32 +34,32 @@ class HelpDialog(QDialog):
         scroll_area.setFrameShape(QFrame.NoFrame)
         scroll_area.setStyleSheet("""
             QScrollArea {
-                background-color: #2d2d2d;
+                background-color: #181a1e;
                 border: none;
             }
             QScrollBar:vertical {
                 border: none;
-                background: #3a3a3a;
+                background: #2a2d34;
                 width: 12px;
                 margin: 0px;
             }
             QScrollBar::handle:vertical {
-                background: #555;
+                background: #4a4d55;
                 border-radius: 6px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #666;
+                background: #5a5d65;
             }
         """)
 
         content_widget = QWidget()
-        content_widget.setStyleSheet("background-color: #2d2d2d;")
+        content_widget.setStyleSheet("background-color: #181a1e;")
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(10, 10, 10, 10)
 
         help_label = QLabel(
-            """<p style='color: #2a82da; font-weight: bold;'>Getting Started:</p>
+            """<p style='color: #007acc; font-weight: bold;'>Getting Started:</p>
             <ol style='color: #ddd;'>
             <li>Create a project using <b>File → New Project</b> or the <b>+ New Project</b> button</li>
             <li>Click a project in the left panel to open it in a tab</li>
@@ -68,7 +68,7 @@ class HelpDialog(QDialog):
             <li>Use labels to categorize tasks and subtasks</li>
             </ol>
 
-            <p style='color: #2a82da; font-weight: bold;'>Tab-Based Interface:</p>
+            <p style='color: #007acc; font-weight: bold;'>Tab-Based Interface:</p>
             <ul style='color: #ddd;'>
             <li><b>Project tabs</b> (top right): each opened project gets its own tab</li>
             <li><b>Subtask tabs</b> (bottom right): each opened task gets its own subtask tab</li>
@@ -77,7 +77,7 @@ class HelpDialog(QDialog):
             <li>Switch between multiple projects and multiple tasks freely</li>
             </ul>
 
-            <p style='color: #2a82da; font-weight: bold;'>Desktop Integration (Linux):</p>
+            <p style='color: #007acc; font-weight: bold;'>Desktop Integration (Linux):</p>
             <ul style='color: #ddd;'>
             <li><b>File → Create Desktop Entry</b> — create an application shortcut in your system menu</li>
             <li>Choose between Application Menu (~/.local/share/applications/) and/or Desktop (~/Desktop/)</li>
@@ -85,7 +85,7 @@ class HelpDialog(QDialog):
             <li>Desktop shortcuts may show "Unsecured Application Launcher" — right-click → "Allow Launching" (one-time only)</li>
             </ul>
 
-            <p style='color: #2a82da; font-weight: bold;'>Keyboard Shortcuts:</p>
+            <p style='color: #007acc; font-weight: bold;'>Keyboard Shortcuts:</p>
             <ul style='color: #ddd;'>
             <li>Ctrl+N: New Project</li>
             <li>Ctrl+T: New Task (in current project)</li>
@@ -98,7 +98,7 @@ class HelpDialog(QDialog):
             <li>Ctrl+Q: Exit</li>
             </ul>
 
-            <p style='color: #2a82da; font-weight: bold;'>Features:</p>
+            <p style='color: #007acc; font-weight: bold;'>Features:</p>
             <ul style='color: #ddd;'>
             <li>Projects have name, version, description, GitHub URL</li>
             <li>Tasks have title, description, priority, due date, and labels</li>
@@ -109,13 +109,13 @@ class HelpDialog(QDialog):
             <li>Drag and drop tasks to reorder them</li>
             </ul>
 
-            <p style='color: #2a82da; font-weight: bold;'>Data:</p>
+            <p style='color: #007acc; font-weight: bold;'>Data:</p>
             <p style='color: #ddd;'>Data is automatically saved to <code style="color: #2ecc71;">~/.smart_project_manager/projects.json</code></p>
             <p style='color: #ddd;'>Backups are stored in <code style="color: #2ecc71;">~/.smart_project_manager/backups/</code> and cleaned up automatically after 30 days.</p>
 
-            <hr style='border-color: #444;'>
+            <hr style='border-color: #3a3d45;'>
 
-            <p style='color: #999;'>GitHub: <a href="https://github.com/smartlegionlab/smart-project-manager/" style="color: #3498db;">Smart Project Manager</a></p>
+            <p style='color: #999;'>GitHub: <a href="https://github.com/smartlegionlab/smart-project-manager/" style="color: #007acc;">Smart Project Manager</a></p>
             """
         )
         help_label.setTextFormat(Qt.RichText)
@@ -124,20 +124,20 @@ class HelpDialog(QDialog):
         help_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         help_label.setStyleSheet("""
             QLabel {
-                background-color: #2a2a2a;
+                background-color: #1e2026;
                 padding: 15px;
                 border-radius: 5px;
                 color: #ddd;
             }
             a {
-                color: #2a82da;
+                color: #007acc;
                 text-decoration: none;
             }
             a:hover {
                 text-decoration: underline;
             }
             code {
-                background-color: #353535;
+                background-color: #23262d;
                 padding: 2px 6px;
                 border-radius: 3px;
                 font-family: Consolas, monospace;
@@ -156,14 +156,14 @@ class HelpDialog(QDialog):
         ok_button.setMinimumHeight(35)
         ok_button.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 font-weight: bold;
                 border-radius: 5px;
                 padding: 8px 16px;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
         """)
         ok_button.clicked.connect(self.accept)

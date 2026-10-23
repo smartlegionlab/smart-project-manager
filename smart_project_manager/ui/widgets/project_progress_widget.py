@@ -16,7 +16,7 @@ class ProjectProgressWidget(QGroupBox):
         self.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
-                border: 2px solid #444;
+                border: 2px solid #3a3d45;
                 border-radius: 8px;
                 margin-top: 10px;
                 padding-top: 10px;
@@ -25,7 +25,7 @@ class ProjectProgressWidget(QGroupBox):
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 5px 0 5px;
-                color: #2a82da;
+                color: #007acc;
             }
         """)
 
@@ -40,7 +40,7 @@ class ProjectProgressWidget(QGroupBox):
                     QLabel {
                         font-size: 16px;
                         font-weight: bold;
-                        color: #3498db;
+                        color: #007acc;
                     }
                 """)
         self.project_name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -113,14 +113,14 @@ class ProjectProgressWidget(QGroupBox):
         self.project_progress_bar.setFixedHeight(16)
         self.project_progress_bar.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 8px;
-                background-color: #2a2a2a;
+                background-color: #1e2026;
             }
             QProgressBar::chunk {
                 background-color: qlineargradient(
                     spread:pad, x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3498db,
+                    stop:0 #007acc,
                     stop:1 #2ecc71
                 );
                 border-radius: 7px;
@@ -277,7 +277,7 @@ class ProjectProgressWidget(QGroupBox):
             status_color = "#2ecc71"
         elif progress > 30:
             status_text = "🔄 Active"
-            status_color = "#3498db"
+            status_color = "#007acc"
         elif progress > 0:
             status_text = "🟡 Started"
             status_color = "#f39c12"

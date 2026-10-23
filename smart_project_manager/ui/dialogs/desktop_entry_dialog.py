@@ -50,7 +50,7 @@ class DesktopEntryDialog(QDialog):
         title_font.setBold(True)
         title_label.setFont(title_font)
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("color: #2a82da; margin: 10px;")
+        title_label.setStyleSheet("color: #007acc; margin: 10px;")
         layout.addWidget(title_label)
 
         info_group = QGroupBox("Application Information")
@@ -95,14 +95,14 @@ class DesktopEntryDialog(QDialog):
         self.create_btn.setMinimumHeight(40)
         self.create_btn.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 font-weight: bold;
                 border-radius: 5px;
                 padding: 8px 16px;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
         """)
         self.create_btn.clicked.connect(self.create_desktop_entry)
@@ -111,13 +111,13 @@ class DesktopEntryDialog(QDialog):
         self.cancel_btn.setMinimumHeight(40)
         self.cancel_btn.setStyleSheet("""
             QPushButton {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: white;
                 border-radius: 5px;
                 padding: 8px 16px;
             }
             QPushButton:hover {
-                background-color: #555;
+                background-color: #4a4d55;
             }
         """)
         self.cancel_btn.clicked.connect(self.reject)

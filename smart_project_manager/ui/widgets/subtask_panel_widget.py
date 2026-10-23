@@ -72,17 +72,17 @@ class SubtaskPanelWidget(QWidget):
         self.btn_add_subtask.clicked.connect(self.add_subtask)
         self.btn_add_subtask.setStyleSheet("""
             QPushButton {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
                 padding: 8px 16px;
                 border-radius: 5px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #1a72ca;
+                background-color: #0066b3;
             }
             QPushButton:disabled {
-                background-color: #666;
+                background-color: #5a5d65;
                 color: #999;
             }
         """)
@@ -100,13 +100,13 @@ class SubtaskPanelWidget(QWidget):
         self.subtasks_table.setAlternatingRowColors(True)
         self.subtasks_table.setStyleSheet("""
             QTableWidget {
-                background-color: #2a2a2a;
-                gridline-color: #444;
+                background-color: #1e2026;
+                gridline-color: #3a3d45;
             }
             QHeaderView::section {
-                background-color: #353535;
+                background-color: #23262d;
                 padding: 8px;
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 font-weight: bold;
             }
         """)
@@ -124,7 +124,7 @@ class SubtaskPanelWidget(QWidget):
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
-        separator.setStyleSheet("background-color: #444; max-height: 1px;")
+        separator.setStyleSheet("background-color: #3a3d45; max-height: 1px;")
         layout.addWidget(separator)
 
     def show_for_task(self, task, project_id):
@@ -220,7 +220,7 @@ class SubtaskPanelWidget(QWidget):
                     due_label.setStyleSheet("color: #888;")
             else:
                 due_label = QLabel("—")
-                due_label.setStyleSheet("color: #666; font-style: italic;")
+                due_label.setStyleSheet("color: #5a5d65; font-style: italic;")
 
             due_layout.addWidget(due_label)
             self.subtasks_table.setCellWidget(row, 3, due_widget)
@@ -244,13 +244,13 @@ class SubtaskPanelWidget(QWidget):
                         color: #888;
                         font-size: 10px;
                         padding: 2px 4px;
-                        background-color: #3a3a3a;
+                        background-color: #2a2d34;
                         border-radius: 3px;
                     """)
                     labels_layout.addWidget(more_label)
             else:
                 no_labels = QLabel("—")
-                no_labels.setStyleSheet("color: #666; font-style: italic; font-size: 10px;")
+                no_labels.setStyleSheet("color: #5a5d65; font-style: italic; font-size: 10px;")
                 labels_layout.addWidget(no_labels)
 
             labels_layout.addStretch()

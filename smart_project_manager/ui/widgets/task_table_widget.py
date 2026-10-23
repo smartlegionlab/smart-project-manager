@@ -100,25 +100,25 @@ class TaskTableWidget(QTableWidget):
 
         self.setStyleSheet("""
             QTableWidget {
-                background-color: #2a2a2a;
-                gridline-color: #444;
+                background-color: #1e2026;
+                gridline-color: #3a3d45;
             }
             QHeaderView::section {
-                background-color: #353535;
+                background-color: #23262d;
                 padding: 8px;
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 font-weight: bold;
             }
             QTableCornerButton::section {
-                background-color: #353535;
-                border: 1px solid #444;
+                background-color: #23262d;
+                border: 1px solid #3a3d45;
             }
             QTableWidget::item:selected {
-                background-color: #2a82da;
+                background-color: #007acc;
                 color: white;
             }
             QTableWidget::item:selected:!active {
-                background-color: #3a3a3a;
+                background-color: #2a2d34;
             }
         """)
 
@@ -252,13 +252,13 @@ class TaskTableWidget(QTableWidget):
         progress_bar.setFixedHeight(20)
         progress_bar.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #444;
+                border: 1px solid #3a3d45;
                 border-radius: 3px;
                 text-align: center;
                 font-size: 10px;
             }
             QProgressBar::chunk {
-                background-color: #2a82da;
+                background-color: #007acc;
                 border-radius: 3px;
             }
         """)
