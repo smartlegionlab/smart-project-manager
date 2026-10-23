@@ -3,13 +3,14 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
     QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame, QTextBrowser,
-    QScrollArea, QSizePolicy, QTableWidget
+    QScrollArea, QSizePolicy, QTableWidget, QTabWidget, QSplitter,
+    QTabBar
 )
 from PyQt5.QtGui import QFont, QDesktopServices, QIcon
 from PyQt5.QtCore import Qt, QUrl
@@ -28,14 +29,728 @@ from smart_project_manager.ui.widgets.subtask_panel_widget import SubtaskPanelWi
 from smart_project_manager import __version__ as ver
 
 
+class ProjectTab(QWidget):
+    def __init__(self, parent, project_id: str):
+        super().__init__(parent)
+        self.main_window = parent
+        self.project_id = project_id
+        self.selected_task_id: Optional[str] = None
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+
+        top_bar_layout = QHBoxLayout()
+
+        self.tasks_header = QLabel('Tasks')
+        self.tasks_header.setFont(QFont("Arial", 14, QFont.Bold))
+        top_bar_layout.addWidget(self.tasks_header)
+
+        top_bar_layout.addStretch()
+
+        self.btn_open_url = QPushButton('GitHub URL')
+        self.btn_open_url.clicked.connect(self.open_github_url)
+        self.btn_open_url.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: black;
+                font-weight: bold;
+                padding: 6px 10px;
+                border-radius: 5px;
+                font-size: 11px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #1976d2;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        top_bar_layout.addWidget(self.btn_open_url)
+
+        self.btn_edit_project = QPushButton('Edit')
+        self.btn_edit_project.clicked.connect(self.edit_project)
+        self.btn_edit_project.setStyleSheet("""
+            QPushButton {
+                background-color: #FFC107;
+                color: black;
+                font-weight: bold;
+                padding: 6px 10px;
+                border-radius: 5px;
+                font-size: 11px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #FFA000;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        top_bar_layout.addWidget(self.btn_edit_project)
+
+        self.btn_delete_project = QPushButton('Delete')
+        self.btn_delete_project.clicked.connect(self.delete_project)
+        self.btn_delete_project.setStyleSheet("""
+            QPushButton {
+                background-color: #e74c3c;
+                color: black;
+                font-weight: bold;
+                padding: 6px 10px;
+                border-radius: 5px;
+                font-size: 11px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #c0392b;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        top_bar_layout.addWidget(self.btn_delete_project)
+
+        layout.addLayout(top_bar_layout)
+
+        self.project_progress_widget = ProjectProgressWidget(self)
+        layout.addWidget(self.project_progress_widget)
+
+        self.filters_panel = QFrame()
+        self.filters_panel.setStyleSheet("""
+            QFrame {
+                background-color: #3a3a3a;
+                border-radius: 5px;
+                padding: 8px;
+            }
+        """)
+
+        filters_layout = QHBoxLayout(self.filters_panel)
+        filters_layout.setContentsMargins(8, 5, 8, 5)
+        filters_layout.setSpacing(10)
+
+        search_label = QLabel("🔍")
+        search_label.setStyleSheet("font-size: 14px;")
+        filters_layout.addWidget(search_label)
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search tasks...")
+        self.search_input.setClearButtonEnabled(True)
+        self.search_input.textChanged.connect(self.on_search_changed)
+        self.search_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-size: 12px;
+                min-width: 150px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #3498db;
+            }
+        """)
+        filters_layout.addWidget(self.search_input)
+
+        priority_label = QLabel("Priority:")
+        priority_label.setStyleSheet("font-size: 11px; color: #aaa;")
+        filters_layout.addWidget(priority_label)
+
+        self.priority_filter_combo = QComboBox()
+        self.priority_filter_combo.addItems(["All", "Low", "Medium", "High"])
+        self.priority_filter_combo.currentTextChanged.connect(self.on_priority_filter_changed)
+        self.priority_filter_combo.setStyleSheet("""
+            QComboBox {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                min-width: 80px;
+            }
+            QComboBox:hover {
+                border: 1px solid #666;
+            }
+        """)
+        filters_layout.addWidget(self.priority_filter_combo)
+
+        label_label = QLabel("Label:")
+        label_label.setStyleSheet("font-size: 11px; color: #aaa;")
+        filters_layout.addWidget(label_label)
+
+        self.label_filter_combo = QComboBox()
+        self.label_filter_combo.addItem("All")
+        self.label_filter_combo.currentTextChanged.connect(self.on_label_filter_changed)
+        self.label_filter_combo.setStyleSheet("""
+            QComboBox {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 11px;
+                min-width: 100px;
+            }
+            QComboBox:hover {
+                border: 1px solid #666;
+            }
+        """)
+        filters_layout.addWidget(self.label_filter_combo)
+
+        self.show_completed_checkbox = QCheckBox("Show Completed")
+        self.show_completed_checkbox.setChecked(True)
+        self.show_completed_checkbox.stateChanged.connect(self.on_show_completed_changed)
+        self.show_completed_checkbox.setStyleSheet("""
+            QCheckBox {
+                font-size: 11px;
+                color: #aaa;
+                spacing: 5px;
+            }
+        """)
+        filters_layout.addWidget(self.show_completed_checkbox)
+
+        self.btn_reset_filters = QPushButton("Reset")
+        self.btn_reset_filters.clicked.connect(self.reset_filters)
+        self.btn_reset_filters.setStyleSheet("""
+            QPushButton {
+                background-color: #555;
+                color: white;
+                font-weight: bold;
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-size: 11px;
+                min-width: 60px;
+            }
+            QPushButton:hover {
+                background-color: #666;
+            }
+        """)
+        filters_layout.addWidget(self.btn_reset_filters)
+
+        filters_layout.addStretch()
+        layout.addWidget(self.filters_panel)
+
+        tasks_header_layout = QHBoxLayout()
+
+        self.btn_new_task = QPushButton('➕ Add Task')
+        self.btn_new_task.clicked.connect(self.create_task)
+        self.btn_new_task.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: black;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+                min-width: 90px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #219653;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        tasks_header_layout.addWidget(self.btn_new_task)
+
+        self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
+        self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
+        self.btn_clear_completed.setStyleSheet("""
+            QPushButton {
+                background-color: #f39c12;
+                color: black;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 12px;
+                min-width: 140px;
+            }
+            QPushButton:hover:enabled {
+                background-color: #d68910;
+            }
+            QPushButton:disabled {
+                background-color: #666;
+                color: #999;
+            }
+        """)
+        tasks_header_layout.addWidget(self.btn_clear_completed)
+
+        tasks_header_layout.addStretch()
+        layout.addLayout(tasks_header_layout)
+
+        self.tasks_table = TaskTableWidget(self)
+        self.tasks_table.manager = self.main_window.manager
+        self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
+        self.tasks_table.task_double_clicked.connect(self.on_task_double_clicked)
+        self.tasks_table.task_dropped.connect(self.on_task_dropped)
+        self.tasks_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.tasks_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.tasks_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.tasks_table.setFrameStyle(QTableWidget.NoFrame)
+
+        layout.addWidget(self.tasks_table, 1)
+
+        self.subtasks_tab_widget = QTabWidget()
+        self.subtasks_tab_widget.setTabsClosable(True)
+        self.subtasks_tab_widget.setMovable(False)
+        self.subtasks_tab_widget.tabCloseRequested.connect(self.close_subtask_tab)
+        self.subtasks_tab_widget.setMaximumHeight(320)
+        self.subtasks_tab_widget.setMinimumHeight(0)
+        self.subtasks_tab_widget.setStyleSheet("""
+            QTabWidget::pane {
+                background-color: #353535;
+                border-top: 2px solid #444;
+            }
+            QTabBar::tab {
+                background-color: #3a3a3a;
+                color: #aaa;
+                padding: 6px 12px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                margin-right: 2px;
+            }
+            QTabBar::tab:selected {
+                background-color: #353535;
+                color: white;
+                border-bottom: 2px solid #2a82da;
+            }
+            QTabBar::tab:hover:!selected {
+                background-color: #444;
+            }
+        """)
+        self.subtasks_tab_widget.hide()
+        layout.addWidget(self.subtasks_tab_widget)
+
+        self._subtask_tabs: Dict[str, SubtaskPanelWidget] = {}
+
+        self.search_text = ""
+        self.priority_filter = "All"
+        self.label_filter = "All"
+        self.show_completed = True
+
+        self.load_project_data()
+
+    def load_project_data(self):
+        project = self.main_window.manager.get_project(self.project_id)
+        if not project:
+            return
+
+        self.project_progress_widget.update_progress(project, self.main_window.manager)
+
+        self.btn_open_url.setEnabled(bool(project.github_url))
+
+        self.update_clear_completed_button()
+        self.update_label_filter_combo()
+        self.apply_filters()
+
+    def update_label_filter_combo(self):
+        current_text = self.label_filter_combo.currentText()
+        self.label_filter_combo.blockSignals(True)
+        self.label_filter_combo.clear()
+        self.label_filter_combo.addItem("All")
+
+        labels = self.main_window.manager.get_all_labels()
+        for label in labels:
+            self.label_filter_combo.addItem(label.name)
+
+        if current_text and current_text != "All":
+            index = self.label_filter_combo.findText(current_text)
+            if index >= 0:
+                self.label_filter_combo.setCurrentIndex(index)
+            else:
+                self.label_filter_combo.setCurrentIndex(0)
+                self.label_filter = "All"
+        else:
+            self.label_filter_combo.setCurrentIndex(0)
+            self.label_filter = "All"
+        self.label_filter_combo.blockSignals(False)
+
+    def update_clear_completed_button(self):
+        tasks = self.main_window.manager.get_tasks_by_project(self.project_id)
+        completed_count = sum(1 for task in tasks if task.completed)
+        self.btn_clear_completed.setText(f'🗑️ Clear Completed ({completed_count})')
+        self.btn_clear_completed.setEnabled(completed_count > 0)
+
+    def on_search_changed(self, text):
+        self.search_text = text.strip().lower()
+        self.apply_filters()
+
+    def on_priority_filter_changed(self, priority):
+        self.priority_filter = priority
+        self.apply_filters()
+
+    def on_label_filter_changed(self, label):
+        self.label_filter = label
+        self.apply_filters()
+
+    def on_show_completed_changed(self, state):
+        self.show_completed = (state == Qt.Checked)
+        self.apply_filters()
+
+    def reset_filters(self):
+        self.search_input.clear()
+        self.priority_filter_combo.setCurrentIndex(0)
+        self.label_filter_combo.setCurrentIndex(0)
+        self.show_completed_checkbox.setChecked(True)
+
+        self.search_text = ""
+        self.priority_filter = "All"
+        self.label_filter = "All"
+        self.show_completed = True
+
+        self.apply_filters()
+        self.main_window.status_bar.showMessage('Filters reset', 2000)
+
+    def apply_filters(self):
+        selected_task_id = None
+        selected_items = self.tasks_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
+            item = self.tasks_table.item(row, 1)
+            if item:
+                selected_task_id = item.data(Qt.UserRole)
+
+        scroll_pos = self.tasks_table.verticalScrollBar().value()
+
+        all_tasks = self.main_window.manager.get_tasks_by_project(self.project_id)
+        project = self.main_window.manager.get_project(self.project_id)
+
+        filtered_tasks = []
+        PRIORITY_MAP = {"Low": 3, "Medium": 2, "High": 1}
+        all_labels = self.main_window.manager.get_all_labels()
+        label_name_to_id = {label.name: label.id for label in all_labels}
+
+        for task in all_tasks:
+            search_ok = True
+            if self.search_text:
+                search_in_title = self.search_text in task.title.lower()
+                search_in_desc = task.description and self.search_text in task.description.lower()
+                search_ok = search_in_title or search_in_desc
+
+            priority_ok = True
+            if self.priority_filter != "All":
+                expected_priority = PRIORITY_MAP.get(self.priority_filter)
+                if expected_priority is not None:
+                    priority_ok = (task.priority == expected_priority)
+
+            label_ok = True
+            if self.label_filter != "All":
+                label_id = label_name_to_id.get(self.label_filter)
+                if label_id:
+                    label_ok = (label_id in task.labels)
+                else:
+                    label_ok = False
+
+            completed_ok = True
+            if not self.show_completed:
+                completed_ok = not task.completed
+
+            if search_ok and priority_ok and label_ok and completed_ok:
+                filtered_tasks.append(task)
+
+        if project and project.task_order:
+            tasks_dict = {task.id: task for task in filtered_tasks}
+            sorted_tasks = []
+            for task_id in project.task_order:
+                if task_id in tasks_dict:
+                    sorted_tasks.append(tasks_dict.pop(task_id))
+            sorted_tasks.extend(tasks_dict.values())
+            filtered_tasks = sorted_tasks
+
+        self.display_filtered_tasks(filtered_tasks)
+
+        if selected_task_id:
+            for row in range(self.tasks_table.rowCount()):
+                item = self.tasks_table.item(row, 1)
+                if item and item.data(Qt.UserRole) == selected_task_id:
+                    self.tasks_table.selectRow(row)
+                    break
+
+        self.tasks_table.verticalScrollBar().setValue(scroll_pos)
+
+        filtered_count = len(filtered_tasks)
+        total_count = len(all_tasks)
+        if filtered_count == total_count:
+            self.main_window.status_bar.showMessage(f'Showing all {total_count} tasks', 2000)
+        else:
+            self.main_window.status_bar.showMessage(f'Showing {filtered_count} of {total_count} tasks', 2000)
+
+    def display_filtered_tasks(self, tasks):
+        self.tasks_table.setRowCount(0)
+        for row, task in enumerate(tasks):
+            self.tasks_table.add_task_row(
+                row, task, self.main_window.manager,
+                self.toggle_task_status,
+                self.edit_task,
+                self.delete_task
+            )
+            item = self.tasks_table.item(row, 2)
+            if item:
+                item.setData(Qt.UserRole, task.id)
+
+    def toggle_task_status(self, task_id: str):
+        task = self.main_window.manager.get_task(task_id)
+        scroll_pos = self.tasks_table.verticalScrollBar().value()
+        current_row = self.get_task_row(task_id)
+
+        if task:
+            task.toggle_complete()
+            self.main_window.manager.update_task(task_id, completed=task.completed)
+
+            if task.completed and self.selected_task_id == task_id:
+                self.close_subtask_tab_by_task(task_id)
+                self.selected_task_id = None
+
+            self.apply_filters()
+            self.main_window.update_statistics()
+            self.main_window.update_projects_tree_counts()
+            self.load_project_data()
+
+        self.update_clear_completed_button()
+        self.tasks_table.verticalScrollBar().setValue(scroll_pos)
+        if 0 <= current_row < self.tasks_table.rowCount():
+            self.tasks_table.selectRow(current_row)
+
+    def get_task_row(self, task_id: str) -> int:
+        for row in range(self.tasks_table.rowCount()):
+            item = self.tasks_table.item(row, 1)
+            if item and item.data(Qt.UserRole) == task_id:
+                return row
+        return -1
+
+    def create_task(self):
+        dialog = TaskDialog(self, manager=self.main_window.manager, project_id=self.project_id)
+        if dialog.exec_() == QDialog.Accepted:
+            data = dialog.get_task_data()
+            if not data['title']:
+                QMessageBox.warning(self, 'Error', 'Task title is required')
+                return
+
+            self.main_window.manager.create_task(**data)
+            self.apply_filters()
+            self.main_window.update_statistics()
+            self.main_window.update_projects_tree_counts()
+            self.load_project_data()
+            self.update_label_filter_combo()
+
+    def edit_task(self, task_id: str):
+        task = self.main_window.manager.get_task(task_id)
+        if not task:
+            return
+
+        dialog = TaskDialog(self, task=task, manager=self.main_window.manager)
+        if dialog.exec_() == QDialog.Accepted:
+            data = dialog.get_task_data()
+            if not data['title']:
+                QMessageBox.warning(self, 'Error', 'Task title is required')
+                return
+
+            self.main_window.manager.update_task(task.id, **data)
+            self.apply_filters()
+            self.main_window.update_statistics()
+            self.main_window.update_projects_tree_counts()
+            self.load_project_data()
+            self.update_label_filter_combo()
+
+    def delete_task(self, task_id: str):
+        task = self.main_window.manager.get_task(task_id)
+        if not task:
+            return
+
+        reply = QMessageBox.question(
+            self, 'Confirm Delete',
+            f'Delete task "{task.title}" and all its subtasks?',
+            QMessageBox.Yes | QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            if self.selected_task_id == task_id:
+                self.close_subtask_tab_by_task(task_id)
+                self.selected_task_id = None
+
+            self.main_window.manager.delete_task(task_id)
+            self.apply_filters()
+            self.main_window.update_statistics()
+            self.main_window.update_projects_tree_counts()
+            self.load_project_data()
+            self.update_label_filter_combo()
+
+    def on_task_dropped(self, from_row, to_row):
+        new_order = self.tasks_table.get_task_order()
+        project = self.main_window.manager.get_project(self.project_id)
+        if not project:
+            return
+        project.task_order = new_order
+        self.main_window.manager.update_project(project.id, task_order=new_order)
+        self.main_window.status_bar.showMessage('Task order saved', 2000)
+
+    def on_task_double_clicked(self, task_id):
+        if not task_id:
+            return
+        task = self.main_window.manager.get_task(task_id)
+        if not task:
+            return
+
+        if task_id in self._subtask_tabs:
+            index = self.subtasks_tab_widget.indexOf(self._subtask_tabs[task_id])
+            if index >= 0:
+                self.subtasks_tab_widget.setCurrentIndex(index)
+                self.subtasks_tab_widget.show()
+                return
+
+        subtask_widget = SubtaskPanelWidget(self, manager=self.main_window.manager)
+        subtask_widget.subtask_updated.connect(self.on_subtask_updated)
+        subtask_widget.panel_closed.connect(lambda: None)
+        subtask_widget.show_for_task(task, self.project_id)
+
+        subtask_widget.btn_close.hide()
+        subtask_widget.title_label.hide()
+
+        self.subtasks_tab_widget.addTab(subtask_widget, task.title)
+        self._subtask_tabs[task_id] = subtask_widget
+        self.subtasks_tab_widget.setCurrentWidget(subtask_widget)
+        self.subtasks_tab_widget.show()
+        self.selected_task_id = task_id
+
+    def close_subtask_tab(self, index):
+        widget = self.subtasks_tab_widget.widget(index)
+        task_id_to_remove = None
+        for tid, w in self._subtask_tabs.items():
+            if w == widget:
+                task_id_to_remove = tid
+                break
+
+        if task_id_to_remove:
+            del self._subtask_tabs[task_id_to_remove]
+            if self.selected_task_id == task_id_to_remove:
+                self.selected_task_id = None
+
+        self.subtasks_tab_widget.removeTab(index)
+        widget.deleteLater()
+
+        if self.subtasks_tab_widget.count() == 0:
+            self.subtasks_tab_widget.hide()
+
+    def close_subtask_tab_by_task(self, task_id: str):
+        if task_id in self._subtask_tabs:
+            widget = self._subtask_tabs[task_id]
+            index = self.subtasks_tab_widget.indexOf(widget)
+            if index >= 0:
+                self.close_subtask_tab(index)
+
+    def on_subtask_updated(self):
+        self.load_project_data()
+        self.main_window.update_statistics()
+        self.main_window.update_projects_tree_counts()
+
+    def show_task_context_menu(self, position):
+        row = self.tasks_table.rowAt(position.y())
+        if row < 0:
+            return
+
+        self.tasks_table.selectRow(row)
+        item = self.tasks_table.item(row, 2)
+        if not item:
+            return
+        task_id = item.data(Qt.UserRole)
+        if not task_id:
+            return
+
+        task = self.main_window.manager.get_task(task_id)
+        if not task:
+            return
+
+        menu = QMenu()
+
+        view_action = QAction("👁 View Details", self)
+        view_action.triggered.connect(lambda: self.view_task(task_id))
+        menu.addAction(view_action)
+
+        open_subtasks_action = QAction("📝 Open Subtasks", self)
+        open_subtasks_action.triggered.connect(lambda: self.on_task_double_clicked(task_id))
+        menu.addAction(open_subtasks_action)
+
+        mark_action = QAction("✅ Mark as Complete" if not task.completed else "⏳ Mark as Pending", self)
+        mark_action.triggered.connect(lambda: self.toggle_task_status(task_id))
+        menu.addAction(mark_action)
+
+        menu.addSeparator()
+
+        edit_action = QAction("✏️ Edit Task", self)
+        edit_action.triggered.connect(lambda: self.edit_task(task_id))
+        menu.addAction(edit_action)
+
+        menu.addSeparator()
+
+        delete_action = QAction("🗑️ Delete Task", self)
+        delete_action.triggered.connect(lambda: self.delete_task(task_id))
+        menu.addAction(delete_action)
+
+        menu.exec_(self.tasks_table.viewport().mapToGlobal(position))
+
+    def view_task(self, task_id: str):
+        task = self.main_window.manager.get_task(task_id)
+        if not task:
+            return
+        dialog = TaskDetailsDialog(self, task=task, manager=self.main_window.manager)
+        dialog.exec_()
+
+    def open_github_url(self):
+        project = self.main_window.manager.get_project(self.project_id)
+        if not project:
+            return
+        if not project.github_url:
+            QMessageBox.warning(self, 'Error', 'No GitHub URL specified for this project')
+            return
+        try:
+            url = project.github_url.strip()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            QDesktopServices.openUrl(QUrl(url))
+        except Exception as e:
+            QMessageBox.critical(self, 'Error', f'Failed to open URL:\n{str(e)}')
+
+    def edit_project(self):
+        self.main_window.edit_project_by_id(self.project_id)
+
+    def delete_project(self):
+        self.main_window.delete_project_by_id(self.project_id)
+
+    def clear_completed_tasks(self):
+        tasks = self.main_window.manager.get_tasks_by_project(self.project_id)
+        completed_tasks = [task for task in tasks if task.completed]
+
+        if not completed_tasks:
+            QMessageBox.information(self, 'Info', 'No completed tasks to clear')
+            return
+
+        reply = QMessageBox.question(
+            self, 'Clear Completed Tasks',
+            f'Clear {len(completed_tasks)} completed task(s)?\n\n'
+            'This action cannot be undone.',
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            for task in completed_tasks:
+                if task.id in self._subtask_tabs:
+                    self.close_subtask_tab_by_task(task.id)
+                self.main_window.manager.delete_task(task.id)
+
+            self.apply_filters()
+            self.main_window.update_statistics()
+            self.main_window.update_projects_tree_counts()
+            self.load_project_data()
+            self.update_label_filter_combo()
+            self.update_clear_completed_button()
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
-        self.selected_project_item = None
-        self.last_selected_project_id = None
-        self.selected_task_id = None
 
         self.search_text = ""
         self.priority_filter = "All"
@@ -43,9 +758,9 @@ class MainWindow(QMainWindow):
         self.show_completed = True
         self.stats_visible = False
 
-        self.setWindowTitle(f'Smart Project Manager')
-        self.setMinimumSize(800, 600)
-        self.resize(830, 600)
+        self.setWindowTitle('Smart Project Manager')
+        self.setMinimumSize(900, 650)
+        self.resize(1000, 700)
 
         self.setup_application_icon()
 
@@ -66,27 +781,19 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.setup_status_bar()
 
-        self.tasks_table.task_dropped.connect(self.on_task_dropped)
-        self.filters_changed = self.apply_filters
-
         self.load_projects()
         self.cleanup_old_backups_on_start()
-
-        self.show_readme_mode()
 
         self.center_window()
 
     def setup_application_icon(self):
-        from pathlib import Path
         project_root = Path(__file__).parent.parent
         icon_path = project_root / "data" / "icons" / "icon.png"
-
         if icon_path.exists():
             self.setWindowIcon(QIcon(str(icon_path)))
 
     def create_desktop_entry(self):
         from smart_project_manager.ui.dialogs.desktop_entry_dialog import DesktopEntryDialog
-
         dialog = DesktopEntryDialog(self)
         dialog.exec_()
 
@@ -114,7 +821,7 @@ class MainWindow(QMainWindow):
 
         new_task_action = QAction('New Task', self)
         new_task_action.setShortcut('Ctrl+T')
-        new_task_action.triggered.connect(self.create_task)
+        new_task_action.triggered.connect(self.create_task_in_current_project)
         file_menu.addAction(new_task_action)
 
         file_menu.addSeparator()
@@ -149,18 +856,6 @@ class MainWindow(QMainWindow):
 
         edit_menu = menubar.addMenu('Edit')
 
-        edit_project_action = QAction('Edit Project', self)
-        edit_project_action.setShortcut('Ctrl+E')
-        edit_project_action.triggered.connect(self.edit_current_project)
-        edit_menu.addAction(edit_project_action)
-
-        delete_project_action = QAction('Delete Project', self)
-        delete_project_action.setShortcut('Ctrl+D')
-        delete_project_action.triggered.connect(self.delete_current_project)
-        edit_menu.addAction(delete_project_action)
-
-        edit_menu.addSeparator()
-
         labels_action = QAction('Manage Labels', self)
         labels_action.setShortcut('Ctrl+L')
         labels_action.triggered.connect(self.manage_labels)
@@ -174,12 +869,6 @@ class MainWindow(QMainWindow):
         view_menu.addAction(refresh_action)
 
         view_menu.addSeparator()
-
-        show_completed_action = QAction('Show Completed Tasks', self)
-        show_completed_action.setCheckable(True)
-        show_completed_action.setChecked(True)
-        show_completed_action.triggered.connect(self.toggle_show_completed_menu)
-        view_menu.addAction(show_completed_action)
 
         show_stats_action = QAction('Show Statistics', self)
         show_stats_action.setCheckable(True)
@@ -203,9 +892,11 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(10)
 
+        splitter = QSplitter(Qt.Horizontal)
+
         left_panel = QWidget()
-        left_panel.setMinimumWidth(280)
-        left_panel.setMaximumWidth(350)
+        left_panel.setMinimumWidth(260)
+        left_panel.setMaximumWidth(400)
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
@@ -275,813 +966,178 @@ class MainWindow(QMainWindow):
         self.btn_toggle_stats.setText('▶')
         left_layout.addWidget(self.statistics_widget)
 
-        main_layout.addWidget(left_panel)
+        splitter.addWidget(left_panel)
 
-        right_container = QWidget()
-        right_container_layout = QVBoxLayout(right_container)
-        right_container_layout.setContentsMargins(0, 0, 0, 0)
-        right_container_layout.setSpacing(10)
-
-        top_bar_layout = QHBoxLayout()
-
-        self.tasks_header = QLabel('Select a project to view tasks')
-        self.tasks_header.setFont(QFont("Arial", 14, QFont.Bold))
-        top_bar_layout.addWidget(self.tasks_header)
-
-        top_bar_layout.addStretch()
-
-        self.btn_open_url = QPushButton('GitHub URL')
-        self.btn_open_url.clicked.connect(self.open_github_url)
-        self.btn_open_url.setEnabled(False)
-        self.btn_open_url.setStyleSheet("""
-                    QPushButton {
-                        background-color: #3498db;
-                        color: black;
-                        font-weight: bold;
-                        padding: 8px 12px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                    }
-                    QPushButton:hover:enabled {
-                        background-color: #1976d2;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-        top_bar_layout.addWidget(self.btn_open_url)
-
-        self.btn_edit_project = QPushButton('Edit')
-        self.btn_edit_project.clicked.connect(self.edit_current_project)
-        self.btn_edit_project.setEnabled(False)
-        self.btn_edit_project.setStyleSheet("""
-                    QPushButton {
-                        background-color: #FFC107;
-                        color: black;
-                        font-weight: bold;
-                        padding: 8px 12px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                    }
-                    QPushButton:hover:enabled {
-                        background-color: #FFA000;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-        top_bar_layout.addWidget(self.btn_edit_project)
-
-        self.btn_delete_project = QPushButton('Delete')
-        self.btn_delete_project.clicked.connect(self.delete_current_project)
-        self.btn_delete_project.setEnabled(False)
-        self.btn_delete_project.setStyleSheet("""
-                    QPushButton {
-                        background-color: #e74c3c;
-                        color: black;
-                        font-weight: bold;
-                        padding: 8px 12px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                    }
-                    QPushButton:hover:enabled {
-                        background-color: #c0392b;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-        top_bar_layout.addWidget(self.btn_delete_project)
-
-        right_container_layout.addLayout(top_bar_layout)
-
-        self.project_progress_widget = ProjectProgressWidget(self)
-        right_container_layout.addWidget(self.project_progress_widget)
-
-        self.tasks_container = QScrollArea()
-        self.tasks_container.setWidgetResizable(True)
-        self.tasks_container.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.tasks_container.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        self.tasks_container.setStyleSheet("""
-            QScrollArea {
-                border: none;
-                background-color: transparent;
+        self.project_tabs = QTabWidget()
+        self.project_tabs.setTabsClosable(False)
+        self.project_tabs.setMovable(True)
+        self.project_tabs.currentChanged.connect(self.on_project_tab_changed)
+        self.project_tabs.setStyleSheet("""
+            QTabWidget::pane {
+                background-color: #2a2a2a;
+                border: 1px solid #444;
+                border-radius: 4px;
             }
-            QScrollArea > QWidget > QWidget {
-                background-color: transparent;
-            }
-            QScrollBar:vertical, QScrollBar:horizontal {
-                border: none;
-                background: #3a3a3a;
-                width: 12px;
-                height: 12px;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
-                background: #555;
-                border-radius: 6px;
-                min-height: 20px;
-                min-width: 20px;
-            }
-            QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
-                background: #666;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
-                border: none;
-                background: none;
-            }
-        """)
-
-        tasks_content = QWidget()
-        tasks_content.setStyleSheet("background-color: transparent;")
-        tasks_content_layout = QVBoxLayout(tasks_content)
-        tasks_content_layout.setContentsMargins(0, 0, 0, 0)
-        tasks_content_layout.setSpacing(5)
-
-        tasks_header_layout = QHBoxLayout()
-
-        self.btn_new_task = QPushButton('➕ Add Task')
-        self.btn_new_task.clicked.connect(self.create_task)
-        self.btn_new_task.setEnabled(False)
-        self.btn_new_task.setVisible(False)
-        self.btn_new_task.setStyleSheet("""
-                    QPushButton {
-                        background-color: #27ae60;
-                        color: black;
-                        font-weight: bold;
-                        padding: 6px 12px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                        min-width: 90px;
-                    }
-                    QPushButton:hover:enabled {
-                        background-color: #219653;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-        tasks_header_layout.addWidget(self.btn_new_task)
-
-        self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
-        self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
-        self.btn_clear_completed.setEnabled(False)
-        self.btn_clear_completed.setVisible(False)
-        self.btn_clear_completed.setStyleSheet("""
-                    QPushButton {
-                        background-color: #f39c12;
-                        color: black;
-                        font-weight: bold;
-                        padding: 6px 12px;
-                        border-radius: 5px;
-                        font-size: 12px;
-                        min-width: 140px;
-                    }
-                    QPushButton:hover:enabled {
-                        background-color: #d68910;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-        tasks_header_layout.addWidget(self.btn_clear_completed)
-
-        tasks_header_layout.addStretch()
-
-        tasks_title = QLabel('Tasks')
-        tasks_title.setFont(QFont("Arial", 12, QFont.Bold))
-        tasks_header_layout.addWidget(tasks_title)
-
-        tasks_content_layout.addLayout(tasks_header_layout)
-
-        self.filters_panel = QFrame()
-        self.filters_panel.setStyleSheet("""
-            QFrame {
+            QTabBar::tab {
                 background-color: #3a3a3a;
-                border-radius: 5px;
-                padding: 8px;
-            }
-        """)
-        self.filters_panel.setVisible(False)
-
-        filters_layout = QHBoxLayout(self.filters_panel)
-        filters_layout.setContentsMargins(8, 5, 8, 5)
-        filters_layout.setSpacing(10)
-
-        search_label = QLabel("🔍")
-        search_label.setStyleSheet("font-size: 14px;")
-        filters_layout.addWidget(search_label)
-
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search tasks...")
-        self.search_input.setClearButtonEnabled(True)
-        self.search_input.textChanged.connect(self.on_search_changed)
-        self.search_input.setStyleSheet("""
-            QLineEdit {
-                background-color: #2a2a2a;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 5px 10px;
-                font-size: 12px;
-                min-width: 150px;
-            }
-            QLineEdit:focus {
-                border: 1px solid #3498db;
-            }
-        """)
-        filters_layout.addWidget(self.search_input)
-
-        priority_label = QLabel("Priority:")
-        priority_label.setStyleSheet("font-size: 11px; color: #aaa;")
-        filters_layout.addWidget(priority_label)
-
-        self.priority_filter_combo = QComboBox()
-        self.priority_filter_combo.addItems(["All", "Low", "Medium", "High"])
-        self.priority_filter_combo.currentTextChanged.connect(self.on_priority_filter_changed)
-        self.priority_filter_combo.setStyleSheet("""
-            QComboBox {
-                background-color: #2a2a2a;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 11px;
-                min-width: 80px;
-            }
-            QComboBox:hover {
-                border: 1px solid #666;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 1px solid #555;
-                padding-left: 5px;
-            }
-        """)
-        filters_layout.addWidget(self.priority_filter_combo)
-
-        label_label = QLabel("Label:")
-        label_label.setStyleSheet("font-size: 11px; color: #aaa;")
-        filters_layout.addWidget(label_label)
-
-        self.label_filter_combo = QComboBox()
-        self.label_filter_combo.addItem("All")
-        self.label_filter_combo.currentTextChanged.connect(self.on_label_filter_changed)
-        self.label_filter_combo.setStyleSheet("""
-            QComboBox {
-                background-color: #2a2a2a;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 4px 8px;
-                font-size: 11px;
+                color: #aaa;
+                padding: 8px 16px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                margin-right: 2px;
                 min-width: 100px;
             }
-            QComboBox:hover {
-                border: 1px solid #666;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox::down-arrow {
-                image: none;
-                border-left: 1px solid #555;
-                padding-left: 5px;
-            }
-        """)
-        filters_layout.addWidget(self.label_filter_combo)
-
-        self.show_completed_checkbox = QCheckBox("Show Completed")
-        self.show_completed_checkbox.setChecked(True)
-        self.show_completed_checkbox.stateChanged.connect(self.on_show_completed_changed)
-        self.show_completed_checkbox.setStyleSheet("""
-            QCheckBox {
-                font-size: 11px;
-                color: #aaa;
-                spacing: 5px;
-            }
-            QCheckBox::indicator {
-                width: 14px;
-                height: 14px;
-                border: 1px solid #555;
-                border-radius: 3px;
+            QTabBar::tab:selected {
                 background-color: #2a2a2a;
-            }
-            QCheckBox::indicator:checked {
-                background-color: #27ae60;
-                border: 1px solid #27ae60;
-            }
-            QCheckBox::indicator:hover {
-                border: 1px solid #666;
-            }
-        """)
-        filters_layout.addWidget(self.show_completed_checkbox)
-
-        self.btn_reset_filters = QPushButton("Reset")
-        self.btn_reset_filters.clicked.connect(self.reset_filters)
-        self.btn_reset_filters.setStyleSheet("""
-            QPushButton {
-                background-color: #555;
                 color: white;
-                font-weight: bold;
-                padding: 4px 10px;
-                border-radius: 4px;
-                font-size: 11px;
-                min-width: 60px;
+                border-bottom: 2px solid #2a82da;
             }
-            QPushButton:hover {
-                background-color: #666;
+            QTabBar::tab:hover:!selected {
+                background-color: #444;
             }
         """)
-        filters_layout.addWidget(self.btn_reset_filters)
+        splitter.addWidget(self.project_tabs)
 
-        filters_layout.addStretch()
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([300, 700])
 
-        tasks_content_layout.addWidget(self.filters_panel)
+        main_layout.addWidget(splitter)
 
-        self.tasks_table = TaskTableWidget(self)
-        self.tasks_table.manager = self.manager
-        self.tasks_table.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.tasks_table.customContextMenuRequested.connect(self.show_task_context_menu)
-        self.tasks_table.task_double_clicked.connect(self.on_task_double_clicked)
-
-        self.tasks_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.tasks_table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.tasks_table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.tasks_table.setFrameStyle(QTableWidget.NoFrame)
-
-        tasks_content_layout.addWidget(self.tasks_table, 1)
-
-        self.tasks_container.setWidget(tasks_content)
-        right_container_layout.addWidget(self.tasks_container, 1)
-
-        self.subtask_panel = SubtaskPanelWidget(self, manager=self.manager)
-        self.subtask_panel.subtask_updated.connect(self.on_subtask_updated)
-        self.subtask_panel.panel_closed.connect(self.on_subtask_panel_closed)
-        self.subtask_panel.setMaximumHeight(400)
-        self.subtask_panel.setMinimumHeight(200)
-        self.subtask_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
-        self.subtask_panel.setStyleSheet("""
-            SubtaskPanelWidget {
-                background-color: #353535;
-                border-top: 2px solid #444;
-            }
-        """)
-        right_container_layout.addWidget(self.subtask_panel)
-
-        self.readme_viewer = QTextBrowser()
-        self.readme_viewer.setOpenExternalLinks(True)
-        self.readme_viewer.setStyleSheet("""
-            QTextBrowser {
-                background-color: #2a2a2a;
-                color: #ffffff;
-                border: 1px solid #444;
-                border-radius: 5px;
-                font-family: 'Segoe UI', Arial, sans-serif;
-                font-size: 13px;
-                padding: 20px;
-            }
-            QTextBrowser a {
-                color: #3498db;
-                text-decoration: none;
-            }
-            QTextBrowser a:hover {
-                color: #2980b9;
-                text-decoration: underline;
-            }
-            QTextBrowser h1 {
-                color: #2a82da;
-                font-size: 24px;
-                margin-top: 20px;
-                margin-bottom: 15px;
-            }
-            QTextBrowser h2 {
-                color: #27ae60;
-                font-size: 20px;
-                margin-top: 18px;
-                margin-bottom: 12px;
-            }
-            QTextBrowser h3 {
-                color: #3498db;
-                font-size: 16px;
-                margin-top: 15px;
-                margin-bottom: 10px;
-            }
-            QTextBrowser code {
-                background-color: #3a3a3a;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: 'Consolas', 'Monaco', monospace;
-            }
-            QTextBrowser pre {
-                background-color: #3a3a3a;
-                padding: 10px;
-                border-radius: 5px;
-                font-family: 'Consolas', 'Monaco', monospace;
-                white-space: pre-wrap;
-            }
-            QTextBrowser blockquote {
-                border-left: 4px solid #555;
-                padding-left: 15px;
-                margin-left: 0;
-                color: #aaa;
-                font-style: italic;
-            }
-            QTextBrowser img {
-                max-width: 100%;
-                height: auto;
-                border-radius: 5px;
-                margin: 10px 0;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background: #3a3a3a;
-                width: 12px;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical {
-                background: #555;
-                border-radius: 6px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: #666;
-            }
-        """)
-        right_container_layout.addWidget(self.readme_viewer, 1)
-
-        main_layout.addWidget(right_container, 1)
-
-        self.load_welcome_page()
-        self.show_readme_mode()
-
-    def load_welcome_page(self):
-        welcome_html = f"""
-        <div style="
-            color: #ffffff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            padding: 40px;
-            max-width: 600px;
-            margin: 0 auto;
-            text-align: center;
-        ">
-            <style>
-                h1, p, div {{
-                    background: none !important;
-                    border: none !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                }}
-            </style>
-
-            <h1 style="
-                color: #2a82da;
-                font-size: 42px;
-                font-weight: bold;
-                margin-bottom: 15px !important;
-            ">📋 Smart Project Manager</h1>
-
-            <div style="
-                color: #888;
-                font-size: 14px;
-                margin-bottom: 25px !important;
-            ">version {ver}</div>
-
-            <p style="
-                color: #ccc;
-                font-size: 16px;
-                line-height: 1.6;
-                margin-bottom: 40px !important;
-                opacity: 0.9;
-            ">
-                Smart Project Manager is a desktop application for comprehensive project and task management, 
-                built with Python and PyQt5. It provides a hierarchical system for organizing projects, 
-                tasks, and subtasks, featuring visual labels, automatic progress tracking,
-                 and a dark-themed user interface.
-            </p>
-
-            <div style="
-                background: linear-gradient(90deg, #2a82da, #27ae60);
-                height: 2px;
-                width: 80px;
-                margin: 0 auto 40px auto !important;
-                border-radius: 1px;
-            "></div>
-
-            <div style="margin-bottom: 40px !important;">
-                <a href="https://github.com/smartlegionlab/" 
-                   style="
-                       color: #3498db;
-                       text-decoration: none;
-                       font-size: 14px;
-                       margin: 0 15px;
-                   ">GitHub</a>
-                <span style="color: #444;">•</span>
-                <a href="https://github.com/smartlegionlab/smart-project-manager/" 
-                   style="
-                       color: #3498db;
-                       text-decoration: none;
-                       font-size: 14px;
-                       margin: 0 15px;
-                   ">Documentation</a>
-                <span style="color: #444;">•</span>
-                <a href="https://github.com/smartlegionlab/smart-project-manager/releases" 
-                   style="
-                       color: #3498db;
-                       text-decoration: none;
-                       font-size: 14px;
-                       margin: 0 15px;
-                   ">Releases</a>
-            </div>
-
-            <div style="
+        self.empty_label = QLabel('Select a project to view tasks')
+        self.empty_label.setAlignment(Qt.AlignCenter)
+        self.empty_label.setStyleSheet("""
+            QLabel {
                 color: #666;
-                font-size: 12px;
-            ">
-                © 2026 Alexander Suvorov. All rights reserved.
-            </div>
-        </div>
-        """
-        self.readme_viewer.setHtml(welcome_html)
+                font-size: 16px;
+                padding: 40px;
+            }
+        """)
 
-    def show_readme_mode(self):
-        self.readme_viewer.show()
-        self.load_welcome_page()
-        self.project_progress_widget.hide()
-        self.tasks_container.hide()
-        self.subtask_panel.hide()
-        self.tasks_header.setText('📋 Smart Project Manager')
-
-    def show_tasks_mode(self):
-        self.readme_viewer.hide()
-        self.project_progress_widget.show()
-        self.tasks_container.show()
-        if self.current_project_id:
-            project = self.manager.get_project(self.current_project_id)
-            if project:
-                self.tasks_header.setText(f'📋 Project actions')
+        self.project_tabs.addTab(self.empty_label, "Welcome")
 
     def setup_status_bar(self):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage('Ready')
 
-    def load_projects(self):
-        if self.current_project_id:
-            self.last_selected_project_id = self.current_project_id
+    def update_projects_tree_counts(self):
+        for i in range(self.projects_tree.topLevelItemCount()):
+            item = self.projects_tree.topLevelItem(i)
+            if hasattr(item, 'project_id'):
+                project = self.manager.get_project(item.project_id)
+                if project:
+                    task_count = len(project.tasks)
+                    completed_tasks = sum(1 for task_id in project.tasks
+                                         if self.manager.get_task(task_id) and
+                                         self.manager.get_task(task_id).completed)
+                    item.setText(0, f"{project.name} v{project.version} ({completed_tasks}/{task_count})")
 
+    def load_projects(self):
         self.projects_tree.clear()
         projects = self.manager.get_all_projects()
 
         for project in projects:
             self.projects_tree.add_project(project, self.manager)
 
-        if self.last_selected_project_id:
-            for i in range(self.projects_tree.topLevelItemCount()):
-                item = self.projects_tree.topLevelItem(i)
-                if hasattr(item, 'project_id') and item.project_id == self.last_selected_project_id:
-                    self.projects_tree.setCurrentItem(item)
-                    self.current_project_id = self.last_selected_project_id
-                    self.selected_project_item = item
-                    self.btn_delete_project.setEnabled(True)
-                    self.btn_edit_project.setEnabled(True)
-                    self.btn_new_task.setEnabled(True)
-                    break
-
         self.update_statistics()
-        self.update_label_filter_combo()
 
     def on_project_selected(self, item, column):
         if not item or not hasattr(item, 'project_id'):
             return
 
-        if self.subtask_panel.isVisible():
-            self.subtask_panel.hide_panel()
-            self.selected_task_id = None
+        project_id = item.project_id
+        self.open_project_tab(project_id)
 
-        self.current_project_id = item.project_id
-        self.tasks_table.current_project_id = self.current_project_id
-        self.selected_project_item = item
+    def open_project_tab(self, project_id: str):
+        for i in range(self.project_tabs.count()):
+            widget = self.project_tabs.widget(i)
+            if isinstance(widget, ProjectTab) and widget.project_id == project_id:
+                self.project_tabs.setCurrentIndex(i)
+                return
 
-        self.show_tasks_mode()
+        if self.project_tabs.count() == 1:
+            widget = self.project_tabs.widget(0)
+            if isinstance(widget, QLabel) and widget is self.empty_label:
+                self.project_tabs.removeTab(0)
 
-        self.btn_delete_project.setEnabled(True)
-        self.btn_edit_project.setEnabled(True)
+        project = self.manager.get_project(project_id)
+        if not project:
+            return
 
-        self.filters_panel.setVisible(True)
-        self.btn_new_task.setVisible(True)
-        self.btn_new_task.setEnabled(True)
-        self.btn_clear_completed.setVisible(True)
-        self.update_clear_completed_button()
+        tab = ProjectTab(self, project_id)
+        index = self.project_tabs.addTab(tab, f"📁 {project.name} v{project.version}")
 
-        self.last_selected_project_id = self.current_project_id
+        close_btn = QPushButton('✕')
+        close_btn.setFixedSize(20, 20)
+        close_btn.setCursor(Qt.PointingHandCursor)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #e74c3c;
+                border: none;
+                font-size: 12px;
+                font-weight: 900;
+            }
+            QPushButton:hover {
+                background-color: #e74c3c;
+                color: #ffffff;
+                border-radius: 10px;
+            }
+            QPushButton:pressed {
+                background-color: #a93226;
+                color: #ffffff;
+                border-radius: 10px;
+            }
+        """)
+        close_btn.clicked.connect(lambda _, t=tab: self.close_project_tab_by_widget(t))
+        self.project_tabs.tabBar().setTabButton(index, QTabBar.RightSide, close_btn)
 
-        project = self.manager.get_project(self.current_project_id)
-        if project:
-            self.tasks_header.setText(f'📋 Project actions')
-            self.project_progress_widget.update_progress(project, self.manager)
-            self.apply_filters()
-            if project.github_url:
-                self.btn_open_url.setEnabled(True)
-            else:
-                self.btn_open_url.setEnabled(False)
-        self.reset_filters()
+        self.project_tabs.setCurrentIndex(index)
+        self.current_project_id = project_id
 
-    def on_subtask_updated(self):
-        if self.current_project_id:
-            project = self.manager.get_project(self.current_project_id)
-            if project:
-                self.project_progress_widget.update_progress(project, self.manager)
+    def close_project_tab(self, index):
+        widget = self.project_tabs.widget(index)
+        if isinstance(widget, ProjectTab):
+            self.project_tabs.removeTab(index)
+            widget.deleteLater()
 
-            self.apply_filters()
+            if self.project_tabs.count() == 0:
+                self.project_tabs.addTab(self.empty_label, "Welcome")
+                self.current_project_id = None
 
-            self.update_statistics()
+    def close_project_tab_by_widget(self, widget):
+        index = self.project_tabs.indexOf(widget)
+        if index >= 0:
+            self.close_project_tab(index)
 
-            self.load_projects()
-
-    def on_subtask_panel_closed(self):
-        self.selected_task_id = None
-
-    def get_task_id_from_row(self, row: int) -> Optional[str]:
-        if not self.current_project_id:
-            return None
-
-        all_tasks = self.manager.get_tasks_by_project(self.current_project_id)
-        project = self.manager.get_project(self.current_project_id)
-
-        if project and project.task_order:
-            tasks_dict = {task.id: task for task in all_tasks}
-            ordered_tasks = []
-            for task_id in project.task_order:
-                if task_id in tasks_dict:
-                    ordered_tasks.append(tasks_dict.pop(task_id))
-            ordered_tasks.extend(tasks_dict.values())
+    def on_project_tab_changed(self, index):
+        widget = self.project_tabs.widget(index)
+        if isinstance(widget, ProjectTab):
+            self.current_project_id = widget.project_id
         else:
-            ordered_tasks = all_tasks
-
-        filtered_tasks = []
-        PRIORITY_MAP = {"Low": 3, "Medium": 2, "High": 1}
-        all_labels = self.manager.get_all_labels()
-        label_name_to_id = {label.name: label.id for label in all_labels}
-
-        for task in ordered_tasks:
-            search_ok = True
-            if self.search_text:
-                search_in_title = self.search_text in task.title.lower()
-                search_in_desc = task.description and self.search_text in task.description.lower()
-                search_ok = search_in_title or search_in_desc
-
-            priority_ok = True
-            if self.priority_filter != "All":
-                expected_priority = PRIORITY_MAP.get(self.priority_filter)
-                if expected_priority is not None:
-                    priority_ok = (task.priority == expected_priority)
-
-            label_ok = True
-            if self.label_filter != "All":
-                label_id = label_name_to_id.get(self.label_filter)
-                if label_id:
-                    label_ok = (label_id in task.labels)
-                else:
-                    label_ok = False
-
-            completed_ok = True
-            if not self.show_completed:
-                completed_ok = not task.completed
-
-            if search_ok and priority_ok and label_ok and completed_ok:
-                filtered_tasks.append(task)
-
-        if 0 <= row < len(filtered_tasks):
-            return filtered_tasks[row].id
-        return None
-
-    def display_filtered_tasks(self, tasks):
-        self.tasks_table.setRowCount(0)
-
-        for row, task in enumerate(tasks):
-            self.tasks_table.add_task_row(
-                row, task, self.manager,
-                self.toggle_task_status,
-                self.edit_task,
-                self.delete_task
-            )
-            item = self.tasks_table.item(row, 2)
-            if item:
-                item.setData(Qt.UserRole, task.id)
-
-        if self.selected_task_id:
-            for row in range(self.tasks_table.rowCount()):
-                item = self.tasks_table.item(row, 2)
-                if item and item.data(Qt.UserRole) == self.selected_task_id:
-                    self.tasks_table.selectRow(row)
-                    break
-
-    def load_tasks_for_project(self, project_id: str):
-        self.apply_filters()
-
-    def toggle_task_status(self, task_id: str):
-        task = self.manager.get_task(task_id)
-
-        scroll_pos = self.tasks_table.verticalScrollBar().value()
-        current_row = self.get_task_row(task_id)
-
-        if task:
-            task.toggle_complete()
-            self.manager.update_task(task_id, completed=task.completed)
-
-            if task.completed and self.selected_task_id == task_id:
-                self.subtask_panel.hide_panel()
-                self.selected_task_id = None
-
-            if self.current_project_id:
-                self.apply_filters()
-                self.update_statistics()
-                self.load_projects()
-
-                project = self.manager.get_project(self.current_project_id)
-                if project:
-                    self.project_progress_widget.update_progress(project, self.manager)
-
-        self.update_clear_completed_button()
-
-        self.tasks_table.verticalScrollBar().setValue(scroll_pos)
-
-        if 0 <= current_row < self.tasks_table.rowCount():
-            self.tasks_table.selectRow(current_row)
-
-    def get_task_row(self, task_id: str) -> int:
-        for row in range(self.tasks_table.rowCount()):
-            item = self.tasks_table.item(row, 1)
-            if item and item.data(Qt.UserRole) == task_id:
-                return row
-        return -1
+            self.current_project_id = None
 
     def create_project(self):
         dialog = ProjectDialog(self, manager=self.manager)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_project_data()
-
             if not data['name']:
                 QMessageBox.warning(self, 'Error', 'Project name is required')
                 return
 
             project = self.manager.create_project(**data)
             self.load_projects()
+            self.open_project_tab(project.id)
 
-            for i in range(self.projects_tree.topLevelItemCount()):
-                item = self.projects_tree.topLevelItem(i)
-                if item.project_id == project.id:
-                    self.projects_tree.setCurrentItem(item)
-                    self.on_project_selected(item, 0)
-                    break
-
-    def open_github_url(self):
-        if not self.current_project_id:
-            QMessageBox.warning(self, 'Error', 'No project selected')
-            return
-
-        project = self.manager.get_project(self.current_project_id)
-        if not project:
-            QMessageBox.warning(self, 'Error', 'Project not found')
-            return
-
-        if not project.github_url:
-            QMessageBox.warning(self, 'Error', 'No GitHub URL specified for this project')
-            return
-
-        try:
-            url = project.github_url.strip()
-            if not url.startswith(('http://', 'https://')):
-                url = 'https://' + url
-
-            QDesktopServices.openUrl(QUrl(url))
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                'Error',
-                f'Failed to open URL:\n{str(e)}\n\nURL: {project.github_url}'
-            )
-
-    def edit_current_project(self):
-        if not self.current_project_id:
-            QMessageBox.warning(self, 'Error', 'No project selected')
-            return
-
-        project = self.manager.get_project(self.current_project_id)
+    def edit_project_by_id(self, project_id: str):
+        project = self.manager.get_project(project_id)
         if not project:
             return
 
         dialog = ProjectDialog(self, project=project, manager=self.manager)
         if dialog.exec_() == QDialog.Accepted:
             data = dialog.get_project_data()
-
             if not data['name']:
                 QMessageBox.warning(self, 'Error', 'Project name is required')
                 return
@@ -1089,219 +1145,130 @@ class MainWindow(QMainWindow):
             self.manager.update_project(project.id, **data)
             self.load_projects()
 
-            if self.current_project_id == project.id:
-                self.load_tasks_for_project(project.id)
-        self.refresh_view()
+            for i in range(self.project_tabs.count()):
+                widget = self.project_tabs.widget(i)
+                if isinstance(widget, ProjectTab) and widget.project_id == project_id:
+                    self.project_tabs.setTabText(i, f"📁 {project.name} v{project.version}")
+                    widget.load_project_data()
+                    break
 
-    def delete_current_project(self):
-        if not self.current_project_id:
-            QMessageBox.warning(self, 'Error', 'No project selected')
-            return
-
-        project = self.manager.get_project(self.current_project_id)
+    def delete_project_by_id(self, project_id: str):
+        project = self.manager.get_project(project_id)
         if not project:
             return
 
         reply = QMessageBox.question(
-            self,
-            'Confirm Delete',
+            self, 'Confirm Delete',
             f'Delete project "{project.name}" and all its tasks/subtasks?',
             QMessageBox.Yes | QMessageBox.No
         )
 
         if reply == QMessageBox.Yes:
-            self.manager.delete_project(project.id)
+            for i in range(self.project_tabs.count()):
+                widget = self.project_tabs.widget(i)
+                if isinstance(widget, ProjectTab) and widget.project_id == project_id:
+                    self.close_project_tab(i)
+                    break
 
-            self.last_selected_project_id = None
-
-            self.current_project_id = None
-            self.selected_project_item = None
-
-            self.show_readme_mode()
-
-            self.btn_delete_project.setEnabled(False)
-            self.btn_edit_project.setEnabled(False)
-            self.btn_open_url.setEnabled(False)
-
-            self.filters_panel.setVisible(False)
-
-            self.btn_new_task.setVisible(False)
-            self.btn_new_task.setEnabled(False)
-
-            self.btn_clear_completed.setVisible(False)
-            self.btn_clear_completed.setEnabled(False)
-
-            self.tasks_header.setText('Select a project to view tasks')
-            self.tasks_table.setRowCount(0)
-
-            self.project_progress_widget.setVisible(False)
-
+            self.manager.delete_project(project_id)
             self.load_projects()
 
-    def clear_completed_tasks(self):
+    def create_task_in_current_project(self):
         if not self.current_project_id:
-            QMessageBox.warning(self, 'Error', 'No project selected')
+            QMessageBox.warning(self, 'Error', 'Please select a project first')
             return
 
-        tasks = self.manager.get_tasks_by_project(self.current_project_id)
-        completed_tasks = [task for task in tasks if task.completed]
+        for i in range(self.project_tabs.count()):
+            widget = self.project_tabs.widget(i)
+            if isinstance(widget, ProjectTab) and widget.project_id == self.current_project_id:
+                widget.create_task()
+                break
 
-        if not completed_tasks:
-            QMessageBox.information(self, 'Info', 'No completed tasks to clear')
+    def show_project_context_menu(self, position):
+        item = self.projects_tree.itemAt(position)
+        if not item or not hasattr(item, 'project_id'):
+            menu = QMenu()
+            new_project_action = QAction("📁 New Project", self)
+            new_project_action.triggered.connect(self.create_project)
+            menu.addAction(new_project_action)
+            menu.addSeparator()
+            refresh_action = QAction("🔄 Refresh", self)
+            refresh_action.triggered.connect(self.refresh_view)
+            menu.addAction(refresh_action)
+            menu.exec_(self.projects_tree.viewport().mapToGlobal(position))
             return
 
-        reply = QMessageBox.question(
-            self,
-            'Clear Completed Tasks',
-            f'Clear {len(completed_tasks)} completed task(s)?\n\n'
-            'This action cannot be undone.',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
-
-        if reply == QMessageBox.Yes:
-            if self.selected_task_id:
-                task_to_check = self.manager.get_task(self.selected_task_id)
-                if task_to_check and task_to_check.completed:
-                    self.subtask_panel.hide_panel()
-                    self.selected_task_id = None
-
-            deleted_count = 0
-            for task in completed_tasks:
-                if self.manager.delete_task(task.id):
-                    deleted_count += 1
-
-            if self.current_project_id:
-                self.apply_filters()
-                self.update_statistics()
-                self.load_projects()
-
-                project = self.manager.get_project(self.current_project_id)
-                if project:
-                    self.project_progress_widget.update_progress(project, self.manager)
-
-                self.update_label_filter_combo()
-
-            self.update_clear_completed_button()
-
-    def update_clear_completed_button(self):
-        if not self.current_project_id:
-            self.btn_clear_completed.setEnabled(False)
-            self.btn_clear_completed.setText('🗑️ Clear Completed (0)')
+        project_id = item.project_id
+        project = self.manager.get_project(project_id)
+        if not project:
             return
 
-        tasks = self.manager.get_tasks_by_project(self.current_project_id)
+        menu = QMenu()
 
-        completed_count = sum(1 for task in tasks if task.completed)
+        open_action = QAction("📂 Open in Tab", self)
+        open_action.triggered.connect(lambda: self.open_project_tab(project_id))
+        menu.addAction(open_action)
 
-        self.btn_clear_completed.setText(f'🗑️ Clear Completed ({completed_count})')
+        menu.addSeparator()
 
-        self.btn_clear_completed.setEnabled(completed_count > 0)
+        if project.github_url:
+            open_url_action = QAction("🌐 Open GitHub URL", self)
+            open_url_action.triggered.connect(lambda: self._open_url(project_id))
+            menu.addAction(open_url_action)
+            menu.addSeparator()
 
-        if completed_count > 0:
-            self.btn_clear_completed.setStyleSheet("""
-                QPushButton {
-                    background-color: #f39c12;
-                    color: black;
-                    font-weight: bold;
-                    padding: 6px 12px;
-                    border-radius: 5px;
-                    font-size: 12px;
-                    min-width: 140px;
-                }
-                QPushButton:hover:enabled {
-                    background-color: #d68910;
-                }
-                QPushButton:disabled {
-                    background-color: #666;
-                    color: #999;
-                }
-            """)
-        else:
-            self.btn_clear_completed.setStyleSheet("""
-                QPushButton {
-                    background-color: #666;
-                    color: #999;
-                    font-weight: bold;
-                    padding: 6px 12px;
-                    border-radius: 5px;
-                    font-size: 12px;
-                    min-width: 140px;
-                }
-                QPushButton:hover:enabled {
-                    background-color: #d68910;
-                }
-                QPushButton:disabled {
-                    background-color: #666;
-                    color: #999;
-                }
-            """)
+        edit_action = QAction("✏️ Edit Project", self)
+        edit_action.triggered.connect(lambda: self.edit_project_by_id(project_id))
+        menu.addAction(edit_action)
 
-    def update_label_filter_combo(self):
-        current_text = self.label_filter_combo.currentText()
-        self.label_filter_combo.clear()
-        self.label_filter_combo.addItem("All")
+        menu.addSeparator()
 
-        labels = self.manager.get_all_labels()
-        for label in labels:
-            self.label_filter_combo.addItem(label.name)
+        delete_action = QAction("🗑️ Delete Project", self)
+        delete_action.triggered.connect(lambda: self.delete_project_by_id(project_id))
+        menu.addAction(delete_action)
 
-        if current_text and current_text != "All":
-            index = self.label_filter_combo.findText(current_text)
-            if index >= 0:
-                self.label_filter_combo.setCurrentIndex(index)
-            else:
-                self.label_filter_combo.setCurrentIndex(0)
-                self.label_filter = "All"
-        else:
-            self.label_filter_combo.setCurrentIndex(0)
-            self.label_filter = "All"
+        menu.exec_(self.projects_tree.viewport().mapToGlobal(position))
 
-    def on_search_changed(self, text):
-        self.search_text = text.strip().lower()
-        self.apply_filters()
+    def _open_url(self, project_id: str):
+        project = self.manager.get_project(project_id)
+        if project and project.github_url:
+            try:
+                url = project.github_url.strip()
+                if not url.startswith(('http://', 'https://')):
+                    url = 'https://' + url
+                QDesktopServices.openUrl(QUrl(url))
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f'Failed to open URL:\n{str(e)}')
 
-    def on_priority_filter_changed(self, priority):
-        self.priority_filter = priority
-        self.apply_filters()
+    def manage_labels(self):
+        dialog = LabelManagerDialog(self, self.manager)
+        dialog.exec_()
+        self.update_statistics()
+        for i in range(self.project_tabs.count()):
+            widget = self.project_tabs.widget(i)
+            if isinstance(widget, ProjectTab):
+                widget.update_label_filter_combo()
+                widget.apply_filters()
 
-    def on_label_filter_changed(self, label):
-        self.label_filter = label
-        self.apply_filters()
+    def refresh_view(self):
+        self.load_projects()
+        for i in range(self.project_tabs.count()):
+            widget = self.project_tabs.widget(i)
+            if isinstance(widget, ProjectTab):
+                widget.load_project_data()
+        self.status_bar.showMessage('View refreshed', 3000)
 
-    def on_show_completed_changed(self, state):
-        self.show_completed = (state == Qt.Checked)
-        self.apply_filters()
-
-    def toggle_show_completed_menu(self, show: bool):
-        self.show_completed_checkbox.setChecked(show)
-        self.show_completed = show
-        self.apply_filters()
-
-    def reset_filters(self):
-        self.search_input.clear()
-        self.priority_filter_combo.setCurrentIndex(0)
-        self.label_filter_combo.setCurrentIndex(0)
-        self.show_completed_checkbox.setChecked(True)
-
-        self.search_text = ""
-        self.priority_filter = "All"
-        self.label_filter = "All"
-        self.show_completed = True
-
-        self.apply_filters()
-        self.status_bar.showMessage('Filters reset', 2000)
+    def update_statistics(self):
+        stats = self.manager.get_statistics()
+        self.statistics_widget.update_stats(stats)
 
     def toggle_statistics(self, show: bool = None):
         if show is None:
             show = not self.stats_visible
-
         self.stats_visible = show
         self.statistics_widget.setVisible(show)
-
         self.statistics_widget.update()
         self.repaint()
-
         if show:
             self.btn_toggle_stats.setText('▼')
             self.btn_toggle_stats.setToolTip("Hide statistics")
@@ -1309,430 +1276,39 @@ class MainWindow(QMainWindow):
             self.btn_toggle_stats.setText('▶')
             self.btn_toggle_stats.setToolTip("Show statistics")
 
-        for action in self.menuBar().actions():
-            if action.text() == 'View':
-                view_menu = action.menu()
-                for view_action in view_menu.actions():
-                    if view_action.text() == 'Show Statistics':
-                        view_action.setChecked(show)
-                        break
-                break
-
     def toggle_statistics_button(self):
         self.toggle_statistics(not self.stats_visible)
-
-    def apply_filters(self):
-        if not self.current_project_id:
-            return
-
-        selected_task_id = None
-        selected_items = self.tasks_table.selectedItems()
-        if selected_items:
-            row = selected_items[0].row()
-            item = self.tasks_table.item(row, 1)
-            if item:
-                selected_task_id = item.data(Qt.UserRole)
-
-        scroll_pos = self.tasks_table.verticalScrollBar().value()
-
-        all_tasks = self.manager.get_tasks_by_project(self.current_project_id)
-
-        project = self.manager.get_project(self.current_project_id)
-
-        filtered_tasks = []
-
-        PRIORITY_MAP = {
-            "Low": 3,
-            "Medium": 2,
-            "High": 1,
-        }
-
-        all_labels = self.manager.get_all_labels()
-        label_name_to_id = {label.name: label.id for label in all_labels}
-
-        for task in all_tasks:
-            search_ok = True
-            if self.search_text:
-                search_in_title = self.search_text in task.title.lower()
-                search_in_desc = task.description and self.search_text in task.description.lower()
-                search_ok = search_in_title or search_in_desc
-
-            priority_ok = True
-            if self.priority_filter != "All":
-                expected_priority = PRIORITY_MAP.get(self.priority_filter)
-                if expected_priority is not None:
-                    priority_ok = (task.priority == expected_priority)
-
-            label_ok = True
-            if self.label_filter != "All":
-                label_id = label_name_to_id.get(self.label_filter)
-                if label_id:
-                    label_ok = (label_id in task.labels)
-                else:
-                    label_ok = False
-
-            completed_ok = True
-            if not self.show_completed:
-                completed_ok = not task.completed
-
-            if search_ok and priority_ok and label_ok and completed_ok:
-                filtered_tasks.append(task)
-
-        if project and project.task_order:
-            tasks_dict = {task.id: task for task in filtered_tasks}
-
-            sorted_tasks = []
-            for task_id in project.task_order:
-                if task_id in tasks_dict:
-                    sorted_tasks.append(tasks_dict.pop(task_id))
-
-            sorted_tasks.extend(tasks_dict.values())
-
-            filtered_tasks = sorted_tasks
-
-        self.display_filtered_tasks(filtered_tasks)
-
-        if selected_task_id:
-            for row in range(self.tasks_table.rowCount()):
-                item = self.tasks_table.item(row, 1)
-                if item and item.data(Qt.UserRole) == selected_task_id:
-                    self.tasks_table.selectRow(row)
-                    break
-
-        self.tasks_table.verticalScrollBar().setValue(scroll_pos)
-
-        filtered_count = len(filtered_tasks)
-        total_count = len(all_tasks)
-
-        if filtered_count == total_count:
-            self.status_bar.showMessage(f'Showing all {total_count} tasks', 2000)
-        else:
-            self.status_bar.showMessage(f'Showing {filtered_count} of {total_count} tasks', 2000)
-
-    def create_task(self):
-        if not self.current_project_id:
-            QMessageBox.warning(self, 'Error', 'Please select a project first')
-            return
-
-        dialog = TaskDialog(self, manager=self.manager,
-                            project_id=self.current_project_id)
-        if dialog.exec_() == QDialog.Accepted:
-            data = dialog.get_task_data()
-
-            if not data['title']:
-                QMessageBox.warning(self, 'Error', 'Task title is required')
-                return
-
-            self.manager.create_task(**data)
-
-            self.apply_filters()
-            self.update_statistics()
-
-            self.load_projects()
-
-            project = self.manager.get_project(self.current_project_id)
-            if project:
-                self.project_progress_widget.update_progress(project, self.manager)
-
-            self.update_label_filter_combo()
-
-    def edit_task(self, task_id: str):
-        task = self.manager.get_task(task_id)
-        if not task:
-            return
-
-        self.tasks_table.save_selection()
-
-        dialog = TaskDialog(self, task=task, manager=self.manager)
-        dialog.task_updated.connect(self.on_task_updated)
-        if dialog.exec_() == QDialog.Accepted:
-            data = dialog.get_task_data()
-
-            if not data['title']:
-                QMessageBox.warning(self, 'Error', 'Task title is required')
-                return
-
-            self.manager.update_task(task.id, **data)
-
-            if self.current_project_id:
-                self.apply_filters()
-                self.update_statistics()
-
-                self.load_projects()
-
-                project = self.manager.get_project(self.current_project_id)
-                if project:
-                    self.project_progress_widget.update_progress(project, self.manager)
-
-                self.update_label_filter_combo()
-
-            self.tasks_table.restore_selection()
-
-    def on_task_updated(self):
-        if self.current_project_id:
-            self.tasks_table.save_selection()
-            self.apply_filters()
-            self.update_statistics()
-
-            self.load_projects()
-
-            project = self.manager.get_project(self.current_project_id)
-            if project:
-                self.project_progress_widget.update_progress(project, self.manager)
-
-            self.update_label_filter_combo()
-
-            self.tasks_table.restore_selection()
-
-    def delete_task(self, task_id: str):
-        task = self.manager.get_task(task_id)
-        if not task:
-            return
-
-        reply = QMessageBox.question(
-            self,
-            'Confirm Delete',
-            f'Delete task "{task.title}" and all its subtasks?',
-            QMessageBox.Yes | QMessageBox.No
-        )
-
-        if reply == QMessageBox.Yes:
-            if self.selected_task_id == task_id:
-                self.subtask_panel.hide_panel()
-                self.selected_task_id = None
-
-            self.manager.delete_task(task_id)
-
-            if self.current_project_id:
-                self.apply_filters()
-                self.update_statistics()
-
-                self.load_projects()
-
-                project = self.manager.get_project(self.current_project_id)
-                if project:
-                    self.project_progress_widget.update_progress(project, self.manager)
-
-                self.update_label_filter_combo()
-
-    def on_task_dropped(self, from_row, to_row):
-        if not self.current_project_id:
-            return
-
-        new_order = self.tasks_table.get_task_order()
-
-        project = self.manager.get_project(self.current_project_id)
-        if not project:
-            return
-
-        project.task_order = new_order
-        self.manager.update_project(project.id, task_order=new_order)
-
-        self.status_bar.showMessage(f'Task order saved', 2000)
-
-    def manage_labels(self):
-        dialog = LabelManagerDialog(self, self.manager)
-        dialog.exec_()
-        self.update_statistics()
-        self.update_label_filter_combo()
-        self.apply_filters()
-
-    def show_project_context_menu(self, position):
-        item = self.projects_tree.itemAt(position)
-
-        if item and hasattr(item, 'project_id'):
-            project_id = item.project_id
-            self.current_project_id = project_id
-            self.selected_project_item = item
-
-            self.btn_delete_project.setEnabled(True)
-            self.btn_edit_project.setEnabled(True)
-            self.btn_open_url.setEnabled(True)
-
-            self.btn_new_task.setVisible(True)
-            self.btn_new_task.setEnabled(True)
-
-            self.btn_clear_completed.setVisible(True)
-            self.update_clear_completed_button()
-
-            self.show_project_menu(project_id, self.projects_tree.viewport().mapToGlobal(position))
-        else:
-            self.show_empty_project_context_menu(position)
-
-    def show_task_context_menu(self, position):
-        row = self.tasks_table.rowAt(position.y())
-
-        if row < 0:
-            return
-
-        self.tasks_table.selectRow(row)
-
-        task_id = self.get_task_id_from_row(row)
-
-        if task_id:
-            self.show_task_menu(task_id, self.tasks_table.viewport().mapToGlobal(position))
-
-    def show_empty_project_context_menu(self, position):
-        menu = QMenu()
-
-        new_project_action = QAction("📁 New Project", self)
-        new_project_action.triggered.connect(self.create_project)
-        menu.addAction(new_project_action)
-
-        menu.addSeparator()
-
-        refresh_action = QAction("🔄 Refresh", self)
-        refresh_action.triggered.connect(self.refresh_view)
-        menu.addAction(refresh_action)
-
-        menu.exec_(self.projects_tree.viewport().mapToGlobal(position))
-
-    def show_project_menu(self, project_id: str, position):
-        project = self.manager.get_project(project_id)
-        if not project:
-            return
-
-        menu = QMenu()
-
-        if project.github_url:
-            open_url_action = QAction("🌐 Open GitHub URL")
-            open_url_action.triggered.connect(self.open_github_url)
-            menu.addAction(open_url_action)
-            menu.addSeparator()
-
-        edit_action = QAction("✏️ Edit Project")
-        edit_action.triggered.connect(self.edit_current_project)
-        menu.addAction(edit_action)
-
-        menu.addSeparator()
-
-        delete_action = QAction("🗑️ Delete Project")
-        delete_action.triggered.connect(self.delete_current_project)
-        menu.addAction(delete_action)
-
-        menu.exec_(position)
-
-    def show_task_menu(self, task_id: str, position):
-        task = self.manager.get_task(task_id)
-        if not task:
-            return
-
-        menu = QMenu()
-
-        view_action = QAction("👁 View Details")
-        view_action.triggered.connect(lambda: self.view_task(task_id))
-        menu.addAction(view_action)
-
-        mark_action = QAction("✅ Mark as Complete" if not task.completed else "⏳ Mark as Pending")
-        mark_action.triggered.connect(lambda: self.toggle_task_status(task_id))
-        menu.addAction(mark_action)
-
-        menu.addSeparator()
-
-        edit_action = QAction("✏️ Edit Task")
-        edit_action.triggered.connect(lambda: self.edit_task(task_id))
-        menu.addAction(edit_action)
-
-        menu.addSeparator()
-
-        delete_action = QAction("🗑️ Delete Task")
-        delete_action.triggered.connect(lambda: self.delete_task(task_id))
-        menu.addAction(delete_action)
-
-        menu.exec_(position)
-
-    def view_task(self, task_id: str):
-        task = self.manager.get_task(task_id)
-        if not task:
-            return
-
-        dialog = TaskDetailsDialog(self, task=task, manager=self.manager)
-        dialog.exec_()
-
-    def on_task_double_clicked(self, task_id):
-        if task_id:
-            task = self.manager.get_task(task_id)
-            if task and self.current_project_id:
-                if self.selected_task_id == task_id:
-                    self.subtask_panel.hide_panel()
-                    self.selected_task_id = None
-                else:
-                    self.subtask_panel.show_for_task(task, self.current_project_id)
-                    self.selected_task_id = task_id
-
-    def refresh_view(self):
-        self.load_projects()
-        if self.current_project_id:
-            project = self.manager.get_project(self.current_project_id)
-            if project:
-                self.tasks_header.setText('📋 Project actions')
-                self.project_progress_widget.update_progress(project, self.manager)
-                self.apply_filters()
-                if project.github_url:
-                    self.btn_open_url.setEnabled(True)
-                else:
-                    self.btn_open_url.setEnabled(False)
-
-        self.status_bar.showMessage('View refreshed', 3000)
-
-    def toggle_show_completed(self, show: bool):
-        self.refresh_view()
-
-    def update_statistics(self):
-        stats = self.manager.get_statistics()
-        self.statistics_widget.update_stats(stats)
 
     def import_data(self):
         home_dir = str(Path.home())
         file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Import Data",
-            home_dir,
-            "JSON Files (*.json);;All Files (*)"
+            self, "Import Data", home_dir, "JSON Files (*.json);;All Files (*)"
         )
-
         if not file_path:
             return
 
         reply = QMessageBox.warning(
-            self,
-            "Import Data",
+            self, "Import Data",
             "⚠️ This will REPLACE all current data with imported data!\n\n"
             "Current data will be lost. Are you sure?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
-
         if reply != QMessageBox.Yes:
             return
 
         try:
             result = self.manager.import_data(file_path)
-
             if result['success']:
                 self.manager.load_data()
 
-                self.current_project_id = None
-                self.selected_project_item = None
-                self.btn_delete_project.setEnabled(False)
-                self.btn_edit_project.setEnabled(False)
-
-                self.btn_new_task.setVisible(False)
-                self.btn_new_task.setEnabled(False)
-
-                self.btn_clear_completed.setVisible(False)
-                self.btn_clear_completed.setEnabled(False)
-
-                self.tasks_header.setText('Select a project to view tasks')
-                self.tasks_table.setRowCount(0)
-                self.project_progress_widget.setVisible(False)
+                while self.project_tabs.count() > 0:
+                    self.close_project_tab(0)
 
                 self.load_projects()
                 self.update_statistics()
 
                 items = result.get('imported_items', {})
-                message = f"✅ Import successful!\n\n"
-
+                message = "✅ Import successful!\n\n"
                 if items.get('projects', 0) > 0:
                     message += f"📁 Projects: {items.get('projects', 0)}\n"
                 if items.get('tasks', 0) > 0:
@@ -1741,124 +1317,59 @@ class MainWindow(QMainWindow):
                     message += f"📝 Subtasks: {items.get('subtasks', 0)}\n"
                 if items.get('labels', 0) > 0:
                     message += f"🏷️ Labels: {items.get('labels', 0)}\n"
-
                 QMessageBox.information(self, "Import Complete", message)
-                self.status_bar.showMessage('Data imported successfully', 3000)
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Import Failed",
-                    f"Failed to import: {result.get('error', 'Unknown error')}\n\n"
-                    f"Original data has been restored."
-                )
-
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Import Error",
-                f"Import failed:\n\n{str(e)}"
-            )
+            QMessageBox.critical(self, "Import Error", f"Import failed:\n\n{str(e)}")
 
     def export_data(self):
         home_dir = str(Path.home())
-
         default_file_name = os.path.join(
             home_dir,
             f"projects_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
-
         file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Export Data",
-            default_file_name,
-            "JSON Files (*.json);;All Files (*)"
+            self, "Export Data", default_file_name, "JSON Files (*.json);;All Files (*)"
         )
-
         if not file_path:
             return
-
         if not file_path.endswith('.json'):
             file_path += '.json'
-
         try:
             result = self.manager.export_data(file_path)
-
             if result['success']:
                 message = (
                     f"✅ Export successful!\n\n"
                     f"File: {result['export_path']}\n"
                     f"Size: {result['export_size'] / 1024:.1f} KB"
                 )
-
                 QMessageBox.information(self, "Export Complete", message)
-                self.status_bar.showMessage('Data exported successfully', 3000)
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Export Failed",
-                    f"Failed to export: {result.get('error', 'Unknown error')}"
-                )
-
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Export Error",
-                f"Export failed:\n\n{str(e)}"
-            )
+            QMessageBox.critical(self, "Export Error", f"Export failed:\n\n{str(e)}")
 
     def create_backup(self):
         try:
             backup_path = self.manager.create_backup()
-
-            QMessageBox.information(
-                self,
-                "Backup Created",
-                f"✅ Backup created successfully!\n\n{backup_path}"
-            )
-
-            self.status_bar.showMessage(f'Backup created', 3000)
-
-        except FileNotFoundError as e:
-            QMessageBox.warning(
-                self,
-                "No Data File",
-                f"Cannot create backup: No data file found.\n"
-                f"Please create at least one project first."
-            )
+            QMessageBox.information(self, "Backup Created", f"✅ Backup created successfully!\n\n{backup_path}")
+        except FileNotFoundError:
+            QMessageBox.warning(self, "No Data File", "Cannot create backup: No data file found.")
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Backup Error",
-                f"Failed to create backup:\n\n{str(e)}"
-            )
+            QMessageBox.critical(self, "Backup Error", f"Failed to create backup:\n\n{str(e)}")
 
     def cleanup_old_backups_on_start(self):
         try:
-            stats = self.manager.cleanup_old_backups(days_to_keep=30)
-
-            if stats['deleted'] > 0:
-                print(f"Cleaned up {stats['deleted']} old backups")
-
+            self.manager.cleanup_old_backups(days_to_keep=30)
         except Exception as e:
             print(f"Backup cleanup error: {e}")
 
     def show_backup_manager(self):
         try:
             info = self.manager.get_backup_info()
-
             message = "📂 Backup Manager\n\n"
-
             if info['total'] == 0:
                 message += "No backups found."
             else:
                 message += f"Total backups: {info['total']}\n"
                 message += f"Total size: {info['total_size_mb']:.2f} MB\n\n"
-
-                if info['total'] > 10:
-                    message += f"Showing last 10 of {info['total']} backups:\n\n"
-                else:
-                    message += "All backups:\n\n"
-
                 for backup in info['backups']:
                     message += f"• {backup['date']} ({backup['size_mb']:.1f} MB)\n"
 
@@ -1866,333 +1377,41 @@ class MainWindow(QMainWindow):
             msg_box.setWindowTitle("Backup Manager")
             msg_box.setText(message)
             msg_box.setIcon(QMessageBox.Information)
-
             clear_btn = msg_box.addButton("Clear All Backups", QMessageBox.ActionRole)
-
-            if info['total'] == 0:
-                clear_btn.setEnabled(False)
-                clear_btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #666;
-                        color: #999;
-                        font-weight: bold;
-                        padding: 5px 10px;
-                    }
-                """)
-            else:
-                clear_btn.setEnabled(True)
-                clear_btn.setStyleSheet("""
-                    QPushButton {
-                        background-color: #e74c3c;
-                        color: white;
-                        font-weight: bold;
-                        padding: 5px 10px;
-                    }
-                    QPushButton:hover {
-                        background-color: #c0392b;
-                    }
-                    QPushButton:disabled {
-                        background-color: #666;
-                        color: #999;
-                    }
-                """)
-
             close_btn = msg_box.addButton("Close", QMessageBox.RejectRole)
-
             msg_box.exec_()
-
-            if msg_box.clickedButton() == clear_btn and clear_btn.isEnabled():
+            if msg_box.clickedButton() == clear_btn:
                 self.clear_all_backups()
-
         except Exception as e:
-            QMessageBox.warning(
-                self,
-                "Backup Error",
-                f"Failed to show backup info: {str(e)}"
-            )
+            QMessageBox.warning(self, "Backup Error", f"Failed to show backup info: {str(e)}")
 
     def clear_all_backups(self):
         info = self.manager.get_backup_info()
-
         if info['total'] == 0:
-            QMessageBox.information(
-                self,
-                "No Backups",
-                "No backup files found to delete"
-            )
             return
-
         reply = QMessageBox.warning(
-            self,
-            "Clear All Backups",
-            f"⚠️ Are you sure you want to delete ALL {info['total']} backups?\n"
-            f"Total size: {info['total_size_mb']:.2f} MB\n\n"
-            "This action cannot be undone!",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            self, "Clear All Backups",
+            f"⚠️ Delete ALL {info['total']} backups?",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
-
-        if reply != QMessageBox.Yes:
-            return
-
-        try:
-            result = self.manager.clear_all_backups()
-
-            if result.get('success', True):
-                QMessageBox.information(
-                    self,
-                    "Backups Cleared",
-                    f"✅ Cleared {result.get('deleted', 0)} backup files\n"
-                    f"Freed {result.get('total_size_mb', 0):.2f} MB"
-                )
-                self.status_bar.showMessage(f'Cleared {result.get("deleted", 0)} backups', 3000)
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Clear Failed",
-                    f"Failed to clear backups: {result.get('error', 'Unknown error')}"
-                )
-
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Clear Error",
-                f"Failed to clear backups:\n\n{str(e)}"
-            )
+        if reply == QMessageBox.Yes:
+            self.manager.clear_all_backups()
 
     def show_about(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("About Smart Project Manager")
-        dialog.setMinimumWidth(500)
-        dialog.setMinimumHeight(400)
-
-        layout = QVBoxLayout(dialog)
-        layout.setSpacing(10)
-
-        title_label = QLabel(f"<h2 style='color: #2a82da;'>Smart Project Manager {ver}</h2>")
-        title_label.setTextFormat(Qt.RichText)
-        title_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title_label)
-
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setFrameShape(QFrame.NoFrame)
-
-        content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
-
-        about_label = QLabel(
-            f"""<p style='text-align: center;'>A powerful project and task management tool for developers and researchers.</p>
-
-            <p><b>Features:</b></p>
-            <ul>
-            <li>Manage unlimited projects with versions</li>
-            <li>Create tasks with priorities and due dates</li>
-            <li>Add subtasks to tasks</li>
-            <li>Label system</li>
-            <li>Automatic progress tracking</li>
-            <li>Dark theme interface</li>
-            <li>Linux desktop integration (Application Menu / Desktop shortcuts)</li>
-            </ul>
-
-            <p style='text-align: center; margin-top: 20px;'><b>Links:</b></p>
-            <ul style='list-style: none; padding-left: 0; text-align: center;'>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager">GitHub Repository</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE">License (BSD 3-Clause)</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md">Disclaimer</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/releases">Releases</a></li>
-            </ul>
-
-            <p style='text-align: center; margin-top: 20px;'>
-            <b>Copyright © 2026, <a href="https://smartlegionlab.github.io/" style="color: #2a82da;">Smart Legion Lab</a>. All rights reserved.</b>
-            </p>
-            """
-        )
-        about_label.setTextFormat(Qt.RichText)
-        about_label.setWordWrap(True)
-        about_label.setOpenExternalLinks(True)
-        about_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        about_label.setStyleSheet("""
-            QLabel {
-                background-color: #2a2a2a;
-                padding: 15px;
-                border-radius: 5px;
-            }
-            a {
-                color: #2a82da;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-        """)
-
-        content_layout.addWidget(about_label)
-        scroll_area.setWidget(content_widget)
-        layout.addWidget(scroll_area)
-
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        ok_button = QPushButton("OK")
-        ok_button.setMinimumWidth(100)
-        ok_button.setMinimumHeight(35)
-        ok_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2a82da;
-                color: white;
-                font-weight: bold;
-                border-radius: 5px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #1a72ca;
-            }
-        """)
-        ok_button.clicked.connect(dialog.accept)
-        button_layout.addWidget(ok_button)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
-
-        dialog.setModal(True)
-        x = self.x() + (self.width() - dialog.width()) // 2
-        y = self.y() + (self.height() - dialog.height()) // 2
-        dialog.move(x, y)
-
+        from smart_project_manager.ui.dialogs.about_dialog import AboutDialog
+        dialog = AboutDialog(self)
         dialog.exec_()
 
     def show_help(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Help - Smart Project Manager")
-        dialog.setMinimumWidth(650)
-        dialog.setMinimumHeight(500)
-
-        layout = QVBoxLayout(dialog)
-        layout.setSpacing(10)
-
-        title_label = QLabel("<h2 style='color: #2a82da;'>Smart Project Manager Help</h2>")
-        title_label.setTextFormat(Qt.RichText)
-        title_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title_label)
-
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setFrameShape(QFrame.NoFrame)
-
-        content_widget = QWidget()
-        content_layout = QVBoxLayout(content_widget)
-
-        help_label = QLabel(
-            """<p><b>Getting Started:</b></p>
-            <ol>
-            <li>Create a project using File → New Project or the New Project button</li>
-            <li>Select a project from the left panel</li>
-            <li>Add tasks to the project using File → New Task or the New Task button</li>
-            <li>Add subtasks by editing a task and going to the Subtasks tab</li>
-            <li>Use labels to categorize tasks and subtasks</li>
-            </ol>
-
-            <p><b>Desktop Integration:</b></p>
-            <ul>
-            <li><b>File → Create Desktop Entry</b> — Create application shortcut in your system menu (Linux only)</li>
-            <li>Choose between Application Menu (~/.local/share/applications/) and/or Desktop (~/Desktop/)</li>
-            <li>After creation, you may need to log out and back in for the entry to appear</li>
-            <li>Desktop shortcuts may show "Unsecured Application Launcher" — right-click → "Allow Launching" (one-time only)</li>
-            </ul>
-
-            <p><b>Keyboard Shortcuts:</b></p>
-            <ul>
-            <li>Ctrl+N: New Project</li>
-            <li>Ctrl+T: New Task</li>
-            <li>Ctrl+B: Create BackUp</li>
-            <li>Ctrl+I: Import</li>
-            <li>Ctrl+Shift+E: Export</li>
-            <li>Ctrl+E: Edit Project</li>
-            <li>Ctrl+D: Delete Project</li>
-            <li>Ctrl+L: Manage Labels</li>
-            <li>F5: Refresh View</li>
-            <li>F1: Help</li>
-            <li>Ctrl+Q: Exit</li>
-            </ul>
-
-            <p><b>Features:</b></p>
-            <ul>
-            <li>Projects have name, version, description</li>
-            <li>Tasks have title, description, priority, due date, and labels</li>
-            <li>Subtasks inherit parent task properties and can have their own labels</li>
-            <li>Automatic completion: When all subtasks are done, parent task is marked complete</li>
-            <li>Progress bars show completion percentage</li>
-            <li>Right-click tasks for quick actions</li>
-            </ul>
-
-            <p>Data is automatically saved to ~/.smart_project_manager/projects.json</p>
-
-            <hr>
-            <p>Github: <a href="https://github.com/smartlegionlab/smart-project-manager/" style="color: #2a82da;">Smart Project Manager</a></p>
-            """
-        )
-        help_label.setTextFormat(Qt.RichText)
-        help_label.setWordWrap(True)
-        help_label.setOpenExternalLinks(True)
-        help_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        help_label.setStyleSheet("""
-            QLabel {
-                background-color: #2a2a2a;
-                padding: 15px;
-                border-radius: 5px;
-            }
-            a {
-                color: #2a82da;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-        """)
-
-        content_layout.addWidget(help_label)
-        scroll_area.setWidget(content_widget)
-        layout.addWidget(scroll_area)
-
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
-
-        ok_button = QPushButton("OK")
-        ok_button.setMinimumWidth(100)
-        ok_button.setMinimumHeight(35)
-        ok_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2a82da;
-                color: white;
-                font-weight: bold;
-                border-radius: 5px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #1a72ca;
-            }
-        """)
-        ok_button.clicked.connect(dialog.accept)
-        button_layout.addWidget(ok_button)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
-
-        dialog.setModal(True)
-        x = self.x() + (self.width() - dialog.width()) // 2
-        y = self.y() + (self.height() - dialog.height()) // 2
-        dialog.move(x, y)
-
+        from smart_project_manager.ui.dialogs.help_dialog import HelpDialog
+        dialog = HelpDialog(self)
         dialog.exec_()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(
-            self,
-            'Exit',
-            'Are you sure you want to exit?',
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            self, 'Exit', 'Are you sure you want to exit?',
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
-
         if reply == QMessageBox.Yes:
             event.accept()
         else:
