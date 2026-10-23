@@ -72,17 +72,17 @@ class HelpDialog(QDialog):
             <ul style='color: #ddd;'>
             <li><b>Project tabs</b> (top right): each opened project gets its own tab</li>
             <li><b>Subtask tabs</b> (bottom right): each opened task gets its own subtask tab</li>
-            <li>Close a project tab with the X button — the project stays in the left tree</li>
-            <li>Close a subtask tab with the X button — the task stays in the task list</li>
+            <li>Close a project tab with the X button - the project stays in the left tree</li>
+            <li>Close a subtask tab with the X button - the task stays in the task list</li>
             <li>Switch between multiple projects and multiple tasks freely</li>
             </ul>
 
             <p style='color: #007acc; font-weight: bold;'>Desktop Integration (Linux):</p>
             <ul style='color: #ddd;'>
-            <li><b>File → Create Desktop Entry</b> — create an application shortcut in your system menu</li>
+            <li><b>File → Create Desktop Entry</b> - create an application shortcut in your system menu</li>
             <li>Choose between Application Menu (~/.local/share/applications/) and/or Desktop (~/Desktop/)</li>
             <li>After creation, you may need to log out and back in for the entry to appear</li>
-            <li>Desktop shortcuts may show "Unsecured Application Launcher" — right-click → "Allow Launching" (one-time only)</li>
+            <li>Desktop shortcuts may show "Unsecured Application Launcher" - right-click → "Allow Launching" (one-time only)</li>
             </ul>
 
             <p style='color: #007acc; font-weight: bold;'>Keyboard Shortcuts:</p>

@@ -219,7 +219,7 @@ class SubtaskPanelWidget(QWidget):
                 except:
                     due_label.setStyleSheet("color: #888;")
             else:
-                due_label = QLabel("—")
+                due_label = QLabel("-")
                 due_label.setStyleSheet("color: #5a5d65; font-style: italic;")
 
             due_layout.addWidget(due_label)
@@ -249,7 +249,7 @@ class SubtaskPanelWidget(QWidget):
                     """)
                     labels_layout.addWidget(more_label)
             else:
-                no_labels = QLabel("—")
+                no_labels = QLabel("-")
                 no_labels.setStyleSheet("color: #5a5d65; font-style: italic; font-size: 10px;")
                 labels_layout.addWidget(no_labels)
 

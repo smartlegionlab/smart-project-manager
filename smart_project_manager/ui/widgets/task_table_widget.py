@@ -146,7 +146,7 @@ class TaskTableWidget(QTableWidget):
         handle_layout.setSpacing(3)
 
         for _ in range(2):
-            line = QLabel("—")
+            line = QLabel("-")
             line.setStyleSheet("""
                 QLabel {
                     color: #888;

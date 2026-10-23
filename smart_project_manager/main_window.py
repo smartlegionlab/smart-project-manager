@@ -1298,26 +1298,40 @@ class MainWindow(QMainWindow):
 
         try:
             result = self.manager.import_data(file_path)
-            if result['success']:
-                self.manager.load_data()
 
-                while self.project_tabs.count() > 0:
-                    self.close_project_tab(0)
+            if not result.get('success'):
+                QMessageBox.critical(
+                    self, "Import Error",
+                    f"Import failed:\n\n{result.get('error', 'Unknown error')}"
+                )
+                return
 
-                self.load_projects()
-                self.update_statistics()
+            self.manager.load_data()
 
-                items = result.get('imported_items', {})
-                message = "✅ Import successful!\n\n"
-                if items.get('projects', 0) > 0:
-                    message += f"📁 Projects: {items.get('projects', 0)}\n"
-                if items.get('tasks', 0) > 0:
-                    message += f"✅ Tasks: {items.get('tasks', 0)}\n"
-                if items.get('subtasks', 0) > 0:
-                    message += f"📝 Subtasks: {items.get('subtasks', 0)}\n"
-                if items.get('labels', 0) > 0:
-                    message += f"🏷️ Labels: {items.get('labels', 0)}\n"
-                QMessageBox.information(self, "Import Complete", message)
+            while self.project_tabs.count() > 0:
+                widget = self.project_tabs.widget(0)
+                self.project_tabs.removeTab(0)
+                if widget is not self.empty_label:
+                    widget.deleteLater()
+
+            self.project_tabs.addTab(self.empty_label, "Welcome")
+            self.current_project_id = None
+
+            self.load_projects()
+            self.update_statistics()
+
+            items = result.get('imported_items', {})
+            message = "✅ Import successful!\n\n"
+            if items.get('projects', 0) > 0:
+                message += f"📁 Projects: {items.get('projects', 0)}\n"
+            if items.get('tasks', 0) > 0:
+                message += f"✅ Tasks: {items.get('tasks', 0)}\n"
+            if items.get('subtasks', 0) > 0:
+                message += f"📝 Subtasks: {items.get('subtasks', 0)}\n"
+            if items.get('labels', 0) > 0:
+                message += f"🏷️ Labels: {items.get('labels', 0)}\n"
+            QMessageBox.information(self, "Import Complete", message)
+
         except Exception as e:
             QMessageBox.critical(self, "Import Error", f"Import failed:\n\n{str(e)}")
 

@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v1.0.10</sup>
+# Smart Project Manager <sup>v1.1.0</sup>
 
 ---
 
@@ -79,12 +79,12 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 There are **two independent ways** to use this application:
 
-- **Run from source** — clone the repo, create a virtual environment, launch manually. Nothing is installed system-wide.
-- **Install system-wide** — one command creates a menu entry. Desktop shortcut is opt-in.
+- **Run from source** - clone the repo, create a virtual environment, launch manually. Nothing is installed system-wide.
+- **Install system-wide** - one command creates a menu entry. Desktop shortcut is opt-in.
 
 Choose one. They are not meant to be combined.
 
-### Option 1 — Run from Source (no system install)
+### Option 1 - Run from Source (no system install)
 
 Use this if you just want to try the app or run it manually from a folder.
 
@@ -116,7 +116,7 @@ python app.py
 
 Nothing is installed system-wide. The app runs from this folder.
 
-### Option 2 — Install System-Wide (recommended)
+### Option 2 - Install System-Wide (recommended)
 
 Use this if you want the app in your application menu.
 
@@ -130,7 +130,7 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 
 1. Downloads the source code from GitHub.
 2. Installs the application to `~/.local/share/smart-project-manager/`.
-   No root, no sudo — everything lives inside your home directory.
+   No root, no sudo - everything lives inside your home directory.
 3. Creates a dedicated Python virtual environment at
    `~/.local/share/smart-project-manager/venv/` and installs dependencies into it.
 4. Registers the app in your desktop environment by creating
@@ -142,12 +142,12 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 
 **Desktop shortcut (opt-in):**
 
-By default, no Desktop shortcut is created. This is intentional — on GNOME
+By default, no Desktop shortcut is created. This is intentional - on GNOME
 (default on Ubuntu), desktop icons are hidden by default, which would make
 a shortcut invisible and confusing.
 
 To also create a Desktop shortcut during install, pass the
-`SPM_CREATE_DESKTOP_SHORTCUT=1` environment variable to **bash** — the
+`SPM_CREATE_DESKTOP_SHORTCUT=1` environment variable to **bash** - the
 second command in the pipeline:
 
 ```bash
@@ -162,7 +162,7 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 ```
 
 > **Note:** Writing `SPM_CREATE_DESKTOP_SHORTCUT=1 curl ... | bash` does
-> **not** work — in a shell pipeline, an environment variable prefix applies
+> **not** work - in a shell pipeline, an environment variable prefix applies
 > only to the command on the **left** side of the `|`. The variable never
 > reaches `bash`, which is on the right side. Pass it to `bash` directly, or
 > `export` it beforehand.
@@ -172,7 +172,7 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 - The Desktop shortcut may show an **"Unsecured Application Launcher"** warning. Right-click → **Allow Launching** (one-time action).
 - If the menu entry does not appear immediately, log out and back in.
 
-#### Alternative — install from a cloned repo
+#### Alternative - install from a cloned repo
 
 If you already cloned the repository, you can run the installer locally:
 
@@ -190,12 +190,12 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 ```
 
 **What the uninstaller removes:**
-- `~/.local/share/smart-project-manager/` — the application and its venv
-- `~/.local/share/applications/smart-project-manager.desktop` — the menu entry
-- `~/Desktop/smart-project-manager.desktop` — the Desktop shortcut (if present)
+- `~/.local/share/smart-project-manager/` - the application and its venv
+- `~/.local/share/applications/smart-project-manager.desktop` - the menu entry
+- `~/Desktop/smart-project-manager.desktop` - the Desktop shortcut (if present)
 
 **What the uninstaller never touches:**
-- `~/.smart_project_manager/projects.json` — your projects, tasks, subtasks, and labels.
+- `~/.smart_project_manager/projects.json` - your projects, tasks, subtasks, and labels.
   It is your data. Only you decide what to do with it.
 
 If you want to remove your data as well, run after uninstall:
