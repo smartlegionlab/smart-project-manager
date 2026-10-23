@@ -11,8 +11,8 @@ class HelpDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Help - Smart Project Manager")
-        self.setMinimumWidth(650)
-        self.setMinimumHeight(600)
+        self.setMinimumWidth(720)
+        self.setMinimumHeight(680)
         self.setModal(True)
 
         self.setup_ui()
@@ -20,14 +20,32 @@ class HelpDialog(QDialog):
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(10)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        title_label = QLabel("<h2 style='color: #007acc;'>Smart Project Manager Help</h2>")
-        title_label.setTextFormat(Qt.RichText)
+        header = QFrame()
+        header.setStyleSheet("""
+            QFrame {
+                background-color: #1e2026;
+            }
+        """)
+        header.setFixedHeight(70)
+
+        header_layout = QVBoxLayout(header)
+        header_layout.setContentsMargins(20, 15, 20, 15)
+
+        title_label = QLabel("Help")
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #007acc;
+                font-size: 20px;
+                font-weight: bold;
+            }
+        """)
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setFont(QFont("Arial", 14, QFont.Bold))
-        layout.addWidget(title_label)
+        header_layout.addWidget(title_label)
+
+        layout.addWidget(header)
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -56,120 +74,202 @@ class HelpDialog(QDialog):
         content_widget = QWidget()
         content_widget.setStyleSheet("background-color: #181a1e;")
         content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(10, 10, 10, 10)
+        content_layout.setContentsMargins(24, 20, 24, 20)
+        content_layout.setSpacing(14)
 
-        help_label = QLabel(
-            """<p style='color: #007acc; font-weight: bold;'>Getting Started:</p>
-            <ol style='color: #ddd;'>
-            <li>Create a project using <b>File → New Project</b> or the <b>+ New Project</b> button</li>
-            <li>Click a project in the left panel to open it in a tab</li>
-            <li>Add tasks to the project using <b>File → New Task</b> or the <b>+ Add Task</b> button</li>
-            <li>Double-click a task to open its subtasks in a new tab below the task list</li>
-            <li>Use labels to categorize tasks and subtasks</li>
-            </ol>
+        content_layout.addWidget(self._make_section(
+            "FIRST STEPS",
+            """<ol style='color: #ddd; margin: 0; padding-left: 20px;'>
+            <li>Click <b>+ New Project</b> in the left panel or use <b>File -> New Project</b>. Enter a name and optional description.</li>
+            <li>Click the new project in the tree on the left. It opens as a tab on the right.</li>
+            <li>Click <b>Add Task</b> inside the project tab or use <b>File -> New Task</b>. Fill in title, priority, due date and labels.</li>
+            <li>Double-click the task row. Its subtasks open as a new tab below the task list.</li>
+            <li>Inside the subtask tab click <b>+ Add Subtask</b> to add nested steps for this task.</li>
+            </ol>"""
+        ))
 
-            <p style='color: #007acc; font-weight: bold;'>Tab-Based Interface:</p>
-            <ul style='color: #ddd;'>
-            <li><b>Project tabs</b> (top right): each opened project gets its own tab</li>
-            <li><b>Subtask tabs</b> (bottom right): each opened task gets its own subtask tab</li>
-            <li>Close a project tab with the X button - the project stays in the left tree</li>
-            <li>Close a subtask tab with the X button - the task stays in the task list</li>
-            <li>Switch between multiple projects and multiple tasks freely</li>
+        content_layout.addWidget(self._make_section(
+            "TABS AND NAVIGATION",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li><b>Project tabs</b> - one tab per opened project, at the top of the right panel.</li>
+            <li><b>Subtask tabs</b> - one tab per opened task, below the task list inside the project tab.</li>
+            <li>Click a tab to switch. Close any tab with the <b>X</b> button.</li>
+            <li>Closing a project tab does not delete the project. It stays in the tree on the left and can be reopened by clicking it again.</li>
+            <li>Closing a subtask tab does not delete the task. It stays in the task list and can be reopened by double-clicking the task row again.</li>
+            <li>You can keep multiple project tabs open, and multiple subtask tabs inside each project tab.</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "TASKS AND SUBTASKS",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Each task and subtask has: title, description, priority (High / Medium / Low), due date, labels.</li>
+            <li>Status toggle: click the status button on the row, or use right-click -> <b>Mark as Complete</b> / <b>Mark as Pending</b>.</li>
+            <li>Automatic completion: when every subtask of a task is completed, the parent task is marked completed automatically.</li>
+            <li>Reorder tasks: drag a task row up or down inside the task table. The new order is saved per project.</li>
+            <li>Right-click a task row for quick actions: <b>View Details</b>, <b>Open Subtasks</b>, <b>Mark as Complete / Pending</b>, <b>Edit Task</b>, <b>Delete Task</b>.</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "SEARCH AND FILTERS",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li><b>Search box</b> - filters tasks by title and description in the current project.</li>
+            <li><b>Priority filter</b> - show only tasks with a specific priority.</li>
+            <li><b>Label filter</b> - show only tasks that have a specific label.</li>
+            <li><b>Show Completed</b> - hide or show completed tasks.</li>
+            <li><b>Reset</b> - clear all filters and return to the full task list.</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "LABELS",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Open <b>Edit -> Manage Labels</b> to create, edit and delete labels.</li>
+            <li>Each label has a name (up to 8 characters), background color and text color.</li>
+            <li>Assign labels to tasks and subtasks while creating or editing them.</li>
+            <li>Deleting a label removes it from all tasks and subtasks that use it.</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "BACKUPS, EXPORT, IMPORT",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li><b>File -> Create Backup</b> (<code>Ctrl+B</code>) - saves a timestamped copy of your data to <code>~/.smart_project_manager/backups/</code>.</li>
+            <li><b>File -> Show Backups</b> - lists current backups, shows total size and lets you clear all backups at once.</li>
+            <li>Backups older than 30 days are removed automatically at startup.</li>
+            <li><b>File -> Export</b> (<code>Ctrl+Shift+E</code>) - writes the whole dataset to a single JSON file.</li>
+            <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with the contents of a JSON file. <b>This overwrites all existing data.</b> A temporary backup of the current file is created automatically before import.</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "DESKTOP INTEGRATION (LINUX)",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li><b>File -> Create Desktop Entry</b> - creates a launcher in the application menu and/or on the desktop.</li>
+            <li>Choose the application menu (<code>~/.local/share/applications/</code>) and/or the desktop (<code>~/Desktop/</code>).</li>
+            <li>After creation you may need to log out and back in for the menu entry to appear.</li>
+            <li>The desktop launcher may show "Unsecured Application Launcher" on first launch. Right-click -> <b>Allow Launching</b> (one-time).</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "KEYBOARD SHORTCUTS",
+            """<table style='color: #ddd; font-size: 12px; border-collapse: collapse;'>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+N</code></td><td>New project</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+T</code></td><td>New task in the current project</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+B</code></td><td>Create backup</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+I</code></td><td>Import</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+E</code></td><td>Export</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+L</code></td><td>Manage labels</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>F5</code></td><td>Refresh view</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>F1</code></td><td>Open help</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Q</code></td><td>Exit application</td></tr>
+            </table>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "DATA LOCATION",
+            """<p style='color: #ddd; margin: 0;'>
+            All data is stored locally:
+            </p>
+            <ul style='color: #ddd; margin: 6px 0 0 0; padding-left: 18px;'>
+            <li>Projects, tasks, subtasks, labels: <code>~/.smart_project_manager/projects.json</code></li>
+            <li>Backups: <code>~/.smart_project_manager/backups/</code></li>
             </ul>
+            <p style='color: #ddd; margin: 8px 0 0 0;'>
+            The uninstaller never touches your data. To remove it manually: <code>rm -rf ~/.smart_project_manager</code>
+            </p>"""
+        ))
 
-            <p style='color: #007acc; font-weight: bold;'>Desktop Integration (Linux):</p>
-            <ul style='color: #ddd;'>
-            <li><b>File → Create Desktop Entry</b> - create an application shortcut in your system menu</li>
-            <li>Choose between Application Menu (~/.local/share/applications/) and/or Desktop (~/Desktop/)</li>
-            <li>After creation, you may need to log out and back in for the entry to appear</li>
-            <li>Desktop shortcuts may show "Unsecured Application Launcher" - right-click → "Allow Launching" (one-time only)</li>
-            </ul>
+        content_layout.addStretch()
 
-            <p style='color: #007acc; font-weight: bold;'>Keyboard Shortcuts:</p>
-            <ul style='color: #ddd;'>
-            <li>Ctrl+N: New Project</li>
-            <li>Ctrl+T: New Task (in current project)</li>
-            <li>Ctrl+B: Create Backup</li>
-            <li>Ctrl+I: Import</li>
-            <li>Ctrl+Shift+E: Export</li>
-            <li>Ctrl+L: Manage Labels</li>
-            <li>F5: Refresh View</li>
-            <li>F1: Help</li>
-            <li>Ctrl+Q: Exit</li>
-            </ul>
-
-            <p style='color: #007acc; font-weight: bold;'>Features:</p>
-            <ul style='color: #ddd;'>
-            <li>Projects have name, version, description, GitHub URL</li>
-            <li>Tasks have title, description, priority, due date, and labels</li>
-            <li>Subtasks inherit parent task properties and can have their own labels</li>
-            <li>Automatic completion: when all subtasks are done, parent task is marked complete</li>
-            <li>Progress bars show completion percentage</li>
-            <li>Right-click tasks for quick actions</li>
-            <li>Drag and drop tasks to reorder them</li>
-            </ul>
-
-            <p style='color: #007acc; font-weight: bold;'>Data:</p>
-            <p style='color: #ddd;'>Data is automatically saved to <code style="color: #2ecc71;">~/.smart_project_manager/projects.json</code></p>
-            <p style='color: #ddd;'>Backups are stored in <code style="color: #2ecc71;">~/.smart_project_manager/backups/</code> and cleaned up automatically after 30 days.</p>
-
-            <hr style='border-color: #3a3d45;'>
-
-            <p style='color: #999;'>GitHub: <a href="https://github.com/smartlegionlab/smart-project-manager/" style="color: #007acc;">Smart Project Manager</a></p>
-            """
-        )
-        help_label.setTextFormat(Qt.RichText)
-        help_label.setWordWrap(True)
-        help_label.setOpenExternalLinks(True)
-        help_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        help_label.setStyleSheet("""
-            QLabel {
-                background-color: #1e2026;
-                padding: 15px;
-                border-radius: 5px;
-                color: #ddd;
-            }
-            a {
-                color: #007acc;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-            code {
-                background-color: #23262d;
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-family: Consolas, monospace;
-            }
-        """)
-
-        content_layout.addWidget(help_label)
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
-        button_layout = QHBoxLayout()
+        button_panel = QFrame()
+        button_panel.setStyleSheet("""
+            QFrame {
+                background-color: #1e2026;
+            }
+        """)
+        button_panel.setFixedHeight(60)
+
+        button_layout = QHBoxLayout(button_panel)
+        button_layout.setContentsMargins(20, 12, 20, 12)
         button_layout.addStretch()
 
-        ok_button = QPushButton("OK")
-        ok_button.setMinimumWidth(100)
-        ok_button.setMinimumHeight(35)
+        ok_button = QPushButton("Close")
+        ok_button.setFixedSize(110, 36)
+        ok_button.setCursor(Qt.PointingHandCursor)
         ok_button.setStyleSheet("""
             QPushButton {
                 background-color: #007acc;
                 color: white;
                 font-weight: bold;
+                border: none;
                 border-radius: 5px;
                 padding: 8px 16px;
             }
             QPushButton:hover {
                 background-color: #0066b3;
             }
+            QPushButton:pressed {
+                background-color: #005a99;
+            }
         """)
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
+
+        layout.addWidget(button_panel)
+
+    def _make_section(self, title, html_content):
+        frame = QFrame()
+        frame.setStyleSheet("""
+            QFrame {
+                background-color: transparent;
+            }
+        """)
+
+        frame_layout = QVBoxLayout(frame)
+        frame_layout.setContentsMargins(0, 0, 0, 0)
+        frame_layout.setSpacing(6)
+
+        title_label = QLabel(title)
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #007acc;
+                font-size: 11px;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+        """)
+        frame_layout.addWidget(title_label)
+
+        content_label = QLabel(html_content)
+        content_label.setTextFormat(Qt.RichText)
+        content_label.setWordWrap(True)
+        content_label.setOpenExternalLinks(True)
+        content_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        content_label.setStyleSheet("""
+            QLabel {
+                color: #ddd;
+                font-size: 12px;
+            }
+            code {
+                font-family: Consolas, monospace;
+                background-color: #23262d;
+                padding: 2px 6px;
+                border-radius: 3px;
+                color: #2ecc71;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        """)
+        frame_layout.addWidget(content_label)
+
+        return frame
 
     def center_dialog(self):
         if self.parent():

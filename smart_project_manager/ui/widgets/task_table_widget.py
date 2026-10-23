@@ -93,7 +93,7 @@ class TaskTableWidget(QTableWidget):
     def setup_table(self):
         self.setColumnCount(9)
         self.setHorizontalHeaderLabels(
-            ['', 'Status', 'Title', 'Priority', 'Progress', 'Due Date', 'Labels', '', '']
+            ['', 'Status', 'Title', 'Priority', 'Progress', 'Due Date', 'Labels', 'Edit', 'Delete']
         )
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.setAlternatingRowColors(True)
@@ -212,16 +212,16 @@ class TaskTableWidget(QTableWidget):
         self.update_task_order()
 
     def _create_status_button(self, completed):
-        button = QPushButton("✅" if completed else "⏳")
-        button.setFixedSize(30, 30)
+        button = QPushButton("Done" if completed else "Pending")
+        button.setFixedSize(70, 26)
+        button.setToolTip("Mark as Pending" if completed else "Mark as Completed")
         if completed:
-            button.setToolTip("Mark as Pending")
             button.setStyleSheet("""
                 QPushButton {
                     background-color: transparent;
                     border: 1px solid #2e7d32;
                     border-radius: 4px;
-                    font-size: 14px;
+                    font-size: 10px;
                     color: #2e7d32;
                 }
                 QPushButton:hover {
@@ -229,13 +229,12 @@ class TaskTableWidget(QTableWidget):
                 }
             """)
         else:
-            button.setToolTip("Mark as Completed")
             button.setStyleSheet("""
                 QPushButton {
                     background-color: transparent;
-                    border: 2px solid #ff9800;
+                    border: 1px solid #ff9800;
                     border-radius: 4px;
-                    font-size: 14px;
+                    font-size: 10px;
                     color: #ff9800;
                 }
                 QPushButton:hover {
@@ -317,15 +316,15 @@ class TaskTableWidget(QTableWidget):
         return widget
 
     def _create_edit_button(self):
-        button = QPushButton("✏️")
-        button.setFixedSize(30, 30)
+        button = QPushButton("Edit")
+        button.setFixedSize(50, 26)
         button.setToolTip("Edit Task")
         button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: 1px solid #ff9800;
                 border-radius: 4px;
-                font-size: 14px;
+                font-size: 10px;
                 color: #ff9800;
             }
             QPushButton:hover {
@@ -335,15 +334,15 @@ class TaskTableWidget(QTableWidget):
         return button
 
     def _create_delete_button(self):
-        button = QPushButton("🗑️")
-        button.setFixedSize(30, 30)
+        button = QPushButton("Delete")
+        button.setFixedSize(50, 26)
         button.setToolTip("Delete Task")
         button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: 1px solid #e74c3c;
                 border-radius: 4px;
-                font-size: 14px;
+                font-size: 10px;
                 color: #e74c3c;
             }
             QPushButton:hover {

@@ -13,8 +13,8 @@ class AboutDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("About Smart Project Manager")
-        self.setMinimumWidth(550)
-        self.setMinimumHeight(500)
+        self.setMinimumWidth(620)
+        self.setMinimumHeight(560)
         self.setModal(True)
 
         self.setup_ui()
@@ -22,14 +22,54 @@ class AboutDialog(QDialog):
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(10)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        title_label = QLabel(f"<h2 style='color: #007acc;'>Smart Project Manager {ver}</h2>")
-        title_label.setTextFormat(Qt.RichText)
+        header = QFrame()
+        header.setStyleSheet("""
+            QFrame {
+                background-color: #1e2026;
+            }
+        """)
+        header.setFixedHeight(110)
+
+        header_layout = QVBoxLayout(header)
+        header_layout.setContentsMargins(20, 20, 20, 20)
+        header_layout.setSpacing(4)
+
+        title_label = QLabel("Smart Project Manager")
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #007acc;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        """)
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setFont(QFont("Arial", 14, QFont.Bold))
-        layout.addWidget(title_label)
+        header_layout.addWidget(title_label)
+
+        version_label = QLabel(f"Version {ver}")
+        version_label.setStyleSheet("""
+            QLabel {
+                color: #5a5d65;
+                font-size: 12px;
+            }
+        """)
+        version_label.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(version_label)
+
+        subtitle_label = QLabel("Project and task management for developers and researchers")
+        subtitle_label.setStyleSheet("""
+            QLabel {
+                color: #aaa;
+                font-size: 11px;
+                font-style: italic;
+            }
+        """)
+        subtitle_label.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(subtitle_label)
+
+        layout.addWidget(header)
 
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -58,85 +98,148 @@ class AboutDialog(QDialog):
         content_widget = QWidget()
         content_widget.setStyleSheet("background-color: #181a1e;")
         content_layout = QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(10, 10, 10, 10)
+        content_layout.setContentsMargins(24, 20, 24, 20)
+        content_layout.setSpacing(14)
 
-        about_label = QLabel(
-            """<p style='text-align: center; color: #ddd;'>
-            A powerful project and task management tool for developers and researchers.
-            </p>
+        content_layout.addWidget(self._make_section(
+            "TAB-BASED WORKFLOW",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Each opened project gets its own tab on the right</li>
+            <li>Double-click a task to open its subtasks in a nested tab</li>
+            <li>Close tabs without deleting projects or tasks</li>
+            <li>Multiple projects and multiple tasks open at once</li>
+            </ul>"""
+        ))
 
-            <p style='color: #007acc; font-weight: bold;'>Features:</p>
-            <ul style='color: #ddd;'>
-            <li>Manage unlimited projects with versions</li>
-            <li>Create tasks with priorities and due dates</li>
-            <li>Add subtasks to tasks</li>
-            <li>Label system</li>
+        content_layout.addWidget(self._make_section(
+            "CORE FEATURES",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Projects with name and description</li>
+            <li>Tasks with priority, due date and labels</li>
+            <li>Subtasks with the same fields nested inside tasks</li>
             <li>Automatic progress tracking</li>
-            <li>Dark theme interface</li>
-            <li>Tab-based interface with project tabs</li>
-            <li>Nested subtask tabs per task</li>
-            <li>Linux desktop integration (Application Menu / Desktop shortcuts)</li>
-            </ul>
+            <li>Search and filters by priority, label, status</li>
+            <li>Drag and drop to reorder tasks</li>
+            <li>Custom color labels</li>
+            <li>Backups and JSON export/import</li>
+            <li>Dark theme optimized for extended use</li>
+            </ul>"""
+        ))
 
-            <p style='text-align: center; margin-top: 20px; color: #007acc; font-weight: bold;'>Links:</p>
-            <ul style='list-style: none; padding-left: 0; text-align: center;'>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager" style="color: #007acc;">GitHub Repository</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE" style="color: #007acc;">License (BSD 3-Clause)</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md" style="color: #007acc;">Disclaimer</a></li>
-            <li><a href="https://github.com/smartlegionlab/smart-project-manager/releases" style="color: #007acc;">Releases</a></li>
-            </ul>
+        content_layout.addWidget(self._make_section(
+            "DATA AND PRIVACY",
+            """<p style='color: #ddd; margin: 0;'>
+            All data stays on your machine. No cloud, no telemetry, no network access at runtime.
+            Your projects are stored in <code style='color: #2ecc71; background-color: #23262d; padding: 2px 6px; border-radius: 3px;'>~/.smart_project_manager/projects.json</code>.
+            Backups are managed automatically and never leave your device.
+            </p>"""
+        ))
 
-            <p style='text-align: center; margin-top: 20px; color: #999;'>
-            <b>Copyright © 2026, <a href="https://smartlegionlab.github.io/" style="color: #007acc;">Smart Legion Lab</a>. All rights reserved.</b>
-            </p>
-            """
-        )
-        about_label.setTextFormat(Qt.RichText)
-        about_label.setWordWrap(True)
-        about_label.setOpenExternalLinks(True)
-        about_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        about_label.setStyleSheet("""
+        content_layout.addWidget(self._make_section(
+            "LINKS",
+            """<ul style='list-style: none; padding-left: 0; margin: 0;'>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager" style="color: #007acc; text-decoration: none;">GitHub Repository</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/releases" style="color: #007acc; text-decoration: none;">Releases</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/LICENSE" style="color: #007acc; text-decoration: none;">License (BSD 3-Clause)</a></li>
+            <li><a href="https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md" style="color: #007acc; text-decoration: none;">Disclaimer</a></li>
+            <li><a href="https://smartlegionlab.github.io/" style="color: #007acc; text-decoration: none;">Smart Legion Lab</a></li>
+            </ul>"""
+        ))
+
+        content_layout.addStretch()
+
+        copyright_label = QLabel("Copyright (c) 2026, Alexander Suvorov. All rights reserved.")
+        copyright_label.setStyleSheet("""
             QLabel {
-                background-color: #1e2026;
-                padding: 15px;
-                border-radius: 5px;
-                color: #ddd;
-            }
-            a {
-                color: #007acc;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
+                color: #5a5d65;
+                font-size: 10px;
             }
         """)
+        copyright_label.setAlignment(Qt.AlignCenter)
+        content_layout.addWidget(copyright_label)
 
-        content_layout.addWidget(about_label)
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)
 
-        button_layout = QHBoxLayout()
+        button_panel = QFrame()
+        button_panel.setStyleSheet("""
+            QFrame {
+                background-color: #1e2026;
+            }
+        """)
+        button_panel.setFixedHeight(60)
+
+        button_layout = QHBoxLayout(button_panel)
+        button_layout.setContentsMargins(20, 12, 20, 12)
         button_layout.addStretch()
 
-        ok_button = QPushButton("OK")
-        ok_button.setMinimumWidth(100)
-        ok_button.setMinimumHeight(35)
+        ok_button = QPushButton("Close")
+        ok_button.setFixedSize(110, 36)
+        ok_button.setCursor(Qt.PointingHandCursor)
         ok_button.setStyleSheet("""
             QPushButton {
                 background-color: #007acc;
                 color: white;
                 font-weight: bold;
+                border: none;
                 border-radius: 5px;
                 padding: 8px 16px;
             }
             QPushButton:hover {
                 background-color: #0066b3;
             }
+            QPushButton:pressed {
+                background-color: #005a99;
+            }
         """)
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
-        button_layout.addStretch()
-        layout.addLayout(button_layout)
+
+        layout.addWidget(button_panel)
+
+    def _make_section(self, title, html_content):
+        frame = QFrame()
+        frame.setStyleSheet("""
+            QFrame {
+                background-color: transparent;
+            }
+        """)
+
+        frame_layout = QVBoxLayout(frame)
+        frame_layout.setContentsMargins(0, 0, 0, 0)
+        frame_layout.setSpacing(6)
+
+        title_label = QLabel(title)
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #007acc;
+                font-size: 11px;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+        """)
+        frame_layout.addWidget(title_label)
+
+        content_label = QLabel(html_content)
+        content_label.setTextFormat(Qt.RichText)
+        content_label.setWordWrap(True)
+        content_label.setOpenExternalLinks(True)
+        content_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        content_label.setStyleSheet("""
+            QLabel {
+                color: #ddd;
+                font-size: 12px;
+            }
+            code {
+                font-family: Consolas, monospace;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        """)
+        frame_layout.addWidget(content_label)
+
+        return frame
 
     def center_dialog(self):
         if self.parent():

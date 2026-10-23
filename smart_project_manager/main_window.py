@@ -108,10 +108,6 @@ class ProjectTab(QWidget):
         filters_layout.setContentsMargins(8, 5, 8, 5)
         filters_layout.setSpacing(10)
 
-        search_label = QLabel("🔍")
-        search_label.setStyleSheet("font-size: 14px;")
-        filters_layout.addWidget(search_label)
-
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search tasks...")
         self.search_input.setClearButtonEnabled(True)
@@ -210,7 +206,7 @@ class ProjectTab(QWidget):
 
         tasks_header_layout = QHBoxLayout()
 
-        self.btn_new_task = QPushButton('➕ Add Task')
+        self.btn_new_task = QPushButton('Add Task')
         self.btn_new_task.clicked.connect(self.create_task)
         self.btn_new_task.setStyleSheet("""
             QPushButton {
@@ -232,7 +228,7 @@ class ProjectTab(QWidget):
         """)
         tasks_header_layout.addWidget(self.btn_new_task)
 
-        self.btn_clear_completed = QPushButton('🗑️ Clear Completed (0)')
+        self.btn_clear_completed = QPushButton('Clear Completed (0)')
         self.btn_clear_completed.clicked.connect(self.clear_completed_tasks)
         self.btn_clear_completed.setStyleSheet("""
             QPushButton {
@@ -346,7 +342,7 @@ class ProjectTab(QWidget):
     def update_clear_completed_button(self):
         tasks = self.main_window.manager.get_tasks_by_project(self.project_id)
         completed_count = sum(1 for task in tasks if task.completed)
-        self.btn_clear_completed.setText(f'🗑️ Clear Completed ({completed_count})')
+        self.btn_clear_completed.setText(f'Clear Completed ({completed_count})')
         self.btn_clear_completed.setEnabled(completed_count > 0)
 
     def on_search_changed(self, text):
@@ -671,27 +667,27 @@ class ProjectTab(QWidget):
 
         menu = QMenu()
 
-        view_action = QAction("👁 View Details", self)
+        view_action = QAction("View Details", self)
         view_action.triggered.connect(lambda: self.view_task(task_id))
         menu.addAction(view_action)
 
-        open_subtasks_action = QAction("📝 Open Subtasks", self)
+        open_subtasks_action = QAction("Open Subtasks", self)
         open_subtasks_action.triggered.connect(lambda: self.on_task_double_clicked(task_id))
         menu.addAction(open_subtasks_action)
 
-        mark_action = QAction("✅ Mark as Complete" if not task.completed else "⏳ Mark as Pending", self)
+        mark_action = QAction("Mark as Complete" if not task.completed else "Mark as Pending", self)
         mark_action.triggered.connect(lambda: self.toggle_task_status(task_id))
         menu.addAction(mark_action)
 
         menu.addSeparator()
 
-        edit_action = QAction("✏️ Edit Task", self)
+        edit_action = QAction("Edit Task", self)
         edit_action.triggered.connect(lambda: self.edit_task(task_id))
         menu.addAction(edit_action)
 
         menu.addSeparator()
 
-        delete_action = QAction("🗑️ Delete Task", self)
+        delete_action = QAction("Delete Task", self)
         delete_action.triggered.connect(lambda: self.delete_task(task_id))
         menu.addAction(delete_action)
 
@@ -871,14 +867,22 @@ class MainWindow(QMainWindow):
 
         help_menu = menubar.addMenu('Help')
 
-        about_action = QAction('About', self)
-        about_action.triggered.connect(self.show_about)
-        help_menu.addAction(about_action)
-
         help_action = QAction('Help', self)
         help_action.setShortcut('F1')
         help_action.triggered.connect(self.show_help)
         help_menu.addAction(help_action)
+
+        shortcuts_action = QAction('Keyboard Shortcuts', self)
+        shortcuts_action.setShortcut('Ctrl+/')
+        shortcuts_action.triggered.connect(self.show_shortcuts)
+        help_menu.addAction(shortcuts_action)
+
+        help_menu.addSeparator()
+
+        about_action = QAction('About', self)
+        about_action.setShortcut('Ctrl+A')
+        about_action.triggered.connect(self.show_about)
+        help_menu.addAction(about_action)
 
     def setup_ui(self):
         main_layout = QHBoxLayout(self.central_widget)
@@ -894,7 +898,7 @@ class MainWindow(QMainWindow):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
 
-        projects_header = QLabel('📁 Projects')
+        projects_header = QLabel('Projects')
         projects_header.setFont(QFont("Arial", 14, QFont.Bold))
         left_layout.addWidget(projects_header)
 
@@ -927,7 +931,7 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(self.projects_tree, 1)
 
         stats_header_layout = QHBoxLayout()
-        stats_label = QLabel('📊 Statistics')
+        stats_label = QLabel('Statistics')
         stats_label.setFont(QFont("Arial", 12, QFont.Bold))
         stats_header_layout.addWidget(stats_label)
 
@@ -1026,6 +1030,13 @@ class MainWindow(QMainWindow):
                                          self.manager.get_task(task_id).completed)
                     item.setText(0, f"{project.name} ({completed_tasks}/{task_count})")
 
+    def select_project_in_tree(self, project_id: str):
+        for i in range(self.projects_tree.topLevelItemCount()):
+            item = self.projects_tree.topLevelItem(i)
+            if hasattr(item, 'project_id') and item.project_id == project_id:
+                self.projects_tree.setCurrentItem(item)
+                break
+
     def load_projects(self):
         self.projects_tree.clear()
         projects = self.manager.get_all_projects()
@@ -1047,6 +1058,7 @@ class MainWindow(QMainWindow):
             widget = self.project_tabs.widget(i)
             if isinstance(widget, ProjectTab) and widget.project_id == project_id:
                 self.project_tabs.setCurrentIndex(i)
+                self.select_project_in_tree(project_id)
                 return
 
         if self.project_tabs.count() == 1:
@@ -1059,7 +1071,7 @@ class MainWindow(QMainWindow):
             return
 
         tab = ProjectTab(self, project_id)
-        index = self.project_tabs.addTab(tab, f"📁 {project.name}")
+        index = self.project_tabs.addTab(tab, project.name)
 
         close_btn = QPushButton('✕')
         close_btn.setFixedSize(20, 20)
@@ -1088,6 +1100,7 @@ class MainWindow(QMainWindow):
 
         self.project_tabs.setCurrentIndex(index)
         self.current_project_id = project_id
+        self.select_project_in_tree(project_id)
 
     def close_project_tab(self, index):
         widget = self.project_tabs.widget(index)
@@ -1098,6 +1111,7 @@ class MainWindow(QMainWindow):
             if self.project_tabs.count() == 0:
                 self.project_tabs.addTab(self.empty_label, "Welcome")
                 self.current_project_id = None
+                self.projects_tree.clearSelection()
 
     def close_project_tab_by_widget(self, widget):
         index = self.project_tabs.indexOf(widget)
@@ -1108,8 +1122,10 @@ class MainWindow(QMainWindow):
         widget = self.project_tabs.widget(index)
         if isinstance(widget, ProjectTab):
             self.current_project_id = widget.project_id
+            self.select_project_in_tree(widget.project_id)
         else:
             self.current_project_id = None
+            self.projects_tree.clearSelection()
 
     def create_project(self):
         dialog = ProjectDialog(self, manager=self.manager)
@@ -1141,7 +1157,7 @@ class MainWindow(QMainWindow):
             for i in range(self.project_tabs.count()):
                 widget = self.project_tabs.widget(i)
                 if isinstance(widget, ProjectTab) and widget.project_id == project_id:
-                    self.project_tabs.setTabText(i, f"📁 {project.name}")
+                    self.project_tabs.setTabText(i, project.name)
                     widget.load_project_data()
                     break
 
@@ -1165,6 +1181,7 @@ class MainWindow(QMainWindow):
 
             self.manager.delete_project(project_id)
             self.load_projects()
+            self.projects_tree.clearSelection()
 
     def create_task_in_current_project(self):
         if not self.current_project_id:
@@ -1181,11 +1198,11 @@ class MainWindow(QMainWindow):
         item = self.projects_tree.itemAt(position)
         if not item or not hasattr(item, 'project_id'):
             menu = QMenu()
-            new_project_action = QAction("📁 New Project", self)
+            new_project_action = QAction("New Project", self)
             new_project_action.triggered.connect(self.create_project)
             menu.addAction(new_project_action)
             menu.addSeparator()
-            refresh_action = QAction("🔄 Refresh", self)
+            refresh_action = QAction("Refresh", self)
             refresh_action.triggered.connect(self.refresh_view)
             menu.addAction(refresh_action)
             menu.exec_(self.projects_tree.viewport().mapToGlobal(position))
@@ -1198,19 +1215,19 @@ class MainWindow(QMainWindow):
 
         menu = QMenu()
 
-        open_action = QAction("📂 Open in Tab", self)
+        open_action = QAction("Open in Tab", self)
         open_action.triggered.connect(lambda: self.open_project_tab(project_id))
         menu.addAction(open_action)
 
         menu.addSeparator()
 
-        edit_action = QAction("✏️ Edit Project", self)
+        edit_action = QAction("Edit Project", self)
         edit_action.triggered.connect(lambda: self.edit_project_by_id(project_id))
         menu.addAction(edit_action)
 
         menu.addSeparator()
 
-        delete_action = QAction("🗑️ Delete Project", self)
+        delete_action = QAction("Delete Project", self)
         delete_action.triggered.connect(lambda: self.delete_project_by_id(project_id))
         menu.addAction(delete_action)
 
@@ -1265,7 +1282,7 @@ class MainWindow(QMainWindow):
 
         reply = QMessageBox.warning(
             self, "Import Data",
-            "⚠️ This will REPLACE all current data with imported data!\n\n"
+            "This will REPLACE all current data with imported data!\n\n"
             "Current data will be lost. Are you sure?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
@@ -1297,15 +1314,15 @@ class MainWindow(QMainWindow):
             self.update_statistics()
 
             items = result.get('imported_items', {})
-            message = "✅ Import successful!\n\n"
+            message = "Import successful!\n\n"
             if items.get('projects', 0) > 0:
-                message += f"📁 Projects: {items.get('projects', 0)}\n"
+                message += f"Projects: {items.get('projects', 0)}\n"
             if items.get('tasks', 0) > 0:
-                message += f"✅ Tasks: {items.get('tasks', 0)}\n"
+                message += f"Tasks: {items.get('tasks', 0)}\n"
             if items.get('subtasks', 0) > 0:
-                message += f"📝 Subtasks: {items.get('subtasks', 0)}\n"
+                message += f"Subtasks: {items.get('subtasks', 0)}\n"
             if items.get('labels', 0) > 0:
-                message += f"🏷️ Labels: {items.get('labels', 0)}\n"
+                message += f"Labels: {items.get('labels', 0)}\n"
             QMessageBox.information(self, "Import Complete", message)
 
         except Exception as e:
@@ -1328,7 +1345,7 @@ class MainWindow(QMainWindow):
             result = self.manager.export_data(file_path)
             if result['success']:
                 message = (
-                    f"✅ Export successful!\n\n"
+                    f"Export successful!\n\n"
                     f"File: {result['export_path']}\n"
                     f"Size: {result['export_size'] / 1024:.1f} KB"
                 )
@@ -1339,7 +1356,7 @@ class MainWindow(QMainWindow):
     def create_backup(self):
         try:
             backup_path = self.manager.create_backup()
-            QMessageBox.information(self, "Backup Created", f"✅ Backup created successfully!\n\n{backup_path}")
+            QMessageBox.information(self, "Backup Created", f"Backup created successfully!\n\n{backup_path}")
         except FileNotFoundError:
             QMessageBox.warning(self, "No Data File", "Cannot create backup: No data file found.")
         except Exception as e:
@@ -1354,14 +1371,14 @@ class MainWindow(QMainWindow):
     def show_backup_manager(self):
         try:
             info = self.manager.get_backup_info()
-            message = "📂 Backup Manager\n\n"
+            message = "Backup Manager\n\n"
             if info['total'] == 0:
                 message += "No backups found."
             else:
                 message += f"Total backups: {info['total']}\n"
                 message += f"Total size: {info['total_size_mb']:.2f} MB\n\n"
                 for backup in info['backups']:
-                    message += f"• {backup['date']} ({backup['size_mb']:.1f} MB)\n"
+                    message += f"- {backup['date']} ({backup['size_mb']:.1f} MB)\n"
 
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("Backup Manager")
@@ -1381,7 +1398,7 @@ class MainWindow(QMainWindow):
             return
         reply = QMessageBox.warning(
             self, "Clear All Backups",
-            f"⚠️ Delete ALL {info['total']} backups?",
+            f"Delete ALL {info['total']} backups?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No
         )
         if reply == QMessageBox.Yes:
@@ -1395,6 +1412,11 @@ class MainWindow(QMainWindow):
     def show_help(self):
         from smart_project_manager.ui.dialogs.help_dialog import HelpDialog
         dialog = HelpDialog(self)
+        dialog.exec_()
+
+    def show_shortcuts(self):
+        from smart_project_manager.ui.dialogs.shortcuts_dialog import ShortcutsDialog
+        dialog = ShortcutsDialog(self)
         dialog.exec_()
 
     def closeEvent(self, event):

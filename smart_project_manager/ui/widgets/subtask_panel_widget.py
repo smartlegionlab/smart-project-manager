@@ -184,7 +184,7 @@ class SubtaskPanelWidget(QWidget):
             priority_widget = PriorityIndicatorWidget(subtask.priority)
             self.subtasks_table.setCellWidget(row, 1, priority_widget)
 
-            status_button = QPushButton("✅ Completed" if subtask.completed else "⏳ Pending")
+            status_button = QPushButton("Completed" if subtask.completed else "Pending")
             status_button.setCheckable(True)
             status_button.setChecked(subtask.completed)
             status_button.setStyleSheet("""
@@ -261,7 +261,7 @@ class SubtaskPanelWidget(QWidget):
             labels_layout.addStretch()
             self.subtasks_table.setCellWidget(row, 4, labels_widget)
 
-            edit_button = QPushButton("✏️ Edit")
+            edit_button = QPushButton("Edit")
             edit_button.setStyleSheet("""
                 QPushButton {
                     background-color: #ff9800;

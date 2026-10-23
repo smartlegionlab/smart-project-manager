@@ -15,7 +15,7 @@ class StatisticsWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
 
-        stats_group = QGroupBox("📊 Global Statistics")
+        stats_group = QGroupBox("Global Statistics")
         stats_group.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -38,7 +38,7 @@ class StatisticsWidget(QWidget):
         main_stats_layout.setSpacing(5)
         main_stats_layout.setContentsMargins(5, 5, 5, 5)
 
-        self.projects_box = self._create_stat_box("📁", "Projects", "#007acc")
+        self.projects_box = self._create_stat_box("Projects", "#007acc")
         self.stats_projects = QLabel("0")
         self.stats_projects.setStyleSheet("""
             QLabel {
@@ -51,7 +51,7 @@ class StatisticsWidget(QWidget):
         self.projects_box.layout().insertWidget(1, self.stats_projects)
         main_stats_layout.addWidget(self.projects_box, 0, 0)
 
-        self.tasks_box = self._create_stat_box("✅", "Tasks", "#2ecc71")
+        self.tasks_box = self._create_stat_box("Tasks", "#2ecc71")
         self.stats_tasks = QLabel("0")
         self.stats_tasks.setStyleSheet("""
             QLabel {
@@ -64,7 +64,7 @@ class StatisticsWidget(QWidget):
         self.tasks_box.layout().insertWidget(1, self.stats_tasks)
         main_stats_layout.addWidget(self.tasks_box, 0, 1)
 
-        self.subtasks_box = self._create_stat_box("📝", "Subtasks", "#9b59b6")
+        self.subtasks_box = self._create_stat_box("Subtasks", "#9b59b6")
         self.stats_subtasks = QLabel("0")
         self.stats_subtasks.setStyleSheet("""
             QLabel {
@@ -77,7 +77,7 @@ class StatisticsWidget(QWidget):
         self.subtasks_box.layout().insertWidget(1, self.stats_subtasks)
         main_stats_layout.addWidget(self.subtasks_box, 1, 0)
 
-        self.labels_box = self._create_stat_box("🏷️", "Labels", "#e74c3c")
+        self.labels_box = self._create_stat_box("Labels", "#e74c3c")
         self.stats_labels = QLabel("0")
         self.stats_labels.setStyleSheet("""
             QLabel {
@@ -206,7 +206,7 @@ class StatisticsWidget(QWidget):
 
         layout.addWidget(stats_group)
 
-    def _create_stat_box(self, icon: str, title: str, color: str) -> QGroupBox:
+    def _create_stat_box(self, title: str, color: str) -> QGroupBox:
         box = QGroupBox()
         box.setStyleSheet(f"""
             QGroupBox {{
@@ -221,18 +221,9 @@ class StatisticsWidget(QWidget):
         layout.setSpacing(3)
         layout.setContentsMargins(5, 8, 5, 8)
 
-        header_layout = QHBoxLayout()
-
-        icon_label = QLabel(icon)
-        icon_label.setStyleSheet("font-size: 14px;")
-        header_layout.addWidget(icon_label)
-
         title_label = QLabel(title)
-        title_label.setStyleSheet(f"font-weight: bold; color: {color}; font-size: 11px;")
-        header_layout.addWidget(title_label)
-
-        header_layout.addStretch()
-        layout.addLayout(header_layout)
+        title_label.setStyleSheet(f"font-weight: bold; color: {color}; font-size: 11px; qproperty-alignment: 'AlignCenter';")
+        layout.addWidget(title_label)
 
         layout.addStretch()
 

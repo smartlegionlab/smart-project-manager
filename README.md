@@ -1,12 +1,10 @@
-# Smart Project Manager <sup>v1.1.0</sup>
+# Smart Project Manager <sup>v1.1.1</sup>
 
 ---
 
 ## Overview
 
-**Smart Project Manager** is a desktop application for comprehensive project and task management, 
-built with Python and PyQt5. It provides a hierarchical system for organizing projects, 
-tasks, and subtasks, featuring visual labels, automatic progress tracking, and a dark-themed user interface.
+**Smart Project Manager** is a desktop application for comprehensive project and task management, built with Python and PyQt5. It provides a hierarchical system for organizing projects, tasks, and subtasks, featuring visual labels, automatic progress tracking, and a dark-themed user interface.
 
 *   **Author:** Alexander Suvorov
 *   **GitHub:** [smartlegionlab](https://github.com/smartlegionlab)
@@ -21,7 +19,7 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 **By using this software, you agree to the full disclaimer terms.**
 
@@ -33,36 +31,47 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 ## Features
 
-### 1. Project Management
-*   Create, edit, and delete projects with name, version, and description.
-*   Hierarchical structure: **Projects → Tasks → Subtasks**.
-*   Automatic progress calculation for each project based on task completion.
+### Tab-Based Project Manager
+*   Projects open as tabs on the right side, one tab per project
+*   Multiple projects can be open at the same time
+*   Close a project tab without deleting the project - it stays in the tree on the left
+*   Tasks open as nested tabs below the task list, one tab per task
+*   Multiple tasks can be open at the same time inside one project
 
-### 2. Task & Subtask System
-*   Create tasks and subtasks with titles, descriptions, priorities (High/Medium/Low), and optional due dates.
-*   Automatic completion logic: A task is marked as complete when all its subtasks are completed.
-*   Toggle completion status for tasks and subtasks directly from the main interface.
+### Project Management
+*   Create, edit and delete projects with name and description
+*   Hierarchical structure: **Projects -> Tasks -> Subtasks**
+*   Automatic progress calculation per project based on task completion
 
-### 3. Label System
-*   Create custom labels with name, color, and description.
-*   Assign labels to both tasks and subtasks for categorization and filtering.
-*   Dedicated Label Manager dialog for creating, editing, and deleting labels.
+### Task & Subtask System
+*   Tasks with title, description, priority (High/Medium/Low) and optional due date
+*   Subtasks with the same fields, nested inside tasks
+*   Automatic completion logic: when all subtasks are completed, the parent task is marked complete
+*   Toggle completion status for tasks and subtasks directly from the UI
+*   Drag and drop task rows to reorder them
 
-### 4. Progress Tracking & Statistics
-*   Visual progress bars for tasks, subtasks, and overall projects.
-*   Real-time global statistics dashboard showing counts and completion rates for all entities.
-*   Detailed project progress panel showing task/subtask counts and last update time.
+### Label System
+*   Custom labels with name, color, text color and description
+*   Assign labels to tasks and subtasks for categorization and filtering
+*   Dedicated Label Manager dialog for creating, editing and deleting labels
 
-### 5. User Interface
-*   **Dark theme** optimized for extended use.
-*   **Two-panel layout:** Project tree on the left, task table and details on the right.
-*   Context menus for quick task actions (view, edit, mark complete, delete).
-*   Interactive tables with buttons for editing, deleting, and toggling status.
+### Progress Tracking & Statistics
+*   Visual progress bars for tasks, subtasks and overall projects
+*   Global statistics panel with counts and completion rates
+*   Per-project progress panel with task/subtask counts and last update time
 
-### 6. Data Persistence
-*   Automatic saving to `~/.smart_project_manager/projects.json`.
-*   JSON-based storage for projects, tasks, subtasks, and labels.
-*   Data is automatically loaded on application startup.
+### User Interface
+*   Dark theme optimized for extended use
+*   Two-panel layout: project tree on the left, tabs and task details on the right
+*   Context menus for quick task actions (view, edit, mark complete, delete)
+*   Search and filters by priority, label and completion status
+*   Built-in Keyboard Shortcuts dialog accessible from Help menu or `Ctrl+/`
+
+### Data Persistence
+*   Automatic saving to `~/.smart_project_manager/projects.json`
+*   JSON-based storage for projects, tasks, subtasks and labels
+*   Data loaded automatically on application startup
+*   Manual backups and automatic cleanup of backups older than 30 days
 
 ---
 
@@ -79,8 +88,8 @@ tasks, and subtasks, featuring visual labels, automatic progress tracking, and a
 
 There are **two independent ways** to use this application:
 
-- **Run from source** - clone the repo, create a virtual environment, launch manually. Nothing is installed system-wide.
-- **Install system-wide** - one command creates a menu entry. Desktop shortcut is opt-in.
+*   **Run from source** - clone the repo, create a virtual environment, launch manually. Nothing is installed system-wide.
+*   **Install system-wide** - one command creates a menu entry. Desktop shortcut is opt-in.
 
 Choose one. They are not meant to be combined.
 
@@ -131,24 +140,18 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 1. Downloads the source code from GitHub.
 2. Installs the application to `~/.local/share/smart-project-manager/`.
    No root, no sudo - everything lives inside your home directory.
-3. Creates a dedicated Python virtual environment at
-   `~/.local/share/smart-project-manager/venv/` and installs dependencies into it.
-4. Registers the app in your desktop environment by creating
-   `~/.local/share/applications/smart-project-manager.desktop`.
+3. Creates a dedicated Python virtual environment at `~/.local/share/smart-project-manager/venv/` and installs dependencies into it.
+4. Registers the app in your desktop environment by creating `~/.local/share/applications/smart-project-manager.desktop`.
 5. Refreshes the desktop database so the menu entry appears without a full re-login on most systems.
 
 **Launch after install:**
-- Application menu → **Smart Project Manager**
+*   Application menu -> **Smart Project Manager**
 
 **Desktop shortcut (opt-in):**
 
-By default, no Desktop shortcut is created. This is intentional - on GNOME
-(default on Ubuntu), desktop icons are hidden by default, which would make
-a shortcut invisible and confusing.
+By default, no Desktop shortcut is created. This is intentional - on GNOME (default on Ubuntu), desktop icons are hidden by default, which would make a shortcut invisible and confusing.
 
-To also create a Desktop shortcut during install, pass the
-`SPM_CREATE_DESKTOP_SHORTCUT=1` environment variable to **bash** - the
-second command in the pipeline:
+To also create a Desktop shortcut during install, pass the `SPM_CREATE_DESKTOP_SHORTCUT=1` environment variable to **bash** - the second command in the pipeline:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manager/master/install.sh | SPM_CREATE_DESKTOP_SHORTCUT=1 bash
@@ -161,16 +164,12 @@ export SPM_CREATE_DESKTOP_SHORTCUT=1
 curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manager/master/install.sh | bash
 ```
 
-> **Note:** Writing `SPM_CREATE_DESKTOP_SHORTCUT=1 curl ... | bash` does
-> **not** work - in a shell pipeline, an environment variable prefix applies
-> only to the command on the **left** side of the `|`. The variable never
-> reaches `bash`, which is on the right side. Pass it to `bash` directly, or
-> `export` it beforehand.
+> **Note:** Writing `SPM_CREATE_DESKTOP_SHORTCUT=1 curl ... | bash` does **not** work - in a shell pipeline, an environment variable prefix applies only to the command on the **left** side of the `|`. The variable never reaches `bash`, which is on the right side. Pass it to `bash` directly, or `export` it beforehand.
 
 **Notes:**
-- On GNOME (default on Ubuntu), desktop icons may be hidden by default. Enable Desktop Icons in GNOME Tweaks to see the shortcut.
-- The Desktop shortcut may show an **"Unsecured Application Launcher"** warning. Right-click → **Allow Launching** (one-time action).
-- If the menu entry does not appear immediately, log out and back in.
+*   On GNOME (default on Ubuntu), desktop icons may be hidden by default. Enable Desktop Icons in GNOME Tweaks to see the shortcut.
+*   The Desktop shortcut may show an **"Unsecured Application Launcher"** warning. Right-click -> **Allow Launching** (one-time action).
+*   If the menu entry does not appear immediately, log out and back in.
 
 #### Alternative - install from a cloned repo
 
@@ -190,13 +189,12 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 ```
 
 **What the uninstaller removes:**
-- `~/.local/share/smart-project-manager/` - the application and its venv
-- `~/.local/share/applications/smart-project-manager.desktop` - the menu entry
-- `~/Desktop/smart-project-manager.desktop` - the Desktop shortcut (if present)
+*   `~/.local/share/smart-project-manager/` - the application and its venv
+*   `~/.local/share/applications/smart-project-manager.desktop` - the menu entry
+*   `~/Desktop/smart-project-manager.desktop` - the Desktop shortcut (if present)
 
 **What the uninstaller never touches:**
-- `~/.smart_project_manager/projects.json` - your projects, tasks, subtasks, and labels.
-  It is your data. Only you decide what to do with it.
+*   `~/.smart_project_manager/projects.json` - your projects, tasks, subtasks and labels. It is your data. Only you decide what to do with it.
 
 If you want to remove your data as well, run after uninstall:
 
@@ -219,89 +217,105 @@ rm -rf ~/.smart_project_manager
 ## How to Use
 
 ### Getting Started
-1.  **Create a Project:** Use `File → New Project` or the "New Project" button.
-2.  **Select a Project:** Click on a project in the left panel to view and manage its tasks.
-3.  **Create a Task:** With a project selected, use `File → New Task` or the "New Task" button.
-4.  **Add Subtasks:** Edit a task and navigate to the "Subtasks" tab to add detailed steps.
-5.  **Manage Labels:** Use `Edit → Manage Labels` to create and organize your label system.
+1.  **Create a project:** `File -> New Project` or the **+ New Project** button in the left panel.
+2.  **Open a project:** click it in the tree on the left - it opens as a tab on the right.
+3.  **Create a task:** with a project tab active, use `File -> New Task` or the **Add Task** button.
+4.  **Open a task:** double-click a task row - its subtasks open as a nested tab below the task list.
+5.  **Manage labels:** `Edit -> Manage Labels` to create, edit and delete labels.
+
+### Working with Tabs
+
+*   Each opened project has its own tab on the right. Switching between project tabs switches the whole working context.
+*   Inside a project tab, double-clicking a task opens a subtask tab below the task table. Multiple subtask tabs can be open at the same time.
+*   Closing a project tab does not delete the project - it stays in the tree on the left.
+*   Closing a subtask tab does not delete the task - it stays in the task list.
+
+### Tasks and Subtasks
+
+*   Tasks and subtasks support title, description, priority, due date and labels.
+*   Marking all subtasks complete auto-marks the parent task complete.
+*   Drag task rows up or down to reorder them inside a project.
+*   Right-click a task for quick actions: view details, open subtasks, mark complete/pending, edit, delete.
+
+### Search and Filters
+
+*   Type into the search box to filter tasks by title and description.
+*   Filter by priority using the Priority dropdown.
+*   Filter by label using the Label dropdown.
+*   Toggle **Show Completed** to hide or show completed tasks.
+*   Click **Reset** to clear all filters.
 
 ---
 
 ### Desktop Integration (Linux)
 
-> **Note:** If you installed the app via `install.sh`, the application menu
-> entry is already created automatically. The in-app option described below
-> is useful when you run the app manually from a custom location, or when
-> you want to add a Desktop shortcut on demand. It is also the recommended
-> way for development: it creates a shortcut pointing to the **currently
-> running instance** (your working copy), not to a copy under
-> `~/.local/share/`.
+> **Note:** If you installed the app via `install.sh`, the application menu entry is already created automatically. The in-app option described below is useful when you run the app manually from a custom location, or when you want to add a Desktop shortcut on demand. It is also the recommended way for development: it creates a shortcut pointing to the **currently running instance** (your working copy), not to a copy under `~/.local/share/`.
 
 **Creating Application Shortcuts:**
 
 The application allows you to create desktop entries directly from the menu:
 
-1. **Go to File → Create Desktop Entry**
+1. **Go to File -> Create Desktop Entry**
 2. **Choose locations:**
-   - ✓ Application Menu (`~/.local/share/applications/`) - adds to system app menu
-   - □ Desktop (`~/Desktop/`) - creates shortcut on desktop
+   *   Application Menu (`~/.local/share/applications/`) - adds to system app menu
+   *   Desktop (`~/Desktop/`) - creates shortcut on desktop
 3. **Click "Create Entry"**
 
 **What happens:**
-- Creates `.desktop` file(s) with proper configuration
-- Sets executable permissions automatically
-- Uses application icon if available
+*   Creates `.desktop` file(s) with proper configuration
+*   Sets executable permissions automatically
+*   Uses application icon if available
 
 **After creation:**
-- **Application Menu**: Log out and back in (or restart desktop) for entry to appear
-- **Desktop shortcut**: May show "Unsecured Application Launcher" warning
-  - Right-click on shortcut → "Allow Launching" or "Trust"
-  - This is a one-time security confirmation
+*   **Application Menu**: log out and back in (or restart desktop) for the entry to appear
+*   **Desktop shortcut**: may show "Unsecured Application Launcher" warning
+    *   Right-click on shortcut -> "Allow Launching" or "Trust"
+    *   This is a one-time security confirmation
 
-**Note:** This feature is only available on Linux systems with desktop environments that support `.desktop` files (GNOME, KDE, XFCE, etc.).
+**Note:** this feature is only available on Linux systems with desktop environments that support `.desktop` files (GNOME, KDE, XFCE, etc.).
 
 ---
 
 ### Keyboard Shortcuts
-*   `Ctrl+N`: New Project
-*   `Ctrl+T`: New Task
-*   `Ctrl+B`: Create BackUp
-*   `Ctrl+I`: Import
-*   `Ctrl+Shift+E`: Export
-*   `Ctrl+E`: Edit Selected Project
-*   `Ctrl+D`: Delete Selected Project
-*   `Ctrl+L`: Manage Labels
-*   `F5`: Refresh View
-*   `F1`: Open Help
-*   `Ctrl+Q`: Exit Application
+
+| Shortcut       | Action                     |
+|----------------|----------------------------|
+| `Ctrl+N`       | New Project                |
+| `Ctrl+T`       | New Task                   |
+| `Ctrl+B`       | Create Backup              |
+| `Ctrl+I`       | Import                     |
+| `Ctrl+Shift+E` | Export                     |
+| `Ctrl+L`       | Manage Labels              |
+| `F5`           | Refresh View               |
+| `F1`           | Open Help                  |
+| `Ctrl+/`       | Show Keyboard Shortcuts    |
+| `Ctrl+A`       | Open About                 |
+| `Ctrl+Q`       | Exit Application           |
+
+---
+
+## Data Storage
+
+| Item           | Path                                                       |
+|----------------|------------------------------------------------------------|
+| Projects       | `~/.smart_project_manager/projects.json`                   |
+| Backups        | `~/.smart_project_manager/backups/`                        |
+
+Backups older than 30 days are cleaned up automatically on application startup. Manual cleanup is also available from `File -> Show Backups`.
 
 ---
 
 ## License
 
-This project is licensed under the **BSD 3-Clause License**. See the [`LICENSE`](LICENSE) file in the project 
-repository for full details.
+This project is licensed under the **BSD 3-Clause License**. See the [`LICENSE`](LICENSE) file in the project repository for full details.
 
 ---
 
-## Future Development Roadmap
-
-The following features are identified in the code as future implementation targets:
-
-### **Planned Features**
-    
-*   **Task Filtering System** - The "Show Completed Tasks" toggle in the `View` menu is implemented as a placeholder. Future implementation will:
-    *   Enable filtering of completed vs. pending tasks in the task table
-    *   Provide additional filtering options (by priority, due date, labels, etc.)
-    *   Persist filter settings between sessions
-
----
-
-**Copyright (©) 2026, Alexander Suvorov. All rights reserved.**
+**Copyright (c) 2026, Alexander Suvorov. All rights reserved.**
 
 ---
 
 ## Screenshot
 
-![Smart Project Manager Logo](https://github.com/smartlegionlab/smart-project-manager/blob/master/data/images/smart-project-manager.png)
+![Smart Project Manager](https://github.com/smartlegionlab/smart-project-manager/blob/master/data/images/smart-project-manager.png)
 

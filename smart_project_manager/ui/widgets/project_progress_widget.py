@@ -12,7 +12,7 @@ class ProjectProgressWidget(QGroupBox):
         self.setVisible(False)
 
     def setup_ui(self):
-        self.setTitle("📊 Project Progress")
+        self.setTitle("Project Progress")
         self.setStyleSheet("""
             QGroupBox {
                 font-weight: bold;
@@ -137,10 +137,6 @@ class ProjectProgressWidget(QGroupBox):
         tasks_layout.setContentsMargins(0, 0, 0, 0)
         tasks_layout.setSpacing(5)
 
-        tasks_icon = QLabel("✅")
-        tasks_icon.setStyleSheet("font-size: 12px;")
-        tasks_layout.addWidget(tasks_icon)
-
         tasks_stats = QVBoxLayout()
         tasks_stats.setSpacing(1)
 
@@ -165,10 +161,6 @@ class ProjectProgressWidget(QGroupBox):
         subtasks_layout = QHBoxLayout(subtasks_container)
         subtasks_layout.setContentsMargins(0, 0, 0, 0)
         subtasks_layout.setSpacing(5)
-
-        subtasks_icon = QLabel("📝")
-        subtasks_icon.setStyleSheet("font-size: 12px;")
-        subtasks_layout.addWidget(subtasks_icon)
 
         subtasks_stats = QVBoxLayout()
         subtasks_stats.setSpacing(1)
@@ -195,10 +187,6 @@ class ProjectProgressWidget(QGroupBox):
         timeline_layout.setContentsMargins(0, 0, 0, 0)
         timeline_layout.setSpacing(5)
 
-        timeline_icon = QLabel("📅")
-        timeline_icon.setStyleSheet("font-size: 12px;")
-        timeline_layout.addWidget(timeline_icon)
-
         timeline_stats = QVBoxLayout()
         timeline_stats.setSpacing(1)
 
@@ -224,7 +212,7 @@ class ProjectProgressWidget(QGroupBox):
 
     def update_progress(self, project, manager):
         self.setVisible(True)
-        self.setTitle(f"📊 Project Progress")
+        self.setTitle("Project Progress")
 
         self.project_name_label.setText(project.name)
 
@@ -250,19 +238,19 @@ class ProjectProgressWidget(QGroupBox):
         self.project_progress_text.setText(f"{progress:.1f}%")
 
         if progress == 100:
-            status_text = "✅ Completed"
+            status_text = "Completed"
             status_color = "#2e7d32"
         elif progress > 70:
-            status_text = "⚡ In Progress"
+            status_text = "In Progress"
             status_color = "#2ecc71"
         elif progress > 30:
-            status_text = "🔄 Active"
+            status_text = "Active"
             status_color = "#007acc"
         elif progress > 0:
-            status_text = "🟡 Started"
+            status_text = "Started"
             status_color = "#f39c12"
         else:
-            status_text = "⏳ Not Started"
+            status_text = "Not Started"
             status_color = "#95a5a6"
 
         self.project_status_badge.setText(status_text)
