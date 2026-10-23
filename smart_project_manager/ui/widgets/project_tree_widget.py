@@ -29,7 +29,6 @@ class ProjectsTreeWidget(QTreeWidget):
 
     def add_project(self, project, manager):
         item = QTreeWidgetItem(self)
-        item.setText(0, f"{project.name} v{project.version}")
         item.project_id = project.id
 
         task_count = len(project.tasks)
@@ -37,8 +36,7 @@ class ProjectsTreeWidget(QTreeWidget):
                              if manager.get_task(task_id) and
                              manager.get_task(task_id).completed)
 
-        progress_text = f" ({completed_tasks}/{task_count})"
-        item.setText(0, f"{project.name} v{project.version}{progress_text}")
+        item.setText(0, f"{project.name} ({completed_tasks}/{task_count})")
 
         if project.description:
             item.setToolTip(0, project.description)

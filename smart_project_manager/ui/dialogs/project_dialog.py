@@ -25,7 +25,7 @@ class ProjectDialog(QDialog):
 
         self.setWindowTitle('Edit Project' if self.is_edit_mode else 'Create New Project')
         self.setMinimumWidth(500)
-        self.setMinimumHeight(300)
+        self.setMinimumHeight(250)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(10)
@@ -44,27 +44,6 @@ class ProjectDialog(QDialog):
         if project:
             self.name_input.setText(project.name)
         name_layout.addWidget(self.name_input, 0, 1)
-
-        self.version_label = QLabel('Version:')
-        name_layout.addWidget(self.version_label, 1, 0)
-
-        self.version_input = QLineEdit()
-        self.version_input.setInputMask("9.9.9;_")
-        self.version_input.setPlaceholderText("e.g., 1.0.0")
-        if project:
-            self.version_input.setText(project.version)
-        else:
-            self.version_input.setText("1.0.0")
-        name_layout.addWidget(self.version_input, 1, 1)
-
-        self.github_url_label = QLabel('GitHub URL:')
-        name_layout.addWidget(self.github_url_label, 2, 0)
-
-        self.github_url_input = QLineEdit()
-        self.github_url_input.setPlaceholderText("https://github.com/user/repo")
-        if project:
-            self.github_url_input.setText(project.github_url)
-        name_layout.addWidget(self.github_url_input, 2, 1)
 
         self.layout.addWidget(name_group)
 
@@ -128,8 +107,6 @@ class ProjectDialog(QDialog):
     def get_project_data(self) -> dict:
         return {
             'name': self.name_input.text().strip(),
-            'github_url': self.github_url_input.text().strip(),
-            'version': self.version_input.text().strip(),
             'description': self.desc_input.toPlainText().strip() or None
         }
 
@@ -138,10 +115,6 @@ class ProjectDialog(QDialog):
 
         if not data['name']:
             QMessageBox.warning(self, 'Error', 'Project name is required')
-            return
-
-        if not data['version']:
-            QMessageBox.warning(self, 'Error', 'Version is required')
             return
 
         super().accept()

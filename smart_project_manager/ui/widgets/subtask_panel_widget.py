@@ -47,18 +47,23 @@ class SubtaskPanelWidget(QWidget):
 
         header_layout.addStretch()
 
-        self.btn_close = QPushButton('×')
+        self.btn_close = QPushButton('✕')
         self.btn_close.setFixedSize(30, 30)
+        self.btn_close.setCursor(Qt.PointingHandCursor)
         self.btn_close.setStyleSheet("""
             QPushButton {
                 background-color: #e74c3c;
-                color: white;
+                color: #ffffff;
+                border: none;
                 border-radius: 15px;
-                font-size: 18px;
-                font-weight: bold;
+                font-size: 14px;
+                font-weight: 900;
             }
             QPushButton:hover {
                 background-color: #c0392b;
+            }
+            QPushButton:pressed {
+                background-color: #a93226;
             }
         """)
         self.btn_close.clicked.connect(self.on_close_clicked)
@@ -220,7 +225,7 @@ class SubtaskPanelWidget(QWidget):
                     due_label.setStyleSheet("color: #888;")
             else:
                 due_label = QLabel("-")
-                due_label.setStyleSheet("color: #5a5d65; font-style: italic;")
+                due_label.setStyleSheet("color: #666; font-style: italic;")
 
             due_layout.addWidget(due_label)
             self.subtasks_table.setCellWidget(row, 3, due_widget)
@@ -250,7 +255,7 @@ class SubtaskPanelWidget(QWidget):
                     labels_layout.addWidget(more_label)
             else:
                 no_labels = QLabel("-")
-                no_labels.setStyleSheet("color: #5a5d65; font-style: italic; font-size: 10px;")
+                no_labels.setStyleSheet("color: #666; font-style: italic; font-size: 10px;")
                 labels_layout.addWidget(no_labels)
 
             labels_layout.addStretch()
@@ -318,10 +323,6 @@ class SubtaskPanelWidget(QWidget):
             self.load_subtasks()
             self.subtask_updated.emit()
 
-            main_window = self.get_main_window()
-            if main_window and main_window.current_project_id:
-                main_window.update_clear_completed_button()
-
     def edit_subtask(self, subtask_id: str):
         subtask = self.manager.get_subtask(subtask_id)
         if not subtask:
@@ -355,11 +356,3 @@ class SubtaskPanelWidget(QWidget):
             self.manager.delete_subtask(subtask_id)
             self.load_subtasks()
             self.subtask_updated.emit()
-
-    def get_main_window(self):
-        parent = self.parent()
-        while parent:
-            if hasattr(parent, 'update_clear_completed_button'):
-                return parent
-            parent = parent.parent()
-        return None

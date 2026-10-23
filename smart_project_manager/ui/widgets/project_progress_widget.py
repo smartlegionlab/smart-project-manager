@@ -50,8 +50,8 @@ class ProjectProgressWidget(QGroupBox):
 
         top_line.addStretch()
 
-        self.project_version_badge = QLabel("v-- | --")
-        self.project_version_badge.setStyleSheet("""
+        self.project_status_badge = QLabel("--")
+        self.project_status_badge.setStyleSheet("""
             QLabel {
                 background-color: #95a5a6;
                 color: white;
@@ -63,7 +63,7 @@ class ProjectProgressWidget(QGroupBox):
                 text-align: center;
             }
         """)
-        top_line.addWidget(self.project_version_badge)
+        top_line.addWidget(self.project_status_badge)
 
         self.layout.addLayout(top_line)
 
@@ -78,20 +78,6 @@ class ProjectProgressWidget(QGroupBox):
         """)
         self.project_description_label.setWordWrap(True)
         self.layout.addWidget(self.project_description_label)
-
-        self.project_url_label = QLabel()
-        self.project_url_label.setStyleSheet("""
-            QLabel {
-                font-size: 12px;
-                font-weight: bold;
-            }
-        """)
-        self.project_url_label.setWordWrap(True)
-        self.project_url_label.setTextFormat(Qt.RichText)
-        self.project_url_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
-        self.project_url_label.setOpenExternalLinks(True)
-
-        self.layout.addWidget(self.project_url_label)
 
         progress_layout = QVBoxLayout()
         progress_layout.setSpacing(3)
@@ -247,12 +233,6 @@ class ProjectProgressWidget(QGroupBox):
         else:
             self.project_description_label.setText("No description")
 
-        if project.github_url:
-            self.project_url_label.setText(f'<a href="{project.github_url}" styles="text-decoration=none">'
-                                           f'{project.github_url}</a>')
-        else:
-            self.project_url_label.setText("No GitHub URL")
-
         tasks = manager.get_tasks_by_project(project.id)
         total_tasks = len(tasks)
         completed_tasks = sum(1 for task in tasks if task.completed)
@@ -285,8 +265,8 @@ class ProjectProgressWidget(QGroupBox):
             status_text = "⏳ Not Started"
             status_color = "#95a5a6"
 
-        self.project_version_badge.setText(f"v{project.version} | {status_text}")
-        self.project_version_badge.setStyleSheet(f"""
+        self.project_status_badge.setText(status_text)
+        self.project_status_badge.setStyleSheet(f"""
             QLabel {{
                 background-color: {status_color};
                 color: white;

@@ -12,8 +12,8 @@ from PyQt5.QtWidgets import (
     QScrollArea, QSizePolicy, QTableWidget, QTabWidget, QSplitter,
     QTabBar
 )
-from PyQt5.QtGui import QFont, QDesktopServices, QIcon
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtCore import Qt
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
@@ -47,27 +47,6 @@ class ProjectTab(QWidget):
         top_bar_layout.addWidget(self.tasks_header)
 
         top_bar_layout.addStretch()
-
-        self.btn_open_url = QPushButton('GitHub URL')
-        self.btn_open_url.clicked.connect(self.open_github_url)
-        self.btn_open_url.setStyleSheet("""
-            QPushButton {
-                background-color: #007acc;
-                color: black;
-                font-weight: bold;
-                padding: 6px 10px;
-                border-radius: 5px;
-                font-size: 11px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #0066b3;
-            }
-            QPushButton:disabled {
-                background-color: #5a5d65;
-                color: #999;
-            }
-        """)
-        top_bar_layout.addWidget(self.btn_open_url)
 
         self.btn_edit_project = QPushButton('Edit')
         self.btn_edit_project.clicked.connect(self.edit_project)
@@ -292,7 +271,7 @@ class ProjectTab(QWidget):
         layout.addWidget(self.tasks_table, 1)
 
         self.subtasks_tab_widget = QTabWidget()
-        self.subtasks_tab_widget.setTabsClosable(True)
+        self.subtasks_tab_widget.setTabsClosable(False)
         self.subtasks_tab_widget.setMovable(False)
         self.subtasks_tab_widget.tabCloseRequested.connect(self.close_subtask_tab)
         self.subtasks_tab_widget.setMaximumHeight(320)
@@ -337,8 +316,6 @@ class ProjectTab(QWidget):
             return
 
         self.project_progress_widget.update_progress(project, self.main_window.manager)
-
-        self.btn_open_url.setEnabled(bool(project.github_url))
 
         self.update_clear_completed_button()
         self.update_label_filter_combo()
@@ -607,7 +584,33 @@ class ProjectTab(QWidget):
         subtask_widget.btn_close.hide()
         subtask_widget.title_label.hide()
 
-        self.subtasks_tab_widget.addTab(subtask_widget, task.title)
+        index = self.subtasks_tab_widget.addTab(subtask_widget, task.title)
+
+        close_btn = QPushButton('✕')
+        close_btn.setFixedSize(20, 20)
+        close_btn.setCursor(Qt.PointingHandCursor)
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #e74c3c;
+                border: none;
+                font-size: 12px;
+                font-weight: 900;
+            }
+            QPushButton:hover {
+                background-color: #e74c3c;
+                color: #ffffff;
+                border-radius: 10px;
+            }
+            QPushButton:pressed {
+                background-color: #a93226;
+                color: #ffffff;
+                border-radius: 10px;
+            }
+        """)
+        close_btn.clicked.connect(lambda _, w=subtask_widget: self.close_subtask_tab_by_widget(w))
+        self.subtasks_tab_widget.tabBar().setTabButton(index, QTabBar.RightSide, close_btn)
+
         self._subtask_tabs[task_id] = subtask_widget
         self.subtasks_tab_widget.setCurrentWidget(subtask_widget)
         self.subtasks_tab_widget.show()
@@ -638,6 +641,11 @@ class ProjectTab(QWidget):
             index = self.subtasks_tab_widget.indexOf(widget)
             if index >= 0:
                 self.close_subtask_tab(index)
+
+    def close_subtask_tab_by_widget(self, widget):
+        index = self.subtasks_tab_widget.indexOf(widget)
+        if index >= 0:
+            self.close_subtask_tab(index)
 
     def on_subtask_updated(self):
         self.load_project_data()
@@ -695,21 +703,6 @@ class ProjectTab(QWidget):
             return
         dialog = TaskDetailsDialog(self, task=task, manager=self.main_window.manager)
         dialog.exec_()
-
-    def open_github_url(self):
-        project = self.main_window.manager.get_project(self.project_id)
-        if not project:
-            return
-        if not project.github_url:
-            QMessageBox.warning(self, 'Error', 'No GitHub URL specified for this project')
-            return
-        try:
-            url = project.github_url.strip()
-            if not url.startswith(('http://', 'https://')):
-                url = 'https://' + url
-            QDesktopServices.openUrl(QUrl(url))
-        except Exception as e:
-            QMessageBox.critical(self, 'Error', f'Failed to open URL:\n{str(e)}')
 
     def edit_project(self):
         self.main_window.edit_project_by_id(self.project_id)
@@ -1031,7 +1024,7 @@ class MainWindow(QMainWindow):
                     completed_tasks = sum(1 for task_id in project.tasks
                                          if self.manager.get_task(task_id) and
                                          self.manager.get_task(task_id).completed)
-                    item.setText(0, f"{project.name} v{project.version} ({completed_tasks}/{task_count})")
+                    item.setText(0, f"{project.name} ({completed_tasks}/{task_count})")
 
     def load_projects(self):
         self.projects_tree.clear()
@@ -1066,7 +1059,7 @@ class MainWindow(QMainWindow):
             return
 
         tab = ProjectTab(self, project_id)
-        index = self.project_tabs.addTab(tab, f"📁 {project.name} v{project.version}")
+        index = self.project_tabs.addTab(tab, f"📁 {project.name}")
 
         close_btn = QPushButton('✕')
         close_btn.setFixedSize(20, 20)
@@ -1148,7 +1141,7 @@ class MainWindow(QMainWindow):
             for i in range(self.project_tabs.count()):
                 widget = self.project_tabs.widget(i)
                 if isinstance(widget, ProjectTab) and widget.project_id == project_id:
-                    self.project_tabs.setTabText(i, f"📁 {project.name} v{project.version}")
+                    self.project_tabs.setTabText(i, f"📁 {project.name}")
                     widget.load_project_data()
                     break
 
@@ -1211,12 +1204,6 @@ class MainWindow(QMainWindow):
 
         menu.addSeparator()
 
-        if project.github_url:
-            open_url_action = QAction("🌐 Open GitHub URL", self)
-            open_url_action.triggered.connect(lambda: self._open_url(project_id))
-            menu.addAction(open_url_action)
-            menu.addSeparator()
-
         edit_action = QAction("✏️ Edit Project", self)
         edit_action.triggered.connect(lambda: self.edit_project_by_id(project_id))
         menu.addAction(edit_action)
@@ -1228,17 +1215,6 @@ class MainWindow(QMainWindow):
         menu.addAction(delete_action)
 
         menu.exec_(self.projects_tree.viewport().mapToGlobal(position))
-
-    def _open_url(self, project_id: str):
-        project = self.manager.get_project(project_id)
-        if project and project.github_url:
-            try:
-                url = project.github_url.strip()
-                if not url.startswith(('http://', 'https://')):
-                    url = 'https://' + url
-                QDesktopServices.openUrl(QUrl(url))
-            except Exception as e:
-                QMessageBox.critical(self, 'Error', f'Failed to open URL:\n{str(e)}')
 
     def manage_labels(self):
         dialog = LabelManagerDialog(self, self.manager)

@@ -70,9 +70,9 @@ class ProjectManager:
         }
         save_json(self.data_file, data)
 
-    def create_project(self, name: str, version: str = "1.0.0",
-                      description: Optional[str] = None, github_url: str = "") -> Project:
-        project = Project(name=name, version=version, description=description, github_url=github_url)
+    def create_project(self, name: str,
+                      description: Optional[str] = None) -> Project:
+        project = Project(name=name, description=description)
         self.projects[project.id] = project
         self.save_data()
         return project
