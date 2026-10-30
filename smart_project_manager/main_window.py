@@ -220,6 +220,7 @@ class ProjectTab(QWidget):
         self.subtasks_tab_widget.setTabsClosable(False)
         self.subtasks_tab_widget.setMovable(False)
         self.subtasks_tab_widget.tabCloseRequested.connect(self.close_subtask_tab)
+        self.subtasks_tab_widget.currentChanged.connect(self.on_subtask_tab_changed)
         self.subtasks_tab_widget.setMaximumHeight(320)
         self.subtasks_tab_widget.setMinimumHeight(0)
         self.subtasks_tab_widget.setStyleSheet("""
@@ -508,12 +509,18 @@ class ProjectTab(QWidget):
         self.main_window.manager.update_project(project.id, task_order=new_order)
         self.main_window.status_bar.showMessage('Task order saved', 2000)
 
+    def on_subtask_tab_changed(self, index):
+        if index >= 0:
+            self.main_window.activate_project_tab(self)
+
     def on_task_double_clicked(self, task_id):
         if not task_id:
             return
         task = self.main_window.manager.get_task(task_id)
         if not task:
             return
+
+        self.main_window.activate_project_tab(self)
 
         if task_id in self._subtask_tabs:
             index = self.subtasks_tab_widget.indexOf(self._subtask_tabs[task_id])
@@ -741,6 +748,13 @@ class MainWindow(QMainWindow):
         center_point = QDesktopWidget().availableGeometry().center()
         frame.moveCenter(center_point)
         self.move(frame.topLeft())
+
+    def activate_project_tab(self, project_tab):
+        for i in range(self.project_tabs.count()):
+            if self.project_tabs.widget(i) is project_tab:
+                if self.project_tabs.currentIndex() != i:
+                    self.project_tabs.setCurrentIndex(i)
+                return
 
     def setup_menu_bar(self):
         menubar = self.menuBar()
