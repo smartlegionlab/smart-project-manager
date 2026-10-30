@@ -122,7 +122,7 @@ class TaskDialog(QDialog):
         self.due_input.setCalendarPopup(True)
         self.due_input.setDate(QDate.currentDate().addDays(7))
         if self.task and self.task.due_date:
-            self.due_input.setDate(QDate.fromString(self.task.due_date, Qt.ISODate))
+            self.due_input.setDate(QDate.fromString(self.task.due_date, Qt.DateFormat.ISODate))
         settings_layout.addWidget(self.due_input, 1, 1)
 
         if self.is_edit_mode:
@@ -300,7 +300,7 @@ class TaskDialog(QDialog):
                     self.selected_labels_layout.addWidget(container)
 
             if current_count > self.max_labels:
-                limit_label = QLabel(f'✓ Maximum {self.max_labels} labels selected')
+                limit_label = QLabel(f'Maximum {self.max_labels} labels selected')
                 limit_label.setStyleSheet("color: #27ae60; font-size: 11px;")
                 self.selected_labels_layout.addWidget(limit_label)
 
@@ -308,8 +308,8 @@ class TaskDialog(QDialog):
         else:
             no_labels_label = QLabel('No labels selected. Click "+ Add Labels" to add.')
             no_labels_label.setStyleSheet("color: #888; font-style: italic; font-size: 11px;")
-            no_labels_label.setAlignment(Qt.AlignCenter)
-            self.selected_labels_layout.addWidget(no_labels_label, alignment=Qt.AlignCenter)
+            no_labels_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.selected_labels_layout.addWidget(no_labels_label, alignment=Qt.AlignmentFlag.AlignCenter)
             self.selected_labels_layout.addStretch()
 
     def remove_label(self, label_id: str):
@@ -323,7 +323,7 @@ class TaskDialog(QDialog):
         selected_date = self.due_input.date()
 
         if selected_date.isValid():
-            due_date = selected_date.toString(Qt.ISODate)
+            due_date = selected_date.toString(Qt.DateFormat.ISODate)
         else:
             due_date = None
 

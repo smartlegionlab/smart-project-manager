@@ -49,7 +49,7 @@ class SubtaskPanelWidget(QWidget):
 
         self.btn_close = QPushButton('✕')
         self.btn_close.setFixedSize(30, 30)
-        self.btn_close.setCursor(Qt.PointingHandCursor)
+        self.btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_close.setStyleSheet("""
             QPushButton {
                 background-color: #e74c3c;
@@ -208,7 +208,7 @@ class SubtaskPanelWidget(QWidget):
             due_widget = QWidget()
             due_layout = QHBoxLayout(due_widget)
             due_layout.setContentsMargins(5, 0, 5, 0)
-            due_layout.setAlignment(Qt.AlignCenter)
+            due_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             if subtask.due_date:
                 due_label = QLabel(subtask.due_date)

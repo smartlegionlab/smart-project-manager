@@ -8,8 +8,8 @@ from typing import Optional, Dict
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
-    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame, QTextBrowser,
-    QScrollArea, QSizePolicy, QTableWidget, QTabWidget, QSplitter,
+    QMainWindow, QLineEdit, QComboBox, QCheckBox, QFrame,
+    QSizePolicy, QTableWidget, QTabWidget, QSplitter,
     QTabBar
 )
 from PyQt5.QtGui import QFont, QIcon
@@ -25,8 +25,6 @@ from smart_project_manager.ui.widgets.project_tree_widget import ProjectsTreeWid
 from smart_project_manager.ui.widgets.statistic_widget import StatisticsWidget
 from smart_project_manager.ui.widgets.task_table_widget import TaskTableWidget
 from smart_project_manager.ui.widgets.subtask_panel_widget import SubtaskPanelWidget
-
-from smart_project_manager import __version__ as ver
 
 
 class ProjectTab(QWidget):
@@ -966,7 +964,7 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(splitter)
 
         self.empty_label = QLabel('Select a project to view tasks')
-        self.empty_label.setAlignment(Qt.AlignCenter)
+        self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.empty_label.setStyleSheet("""
             QLabel {
                 color: #5a5d65;
@@ -1039,7 +1037,7 @@ class MainWindow(QMainWindow):
 
         close_btn = QPushButton('✕')
         close_btn.setFixedSize(20, 20)
-        close_btn.setCursor(Qt.PointingHandCursor)
+        close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         close_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;

@@ -138,7 +138,7 @@ class TaskTableWidget(QTableWidget):
         widget = QWidget()
         layout = QHBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         handle_container = QWidget()
         handle_layout = QVBoxLayout(handle_container)
@@ -157,7 +157,7 @@ class TaskTableWidget(QTableWidget):
                 }
             """)
             line.setFont(QFont("Arial", 14))
-            line.setAlignment(Qt.AlignCenter)
+            line.setAlignment(Qt.AlignmentFlag.AlignCenter)
             handle_layout.addWidget(line)
 
         layout.addWidget(handle_container)
@@ -266,7 +266,7 @@ class TaskTableWidget(QTableWidget):
     def _create_due_item(self, due_date, completed, task_id=None):
         due_text = due_date if due_date else "No due date"
         item = QTableWidgetItem(due_text)
-        item.setTextAlignment(Qt.AlignCenter)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
         if task_id:
             item.setData(Qt.UserRole, task_id)
@@ -285,7 +285,7 @@ class TaskTableWidget(QTableWidget):
 
                 if not due_date_obj:
                     try:
-                        qdate = QDate.fromString(due_date, Qt.ISODate)
+                        qdate = QDate.fromString(due_date, Qt.DateFormat.ISODate)
                         if qdate.isValid():
                             due_date_obj = datetime(qdate.year(), qdate.month(), qdate.day()).date()
                     except:

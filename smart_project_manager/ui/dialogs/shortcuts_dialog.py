@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QScrollArea, QWidget, QFrame
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 
 
 class ShortcutsDialog(QDialog):
@@ -42,7 +41,7 @@ class ShortcutsDialog(QDialog):
                 font-weight: bold;
             }
         """)
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(title_label)
 
         layout.addWidget(header)
@@ -140,7 +139,7 @@ class ShortcutsDialog(QDialog):
 
         ok_button = QPushButton("Close")
         ok_button.setFixedSize(110, 36)
-        ok_button.setCursor(Qt.PointingHandCursor)
+        ok_button.setCursor(Qt.CursorShape.PointingHandCursor)
         ok_button.setStyleSheet("""
             QPushButton {
                 background-color: #007acc;

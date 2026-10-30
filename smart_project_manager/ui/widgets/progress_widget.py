@@ -11,7 +11,7 @@ class ProgressWidget(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
 
         self.label = QLabel("Progress: 0%")
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setStyleSheet("font-weight: bold; color: #fff;")
 
         self.progress_bar = QProgressBar()

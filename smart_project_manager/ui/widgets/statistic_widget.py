@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import os
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout,
@@ -187,8 +188,8 @@ class StatisticsWidget(QWidget):
         self.data_path_link = QLabel(f'<a href="file://{full_path}"'
                                      f' style="color: #007acc; text-decoration: none;">{full_path}</a>')
         self.data_path_link.setOpenExternalLinks(True)
-        self.data_path_link.setTextFormat(Qt.RichText)
-        self.data_path_link.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.data_path_link.setTextFormat(Qt.TextFormat.RichText)
+        self.data_path_link.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         self.data_path_link.setStyleSheet("""
             QLabel {
                 font-size: 11px;

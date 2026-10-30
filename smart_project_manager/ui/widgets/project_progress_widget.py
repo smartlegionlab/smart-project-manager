@@ -1,8 +1,8 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar,
-    QSizePolicy, QFrame, QPushButton, QGridLayout
+    QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar,
+    QSizePolicy, QPushButton, QGridLayout
 )
 from datetime import datetime
 
@@ -54,7 +54,7 @@ class ProjectProgressWidget(QGroupBox):
 
         right_column = QVBoxLayout()
         right_column.setSpacing(6)
-        right_column.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        right_column.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
 
         badge_line = QHBoxLayout()
         badge_line.setSpacing(6)
@@ -82,7 +82,7 @@ class ProjectProgressWidget(QGroupBox):
         buttons_line.addStretch()
 
         self.btn_edit_project = QPushButton('Edit')
-        self.btn_edit_project.setCursor(Qt.PointingHandCursor)
+        self.btn_edit_project.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_edit_project.setStyleSheet("""
             QPushButton {
                 background-color: #FFC107;
@@ -98,7 +98,7 @@ class ProjectProgressWidget(QGroupBox):
         buttons_line.addWidget(self.btn_edit_project)
 
         self.btn_delete_project = QPushButton('Delete')
-        self.btn_delete_project.setCursor(Qt.PointingHandCursor)
+        self.btn_delete_project.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_delete_project.setStyleSheet("""
             QPushButton {
                 background-color: #e74c3c;

@@ -49,7 +49,7 @@ class DesktopEntryDialog(QDialog):
         title_font.setPointSize(14)
         title_font.setBold(True)
         title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet("color: #007acc; margin: 10px;")
         layout.addWidget(title_label)
 
@@ -61,7 +61,7 @@ class DesktopEntryDialog(QDialog):
             f"<b>Application Path:</b> {self.app_path}<br>"
             f"<b>Icon:</b> {self.icon_path if self.icon_path else 'Not found'}"
         )
-        info_text.setTextFormat(Qt.RichText)
+        info_text.setTextFormat(Qt.TextFormat.RichText)
         info_text.setWordWrap(True)
         info_layout.addWidget(info_text)
 
@@ -84,7 +84,7 @@ class DesktopEntryDialog(QDialog):
             "📌 <b>Note:</b> After creation, you may need to log out and back in "
             "or restart your desktop for the entry to appear in the menu."
         )
-        note_label.setTextFormat(Qt.RichText)
+        note_label.setTextFormat(Qt.TextFormat.RichText)
         note_label.setWordWrap(True)
         note_label.setStyleSheet("color: #0d47a1; background-color: #e3f2fd; padding: 8px; border-radius: 5px;")
         layout.addWidget(note_label)

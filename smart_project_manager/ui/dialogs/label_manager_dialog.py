@@ -30,14 +30,14 @@ class LabelManagerDialog(QDialog):
         self.selected_label_ids = pre_selected_ids or []
 
         title_suffix = " (Select up to 3)" if multi_select else ""
-        self.setWindowTitle(f'📝 Label Manager{title_suffix}')
+        self.setWindowTitle(f'Label Manager{title_suffix}')
         self.setMinimumSize(600, 700)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(15)
         self.layout.setContentsMargins(15, 15, 15, 15)
 
-        header_label = QLabel(f'📝 Label Manager{title_suffix}')
+        header_label = QLabel(f'Label Manager{title_suffix}')
         header_label.setFont(QFont("Arial", 18, QFont.Bold))
         header_label.setStyleSheet("color: #007acc;")
         self.layout.addWidget(header_label)
@@ -103,7 +103,7 @@ class LabelManagerDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.setSpacing(10)
 
-        self.btn_edit = QPushButton('✏️ Edit')
+        self.btn_edit = QPushButton('Edit')
         self.btn_edit.clicked.connect(self.edit_label)
         self.btn_edit.setEnabled(False)
         self.btn_edit.setFixedSize(80, 35)
@@ -146,9 +146,9 @@ class LabelManagerDialog(QDialog):
         button_layout.addWidget(self.btn_delete)
 
         if self.multi_select:
-            self.btn_select = QPushButton(f'✓ Select ({self.max_selection} max)')
+            self.btn_select = QPushButton(f'Select ({self.max_selection} max)')
         else:
-            self.btn_select = QPushButton('✓ Select')
+            self.btn_select = QPushButton('Select')
 
         self.btn_select.clicked.connect(self.select_current_label)
         self.btn_select.setEnabled(False)

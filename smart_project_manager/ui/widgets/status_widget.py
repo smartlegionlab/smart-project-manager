@@ -22,7 +22,7 @@ class StatusWidget(QWidget):
 
             painter.setPen(QPen(Qt.white))
             painter.setFont(QFont("Arial", 9, QFont.Bold))
-            painter.drawText(QRect(0, 0, 90, 26), Qt.AlignCenter, "✅ Done")
+            painter.drawText(QRect(0, 0, 90, 26), Qt.AlignmentFlag.AlignCenter, "✅ Done")
         else:
             painter.setBrush(QBrush(QColor("#ff9800")))
             painter.setPen(QPen(QColor("#e65100"), 1))
@@ -30,4 +30,4 @@ class StatusWidget(QWidget):
 
             painter.setPen(QPen(Qt.white))
             painter.setFont(QFont("Arial", 9, QFont.Bold))
-            painter.drawText(QRect(0, 0, 90, 26), Qt.AlignCenter, "⏳ Pending")
+            painter.drawText(QRect(0, 0, 90, 26), Qt.AlignmentFlag.AlignCenter, "⏳ Pending")

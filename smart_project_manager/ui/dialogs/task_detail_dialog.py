@@ -305,7 +305,7 @@ class TaskDetailsDialog(QDialog):
         layout.setContentsMargins(10, 5, 10, 5)
         layout.setSpacing(10)
 
-        status_label = QLabel("✓" if subtask.completed else "○")
+        status_label = QLabel("[x]" if subtask.completed else "[ ]")
         status_label.setStyleSheet("""
             QLabel {
                 font-size: 14px;

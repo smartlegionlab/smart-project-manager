@@ -97,7 +97,7 @@ class SubTaskDialog(QDialog):
 
         if subtask and subtask.due_date:
             try:
-                qdate = QDate.fromString(subtask.due_date, Qt.ISODate)
+                qdate = QDate.fromString(subtask.due_date, Qt.DateFormat.ISODate)
                 if qdate.isValid():
                     self.due_input.setDate(qdate)
                 else:
@@ -297,7 +297,7 @@ class SubTaskDialog(QDialog):
         else:
             no_labels_label = QLabel('No labels selected. Click "+ Add Labels" to add.')
             no_labels_label.setStyleSheet("color: #888; font-style: italic; font-size: 11px;")
-            no_labels_label.setAlignment(Qt.AlignCenter)
+            no_labels_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.selected_labels_layout.addWidget(no_labels_label)
             self.selected_labels_layout.addStretch()
 
@@ -313,7 +313,7 @@ class SubTaskDialog(QDialog):
         due_date = None
 
         if selected_date.isValid():
-            due_date = selected_date.toString(Qt.ISODate)
+            due_date = selected_date.toString(Qt.DateFormat.ISODate)
 
         return {
             'title': self.title_input.text().strip(),

@@ -22,7 +22,7 @@ class LabelWidget(QWidget):
         height = self.height()
 
         painter.setBrush(self.color)
-        painter.setPen(Qt.NoPen)
+        painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(0, 0, width, height, 4, 4)
 
         painter.setPen(QColor(255, 255, 255, 50))
@@ -34,7 +34,7 @@ class LabelWidget(QWidget):
         painter.setFont(font)
 
         text_rect = QRect(0, 0, width, height)
-        painter.drawText(text_rect, Qt.AlignCenter, self.label_name)
+        painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, self.label_name)
 
     def set_label(self, label_name: str, color: str, text_color: str = "#ffffff"):
         self.label_name = label_name
