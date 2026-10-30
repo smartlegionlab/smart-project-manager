@@ -40,59 +40,9 @@ class ProjectTab(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        top_bar_layout = QHBoxLayout()
-
-        self.tasks_header = QLabel('Tasks')
-        self.tasks_header.setFont(QFont("Arial", 14, QFont.Bold))
-        top_bar_layout.addWidget(self.tasks_header)
-
-        top_bar_layout.addStretch()
-
-        self.btn_edit_project = QPushButton('Edit')
-        self.btn_edit_project.clicked.connect(self.edit_project)
-        self.btn_edit_project.setStyleSheet("""
-            QPushButton {
-                background-color: #FFC107;
-                color: black;
-                font-weight: bold;
-                padding: 6px 10px;
-                border-radius: 5px;
-                font-size: 11px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #FFA000;
-            }
-            QPushButton:disabled {
-                background-color: #5a5d65;
-                color: #999;
-            }
-        """)
-        top_bar_layout.addWidget(self.btn_edit_project)
-
-        self.btn_delete_project = QPushButton('Delete')
-        self.btn_delete_project.clicked.connect(self.delete_project)
-        self.btn_delete_project.setStyleSheet("""
-            QPushButton {
-                background-color: #e74c3c;
-                color: black;
-                font-weight: bold;
-                padding: 6px 10px;
-                border-radius: 5px;
-                font-size: 11px;
-            }
-            QPushButton:hover:enabled {
-                background-color: #c0392b;
-            }
-            QPushButton:disabled {
-                background-color: #5a5d65;
-                color: #999;
-            }
-        """)
-        top_bar_layout.addWidget(self.btn_delete_project)
-
-        layout.addLayout(top_bar_layout)
-
         self.project_progress_widget = ProjectProgressWidget(self)
+        self.project_progress_widget.btn_edit_project.clicked.connect(self.edit_project)
+        self.project_progress_widget.btn_delete_project.clicked.connect(self.delete_project)
         layout.addWidget(self.project_progress_widget)
 
         self.filters_panel = QFrame()

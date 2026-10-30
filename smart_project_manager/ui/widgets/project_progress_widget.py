@@ -1,6 +1,8 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar, QSizePolicy
+    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGroupBox, QProgressBar,
+    QSizePolicy, QFrame, QPushButton
 )
 from datetime import datetime
 
@@ -12,85 +14,111 @@ class ProjectProgressWidget(QGroupBox):
         self.setVisible(False)
 
     def setup_ui(self):
-        self.setTitle("Project Progress")
+        self.setTitle("")
         self.setStyleSheet("""
             QGroupBox {
-                font-weight: bold;
-                border: 2px solid #3a3d45;
+                border: 1px solid #3a3d45;
                 border-radius: 8px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px 0 5px;
-                color: #007acc;
+                background-color: #1e2026;
+                margin-top: 0px;
+                padding: 0px;
             }
         """)
 
         self.layout = QVBoxLayout(self)
-        self.layout.setSpacing(8)
-        self.layout.setContentsMargins(10, 12, 10, 10)
+        self.layout.setSpacing(10)
+        self.layout.setContentsMargins(14, 14, 14, 14)
 
         top_line = QHBoxLayout()
+        top_line.setSpacing(10)
+
+        title_column = QVBoxLayout()
+        title_column.setSpacing(2)
 
         self.project_name_label = QLabel("--")
-        self.project_name_label.setStyleSheet("""
-                    QLabel {
-                        font-size: 16px;
-                        font-weight: bold;
-                        color: #007acc;
-                    }
-                """)
+        self.project_name_label.setStyleSheet(
+            "QLabel { font-size: 20px; font-weight: bold; color: #ffffff; }"
+        )
         self.project_name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.project_name_label.setMinimumWidth(200)
         self.project_name_label.setWordWrap(True)
-        top_line.addWidget(self.project_name_label, 1)
+        title_column.addWidget(self.project_name_label)
 
-        top_line.addStretch()
+        self.project_description_label = QLabel("--")
+        self.project_description_label.setStyleSheet(
+            "QLabel { font-size: 12px; color: #aaa; font-style: italic; }"
+        )
+        self.project_description_label.setWordWrap(True)
+        title_column.addWidget(self.project_description_label)
+
+        top_line.addLayout(title_column, 1)
+
+        right_column = QVBoxLayout()
+        right_column.setSpacing(6)
+        right_column.setAlignment(Qt.AlignRight | Qt.AlignTop)
+
+        badge_line = QHBoxLayout()
+        badge_line.setSpacing(6)
+        badge_line.addStretch()
 
         self.project_status_badge = QLabel("--")
         self.project_status_badge.setStyleSheet("""
             QLabel {
                 background-color: #95a5a6;
                 color: white;
-                padding: 3px 8px;
+                padding: 3px 10px;
                 border-radius: 10px;
                 font-weight: bold;
                 font-size: 10px;
                 min-width: 90px;
-                text-align: center;
             }
         """)
-        top_line.addWidget(self.project_status_badge)
+        badge_line.addWidget(self.project_status_badge)
 
-        self.layout.addLayout(top_line)
+        right_column.addLayout(badge_line)
 
-        self.project_description_label = QLabel("--")
-        self.project_description_label.setStyleSheet("""
-            QLabel {
+        buttons_line = QHBoxLayout()
+        buttons_line.setSpacing(6)
+        buttons_line.addStretch()
+
+        self.btn_edit_project = QPushButton('Edit')
+        self.btn_edit_project.setCursor(Qt.PointingHandCursor)
+        self.btn_edit_project.setStyleSheet("""
+            QPushButton {
+                background-color: #FFC107;
+                color: black;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
                 font-size: 11px;
-                color: #aaa;
-                font-style: italic;
-                margin-bottom: 5px;
             }
+            QPushButton:hover:enabled { background-color: #FFA000; }
+            QPushButton:disabled { background-color: #5a5d65; color: #999; }
         """)
-        self.project_description_label.setWordWrap(True)
-        self.layout.addWidget(self.project_description_label)
+        buttons_line.addWidget(self.btn_edit_project)
+
+        self.btn_delete_project = QPushButton('Delete')
+        self.btn_delete_project.setCursor(Qt.PointingHandCursor)
+        self.btn_delete_project.setStyleSheet("""
+            QPushButton {
+                background-color: #e74c3c;
+                color: white;
+                font-weight: bold;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 11px;
+            }
+            QPushButton:hover:enabled { background-color: #c0392b; }
+            QPushButton:disabled { background-color: #5a5d65; color: #999; }
+        """)
+        buttons_line.addWidget(self.btn_delete_project)
+
+        right_column.addLayout(buttons_line)
+
+        top_line.addLayout(right_column)
+        self.layout.addLayout(top_line)
 
         progress_layout = QVBoxLayout()
         progress_layout.setSpacing(3)
-
-        progress_line = QHBoxLayout()
-
-        progress_label = QLabel("Progress")
-        progress_label.setStyleSheet("font-weight: bold; font-size: 11px;")
-        progress_line.addWidget(progress_label)
-
-        progress_line.addStretch()
-
-        progress_layout.addLayout(progress_line)
 
         progress_bar_line = QHBoxLayout()
 
@@ -101,7 +129,7 @@ class ProjectProgressWidget(QGroupBox):
             QProgressBar {
                 border: 1px solid #3a3d45;
                 border-radius: 8px;
-                background-color: #1e2026;
+                background-color: #181a1e;
             }
             QProgressBar::chunk {
                 background-color: qlineargradient(
@@ -115,104 +143,43 @@ class ProjectProgressWidget(QGroupBox):
         progress_bar_line.addWidget(self.project_progress_bar, 3)
 
         self.project_progress_text = QLabel("0%")
-        self.project_progress_text.setStyleSheet("""
-            QLabel {
-                font-weight: bold;
-                color: #2ecc71;
-                font-size: 12px;
-                margin-left: 10px;
-                min-width: 40px;
-            }
-        """)
+        self.project_progress_text.setStyleSheet(
+            "QLabel { font-weight: bold; color: #2ecc71; font-size: 13px; margin-left: 10px; min-width: 48px; }"
+        )
         progress_bar_line.addWidget(self.project_progress_text)
 
         progress_layout.addLayout(progress_bar_line)
         self.layout.addLayout(progress_layout)
 
         stats_line = QHBoxLayout()
-        stats_line.setSpacing(15)
+        stats_line.setSpacing(20)
 
-        tasks_container = QWidget()
-        tasks_layout = QHBoxLayout(tasks_container)
-        tasks_layout.setContentsMargins(0, 0, 0, 0)
-        tasks_layout.setSpacing(5)
-
-        tasks_stats = QVBoxLayout()
-        tasks_stats.setSpacing(1)
-
-        self.project_tasks_total = QLabel("0")
-        self.project_tasks_total.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: bold;
-                color: white;
-            }
-        """)
-        tasks_stats.addWidget(self.project_tasks_total)
-
-        tasks_label = QLabel("tasks")
-        tasks_label.setStyleSheet("color: #2ecc71; font-size: 9px;")
-        tasks_stats.addWidget(tasks_label)
-
-        tasks_layout.addLayout(tasks_stats)
-        stats_line.addWidget(tasks_container)
-
-        subtasks_container = QWidget()
-        subtasks_layout = QHBoxLayout(subtasks_container)
-        subtasks_layout.setContentsMargins(0, 0, 0, 0)
-        subtasks_layout.setSpacing(5)
-
-        subtasks_stats = QVBoxLayout()
-        subtasks_stats.setSpacing(1)
-
-        self.project_subtasks_total = QLabel("0")
-        self.project_subtasks_total.setStyleSheet("""
-            QLabel {
-                font-size: 14px;
-                font-weight: bold;
-                color: white;
-            }
-        """)
-        subtasks_stats.addWidget(self.project_subtasks_total)
-
-        subtasks_label = QLabel("subtasks")
-        subtasks_label.setStyleSheet("color: #9b59b6; font-size: 9px;")
-        subtasks_stats.addWidget(subtasks_label)
-
-        subtasks_layout.addLayout(subtasks_stats)
-        stats_line.addWidget(subtasks_container)
-
-        timeline_container = QWidget()
-        timeline_layout = QHBoxLayout(timeline_container)
-        timeline_layout.setContentsMargins(0, 0, 0, 0)
-        timeline_layout.setSpacing(5)
-
-        timeline_stats = QVBoxLayout()
-        timeline_stats.setSpacing(1)
-
-        self.project_updated_label = QLabel("--")
-        self.project_updated_label.setStyleSheet("""
-            QLabel {
-                font-size: 11px;
-                font-weight: bold;
-                color: white;
-            }
-        """)
-        timeline_stats.addWidget(self.project_updated_label)
-
-        timeline_label = QLabel("updated")
-        timeline_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
-        timeline_stats.addWidget(timeline_label)
-
-        timeline_layout.addLayout(timeline_stats)
-        stats_line.addWidget(timeline_container)
+        self.project_tasks_total = self._make_stat_block(stats_line, "tasks", "#2ecc71")
+        self.project_subtasks_total = self._make_stat_block(stats_line, "subtasks", "#9b59b6")
+        self.project_updated_label = self._make_stat_block(stats_line, "updated", "#e74c3c")
 
         stats_line.addStretch()
         self.layout.addLayout(stats_line)
 
+    def _make_stat_block(self, parent_layout, caption, color):
+        container = QWidget()
+        box = QVBoxLayout(container)
+        box.setContentsMargins(0, 0, 0, 0)
+        box.setSpacing(1)
+
+        value = QLabel("0")
+        value.setStyleSheet("QLabel { font-size: 14px; font-weight: bold; color: white; }")
+        box.addWidget(value)
+
+        caption_label = QLabel(caption)
+        caption_label.setStyleSheet(f"QLabel {{ color: {color}; font-size: 9px; }}")
+        box.addWidget(caption_label)
+
+        parent_layout.addWidget(container)
+        return value
+
     def update_progress(self, project, manager):
         self.setVisible(True)
-        self.setTitle("Project Progress")
 
         self.project_name_label.setText(project.name)
 
@@ -258,12 +225,11 @@ class ProjectProgressWidget(QGroupBox):
             QLabel {{
                 background-color: {status_color};
                 color: white;
-                padding: 3px 8px;
+                padding: 3px 10px;
                 border-radius: 10px;
                 font-weight: bold;
                 font-size: 10px;
                 min-width: 90px;
-                text-align: center;
             }}
         """)
 
@@ -274,8 +240,8 @@ class ProjectProgressWidget(QGroupBox):
             try:
                 updated_date = datetime.fromisoformat(project.updated_at.replace('Z', '+00:00'))
                 updated_formatted = updated_date.strftime("%d %b")
-                self.project_updated_label.setText(f"{updated_formatted}")
-            except:
-                self.project_updated_label.setText(f"{project.updated_at[:5]}")
+                self.project_updated_label.setText(updated_formatted)
+            except Exception:
+                self.project_updated_label.setText(project.updated_at[:5])
         else:
             self.project_updated_label.setText("--")
