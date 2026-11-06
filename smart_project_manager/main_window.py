@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         self._updating = False
 
         self.setWindowTitle('Smart Project Manager')
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1100, 700)
         self.resize(1300, 800)
 
         self.setup_application_icon()
@@ -307,16 +307,20 @@ class MainWindow(QMainWindow):
 
         bottom_splitter.addWidget(tasks_panel)
 
-        subtasks_panel = QWidget()
-        subtasks_layout = QVBoxLayout(subtasks_panel)
-        subtasks_layout.setContentsMargins(0, 0, 0, 0)
-        subtasks_layout.setSpacing(8)
+        task_subtask_panel = QWidget()
+        task_subtask_layout = QVBoxLayout(task_subtask_panel)
+        task_subtask_layout.setContentsMargins(0, 0, 0, 0)
+        task_subtask_layout.setSpacing(8)
 
         task_header_row = QHBoxLayout()
         task_header_row.setSpacing(6)
         task_header = PanelHeader("TASK")
         task_header_row.addWidget(task_header, 1)
-        subtasks_layout.addLayout(task_header_row)
+        task_subtask_layout.addLayout(task_header_row)
+
+        self.task_subtask_splitter = QSplitter(Qt.Vertical)
+        self.task_subtask_splitter.setChildrenCollapsible(False)
+        self.task_subtask_splitter.setHandleWidth(8)
 
         self.task_header = TaskHeaderWidget(self)
         self.task_header.set_callbacks(
@@ -324,7 +328,19 @@ class MainWindow(QMainWindow):
             self.edit_task_by_id,
             self.delete_task_by_id
         )
-        subtasks_layout.addWidget(self.task_header)
+
+        task_header_section = QWidget()
+        task_header_section_layout = QVBoxLayout(task_header_section)
+        task_header_section_layout.setContentsMargins(0, 0, 0, 0)
+        task_header_section_layout.setSpacing(0)
+        task_header_section_layout.addWidget(self.task_header)
+
+        self.task_subtask_splitter.addWidget(task_header_section)
+
+        subtasks_section = QWidget()
+        subtasks_section_layout = QVBoxLayout(subtasks_section)
+        subtasks_section_layout.setContentsMargins(0, 0, 0, 0)
+        subtasks_section_layout.setSpacing(8)
 
         subtasks_header_row = QHBoxLayout()
         subtasks_header_row.setSpacing(6)
@@ -335,7 +351,7 @@ class MainWindow(QMainWindow):
         self.btn_new_subtask.clicked.connect(self.create_subtask_in_current_task)
         subtasks_header_row.addWidget(self.btn_new_subtask)
 
-        subtasks_layout.addLayout(subtasks_header_row)
+        subtasks_section_layout.addLayout(subtasks_header_row)
 
         self.subtask_list = SubtaskListWidget(self)
         self.subtask_list.manager = self.manager
@@ -343,9 +359,17 @@ class MainWindow(QMainWindow):
         self.subtask_list.subtask_toggled.connect(self.toggle_subtask_status)
         self.subtask_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.subtask_list.customContextMenuRequested.connect(self.show_subtask_context_menu)
-        subtasks_layout.addWidget(self.subtask_list, 1)
+        subtasks_section_layout.addWidget(self.subtask_list, 1)
 
-        bottom_splitter.addWidget(subtasks_panel)
+        self.task_subtask_splitter.addWidget(subtasks_section)
+
+        self.task_subtask_splitter.setStretchFactor(0, 0)
+        self.task_subtask_splitter.setStretchFactor(1, 1)
+        self.task_subtask_splitter.setSizes([220, 380])
+
+        task_subtask_layout.addWidget(self.task_subtask_splitter, 1)
+
+        bottom_splitter.addWidget(task_subtask_panel)
 
         bottom_splitter.setStretchFactor(0, 1)
         bottom_splitter.setStretchFactor(1, 1)

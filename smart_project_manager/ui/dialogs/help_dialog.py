@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -23,25 +22,17 @@ class HelpDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
 
         header = QFrame()
-        header.setStyleSheet("""
-            QFrame {
-                background-color: #1e2026;
-            }
-        """)
+        header.setStyleSheet("QFrame { background-color: #1e2026; }")
         header.setFixedHeight(70)
 
         header_layout = QVBoxLayout(header)
         header_layout.setContentsMargins(20, 15, 20, 15)
 
         title_label = QLabel("Help")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: #007acc;
-                font-size: 20px;
-                font-weight: bold;
-            }
-        """)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet(
+            "QLabel { color: #007acc; font-size: 20px; font-weight: bold; }"
+        )
+        title_label.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(title_label)
 
         layout.addWidget(header)
@@ -49,26 +40,7 @@ class HelpDialog(QDialog):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.NoFrame)
-        scroll_area.setStyleSheet("""
-            QScrollArea {
-                background-color: #181a1e;
-                border: none;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background: #2a2d34;
-                width: 12px;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical {
-                background: #4a4d55;
-                border-radius: 6px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: #5a5d65;
-            }
-        """)
+        scroll_area.setStyleSheet("QScrollArea { background-color: #181a1e; border: none; }")
 
         content_widget = QWidget()
         content_widget.setStyleSheet("background-color: #181a1e;")
@@ -77,47 +49,66 @@ class HelpDialog(QDialog):
         content_layout.setSpacing(14)
 
         content_layout.addWidget(self._make_section(
+            "WORKSPACE LAYOUT",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>The window has five labeled panes: <b>PROJECTS</b>, <b>PROJECT</b>, <b>TASKS</b>, <b>TASK</b>, <b>SUBTASKS</b></li>
+            <li>All splitter handles are draggable. Panes never collapse completely</li>
+            <li>The <b>PROJECT</b> card stays on top, the <b>TASK</b> card and the <b>SUBTASKS</b> list are stacked below it</li>
+            <li>The <b>TASKS</b> list sits on the left of the workspace and the selected task is shown on the right</li>
+            <li>The global statistics panel is in the status bar at the bottom</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
             "FIRST STEPS",
             """<ol style='color: #ddd; margin: 0; padding-left: 20px;'>
-            <li>Click <b>+ New Project</b> in the left panel or use <b>File -> New Project</b>. Enter a name and optional description.</li>
-            <li>Click the new project in the tree on the left. It opens as a tab on the right.</li>
-            <li>Click <b>Add Task</b> inside the project tab or use <b>File -> New Task</b>. Fill in title, priority, due date and labels.</li>
-            <li>Double-click the task row. Its subtasks open as a new tab below the task list.</li>
-            <li>Inside the subtask tab click <b>+ Add Subtask</b> to add nested steps for this task.</li>
+            <li>Click <b>+ New</b> in the <b>PROJECTS</b> pane or use <b>File -> New Project</b> (<code>Ctrl+N</code>).</li>
+            <li>Select the new project in the list. The <b>PROJECT</b> card and the <b>TASKS</b> list update automatically.</li>
+            <li>Click <b>+ Add</b> in the <b>TASKS</b> pane or use <b>File -> New Task</b> (<code>Ctrl+T</code>). Fill in title, description, priority, due date and labels.</li>
+            <li>Select the task. The <b>TASK</b> card and the <b>SUBTASKS</b> list update automatically.</li>
+            <li>Click <b>+ Add</b> in the <b>SUBTASKS</b> pane or use <b>File -> New Subtask</b> (<code>Ctrl+Shift+T</code>). Fill in title and priority.</li>
             </ol>"""
         ))
 
         content_layout.addWidget(self._make_section(
-            "TABS AND NAVIGATION",
+            "PROJECTS",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li><b>Project tabs</b> - one tab per opened project, at the top of the right panel.</li>
-            <li><b>Subtask tabs</b> - one tab per opened task, below the task list inside the project tab.</li>
-            <li>Click a tab to switch. Close any tab with the <b>X</b> button.</li>
-            <li>Closing a project tab does not delete the project. It stays in the tree on the left and can be reopened by clicking it again.</li>
-            <li>Closing a subtask tab does not delete the task. It stays in the task list and can be reopened by double-clicking the task row again.</li>
-            <li>You can keep multiple project tabs open, and multiple subtask tabs inside each project tab.</li>
+            <li>Name up to 100 characters, description up to 2000 characters, both with live counters in the dialog.</li>
+            <li>The optional link is only shown in edit mode. It is validated, a scheme such as <code>https://</code> is required.</li>
+            <li>The project card shows the name, description, optional link, a status badge, and four tiles: <b>TASKS</b>, <b>SUBTASKS</b>, <b>UPDATED</b>, <b>PROGRESS</b>.</li>
+            <li>Full CRUD: right-click in the list, <b>Edit -> Edit Project</b> (<code>Ctrl+E</code>), <b>Edit -> Delete Project</b> (<code>Ctrl+D</code>), or the <b>Edit</b> / <b>Delete</b> buttons on the card.</li>
+            <li>When no project is selected, the card shows a placeholder, so the pane never looks empty.</li>
             </ul>"""
         ))
 
         content_layout.addWidget(self._make_section(
-            "TASKS AND SUBTASKS",
+            "TASKS",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li>Each task and subtask has: title, description, priority (High / Medium / Low), due date, labels.</li>
-            <li>Status toggle: click the status button on the row, or use right-click -> <b>Mark as Complete</b> / <b>Mark as Pending</b>.</li>
-            <li>Automatic completion: when every subtask of a task is completed, the parent task is marked completed automatically.</li>
-            <li>Reorder tasks: drag a task row up or down inside the task table. The new order is saved per project.</li>
-            <li>Right-click a task row for quick actions: <b>View Details</b>, <b>Open Subtasks</b>, <b>Mark as Complete / Pending</b>, <b>Edit Task</b>, <b>Delete Task</b>.</li>
+            <li>Title up to 100 characters, description up to 2000 characters, both with live counters in the dialog.</li>
+            <li>Each row shows a status dot, the title, the priority, the progress, the due date and up to two labels.</li>
+            <li>When all subtasks of a task are completed, the task is marked completed automatically.</li>
+            <li>Full CRUD: right-click in the list, <b>Edit -> Edit Task</b> (<code>Ctrl+Shift+E</code>), <b>Edit -> Delete Task</b> (<code>Ctrl+Shift+D</code>), or the buttons in the <b>TASK</b> card.</li>
+            <li>If no task is selected, the <b>TASK</b> card shows a placeholder.</li>
             </ul>"""
         ))
 
         content_layout.addWidget(self._make_section(
-            "SEARCH AND FILTERS",
+            "SUBTASKS",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li><b>Search box</b> - filters tasks by title and description in the current project.</li>
-            <li><b>Priority filter</b> - show only tasks with a specific priority.</li>
-            <li><b>Label filter</b> - show only tasks that have a specific label.</li>
-            <li><b>Show Completed</b> - hide or show completed tasks.</li>
-            <li><b>Reset</b> - clear all filters and return to the full task list.</li>
+            <li>Subtasks are simplified: title and priority only.</li>
+            <li>Title up to 100 characters, with a live counter in the dialog.</li>
+            <li>Toggle completion with the checkbox on the row, or via the context menu.</li>
+            <li>Full CRUD: right-click in the list, or <b>+ Add</b> in the <b>SUBTASKS</b> pane header.</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "STABLE SELECTION",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Selection in all three lists is preserved across every CRUD operation.</li>
+            <li>Select a project, select a task, create a subtask - project and task selection stay in place.</li>
+            <li>Switch to another project and come back - the previously selected task is restored.</li>
+            <li>Programmatic selection updates never emit change signals, and a single reload path restores everything consistently.</li>
             </ul>"""
         ))
 
@@ -125,20 +116,20 @@ class HelpDialog(QDialog):
             "LABELS",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li>Open <b>Edit -> Manage Labels</b> to create, edit and delete labels.</li>
-            <li>Each label has a name (up to 8 characters), background color and text color.</li>
-            <li>Assign labels to tasks and subtasks while creating or editing them.</li>
-            <li>Deleting a label removes it from all tasks and subtasks that use it.</li>
+            <li>Each label has a name (up to 8 characters), background color, text color and optional description.</li>
+            <li>Assign labels to tasks while creating or editing them.</li>
+            <li>Deleting a label removes it from all tasks that use it.</li>
             </ul>"""
         ))
 
         content_layout.addWidget(self._make_section(
             "BACKUPS, EXPORT, IMPORT",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li><b>File -> Create Backup</b> (<code>Ctrl+B</code>) - saves a timestamped copy of your data to <code>~/.smart_project_manager/backups/</code>.</li>
-            <li><b>File -> Show Backups</b> - lists current backups, shows total size and lets you clear all backups at once.</li>
+            <li><b>File -> Create Backup</b> (<code>Ctrl+B</code>) - saves a timestamped copy to <code>~/.smart_project_manager/backups/</code>.</li>
+            <li><b>File -> Show Backups</b> - lists current backups, shows total size, allows clearing all backups.</li>
             <li>Backups older than 30 days are removed automatically at startup.</li>
-            <li><b>File -> Export</b> (<code>Ctrl+Shift+E</code>) - writes the whole dataset to a single JSON file.</li>
-            <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with the contents of a JSON file. <b>This overwrites all existing data.</b> A temporary backup of the current file is created automatically before import.</li>
+            <li><b>File -> Export</b> (<code>Ctrl+Shift+S</code>) - writes the whole dataset to a single JSON file.</li>
+            <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with a JSON file. <b>This overwrites all existing data.</b> A temporary backup is created automatically before import.</li>
             </ul>"""
         ))
 
@@ -157,12 +148,19 @@ class HelpDialog(QDialog):
             """<table style='color: #ddd; font-size: 12px; border-collapse: collapse;'>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+N</code></td><td>New project</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+T</code></td><td>New task in the current project</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+T</code></td><td>New subtask in the current task</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+E</code></td><td>Edit current project</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+D</code></td><td>Delete current project</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+E</code></td><td>Edit current task</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+D</code></td><td>Delete current task</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+B</code></td><td>Create backup</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+I</code></td><td>Import</td></tr>
-            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+E</code></td><td>Export</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+S</code></td><td>Export</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+L</code></td><td>Manage labels</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F5</code></td><td>Refresh view</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F1</code></td><td>Open help</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+/</code></td><td>Show keyboard shortcuts</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+A</code></td><td>Open about</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Q</code></td><td>Exit application</td></tr>
             </table>"""
         ))
@@ -187,11 +185,7 @@ class HelpDialog(QDialog):
         layout.addWidget(scroll_area)
 
         button_panel = QFrame()
-        button_panel.setStyleSheet("""
-            QFrame {
-                background-color: #1e2026;
-            }
-        """)
+        button_panel.setStyleSheet("QFrame { background-color: #1e2026; }")
         button_panel.setFixedHeight(60)
 
         button_layout = QHBoxLayout(button_panel)
@@ -200,23 +194,13 @@ class HelpDialog(QDialog):
 
         ok_button = QPushButton("Close")
         ok_button.setFixedSize(110, 36)
-        ok_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        ok_button.setStyleSheet("""
-            QPushButton {
-                background-color: #007acc;
-                color: white;
-                font-weight: bold;
-                border: none;
-                border-radius: 5px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #0066b3;
-            }
-            QPushButton:pressed {
-                background-color: #005a99;
-            }
-        """)
+        ok_button.setCursor(Qt.PointingHandCursor)
+        ok_button.setStyleSheet(
+            "QPushButton { background-color: #007acc; color: white; font-weight: bold; "
+            "border: none; border-radius: 5px; padding: 8px 16px; }"
+            "QPushButton:hover { background-color: #0066b3; }"
+            "QPushButton:pressed { background-color: #005a99; }"
+        )
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
 
@@ -224,48 +208,28 @@ class HelpDialog(QDialog):
 
     def _make_section(self, title, html_content):
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                background-color: transparent;
-            }
-        """)
-
+        frame.setStyleSheet("QFrame { background-color: transparent; }")
         frame_layout = QVBoxLayout(frame)
         frame_layout.setContentsMargins(0, 0, 0, 0)
         frame_layout.setSpacing(6)
 
         title_label = QLabel(title)
-        title_label.setStyleSheet("""
-            QLabel {
-                color: #007acc;
-                font-size: 11px;
-                font-weight: bold;
-                letter-spacing: 1px;
-            }
-        """)
+        title_label.setStyleSheet(
+            "QLabel { color: #007acc; font-size: 11px; font-weight: bold; letter-spacing: 1px; }"
+        )
         frame_layout.addWidget(title_label)
 
         content_label = QLabel(html_content)
-        content_label.setTextFormat(Qt.TextFormat.RichText)
+        content_label.setTextFormat(Qt.RichText)
         content_label.setWordWrap(True)
         content_label.setOpenExternalLinks(True)
-        content_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
-        content_label.setStyleSheet("""
-            QLabel {
-                color: #ddd;
-                font-size: 12px;
-            }
-            code {
-                font-family: Consolas, monospace;
-                background-color: #23262d;
-                padding: 2px 6px;
-                border-radius: 3px;
-                color: #2ecc71;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
-        """)
+        content_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        content_label.setStyleSheet(
+            "QLabel { color: #ddd; font-size: 12px; }"
+            "code { font-family: Consolas, monospace; background-color: #23262d; "
+            "padding: 2px 6px; border-radius: 3px; color: #2ecc71; }"
+            "a:hover { text-decoration: underline; }"
+        )
         frame_layout.addWidget(content_label)
 
         return frame

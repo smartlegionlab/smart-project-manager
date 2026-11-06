@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -23,25 +22,17 @@ class ShortcutsDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
 
         header = QFrame()
-        header.setStyleSheet("""
-            QFrame {
-                background-color: #1e2026;
-            }
-        """)
+        header.setStyleSheet("QFrame { background-color: #1e2026; }")
         header.setFixedHeight(70)
 
         header_layout = QVBoxLayout(header)
         header_layout.setContentsMargins(20, 15, 20, 15)
 
         title_label = QLabel("Keyboard Shortcuts")
-        title_label.setStyleSheet("""
-            QLabel {
-                color: #007acc;
-                font-size: 20px;
-                font-weight: bold;
-            }
-        """)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet(
+            "QLabel { color: #007acc; font-size: 20px; font-weight: bold; }"
+        )
+        title_label.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(title_label)
 
         layout.addWidget(header)
@@ -49,26 +40,7 @@ class ShortcutsDialog(QDialog):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.NoFrame)
-        scroll_area.setStyleSheet("""
-            QScrollArea {
-                background-color: #181a1e;
-                border: none;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background: #2a2d34;
-                width: 12px;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical {
-                background: #4a4d55;
-                border-radius: 6px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: #5a5d65;
-            }
-        """)
+        scroll_area.setStyleSheet("QScrollArea { background-color: #181a1e; border: none; }")
 
         content_widget = QWidget()
         content_widget.setStyleSheet("background-color: #181a1e;")
@@ -80,12 +52,8 @@ class ShortcutsDialog(QDialog):
             "PROJECTS",
             [
                 ("Ctrl+N", "New project"),
-                ("Ctrl+E", "Edit current project (from tab)"),
-                ("Ctrl+D", "Delete current project (from tab)"),
-                ("Ctrl+B", "Create backup"),
-                ("Ctrl+I", "Import data"),
-                ("Ctrl+Shift+E", "Export data"),
-                ("Ctrl+L", "Manage labels"),
+                ("Ctrl+E", "Edit current project"),
+                ("Ctrl+D", "Delete current project"),
             ]
         ))
 
@@ -93,6 +61,25 @@ class ShortcutsDialog(QDialog):
             "TASKS",
             [
                 ("Ctrl+T", "New task in current project"),
+                ("Ctrl+Shift+E", "Edit current task"),
+                ("Ctrl+Shift+D", "Delete current task"),
+            ]
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "SUBTASKS",
+            [
+                ("Ctrl+Shift+T", "New subtask in current task"),
+            ]
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "DATA",
+            [
+                ("Ctrl+B", "Create backup"),
+                ("Ctrl+I", "Import data"),
+                ("Ctrl+Shift+S", "Export data"),
+                ("Ctrl+L", "Manage labels"),
             ]
         ))
 
@@ -100,7 +87,6 @@ class ShortcutsDialog(QDialog):
             "VIEW",
             [
                 ("F5", "Refresh view"),
-                ("Ctrl+F", "Focus search box"),
                 ("Ctrl+/", "Show this dialog"),
             ]
         ))
@@ -126,11 +112,7 @@ class ShortcutsDialog(QDialog):
         layout.addWidget(scroll_area)
 
         button_panel = QFrame()
-        button_panel.setStyleSheet("""
-            QFrame {
-                background-color: #1e2026;
-            }
-        """)
+        button_panel.setStyleSheet("QFrame { background-color: #1e2026; }")
         button_panel.setFixedHeight(60)
 
         button_layout = QHBoxLayout(button_panel)
@@ -139,23 +121,13 @@ class ShortcutsDialog(QDialog):
 
         ok_button = QPushButton("Close")
         ok_button.setFixedSize(110, 36)
-        ok_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        ok_button.setStyleSheet("""
-            QPushButton {
-                background-color: #007acc;
-                color: white;
-                font-weight: bold;
-                border: none;
-                border-radius: 5px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #0066b3;
-            }
-            QPushButton:pressed {
-                background-color: #005a99;
-            }
-        """)
+        ok_button.setCursor(Qt.PointingHandCursor)
+        ok_button.setStyleSheet(
+            "QPushButton { background-color: #007acc; color: white; font-weight: bold; "
+            "border: none; border-radius: 5px; padding: 8px 16px; }"
+            "QPushButton:hover { background-color: #0066b3; }"
+            "QPushButton:pressed { background-color: #005a99; }"
+        )
         ok_button.clicked.connect(self.accept)
         button_layout.addWidget(ok_button)
 
@@ -163,25 +135,15 @@ class ShortcutsDialog(QDialog):
 
     def _make_section(self, title, items):
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                background-color: transparent;
-            }
-        """)
-
+        frame.setStyleSheet("QFrame { background-color: transparent; }")
         frame_layout = QVBoxLayout(frame)
         frame_layout.setContentsMargins(0, 0, 0, 0)
         frame_layout.setSpacing(6)
 
         title_label = QLabel(title)
-        title_label.setStyleSheet("""
-            QLabel {
-                color: #007acc;
-                font-size: 11px;
-                font-weight: bold;
-                letter-spacing: 1px;
-            }
-        """)
+        title_label.setStyleSheet(
+            "QLabel { color: #007acc; font-size: 11px; font-weight: bold; letter-spacing: 1px; }"
+        )
         frame_layout.addWidget(title_label)
 
         for key, description in items:
@@ -192,23 +154,14 @@ class ShortcutsDialog(QDialog):
 
             key_label = QLabel(key)
             key_label.setFixedWidth(140)
-            key_label.setStyleSheet("""
-                QLabel {
-                    color: #2ecc71;
-                    font-family: Consolas, monospace;
-                    font-size: 12px;
-                    font-weight: bold;
-                }
-            """)
+            key_label.setStyleSheet(
+                "QLabel { color: #2ecc71; font-family: Consolas, monospace; "
+                "font-size: 12px; font-weight: bold; }"
+            )
             row_layout.addWidget(key_label)
 
             desc_label = QLabel(description)
-            desc_label.setStyleSheet("""
-                QLabel {
-                    color: #ddd;
-                    font-size: 12px;
-                }
-            """)
+            desc_label.setStyleSheet("QLabel { color: #ddd; font-size: 12px; }")
             row_layout.addWidget(desc_label, 1)
 
             frame_layout.addWidget(row)
