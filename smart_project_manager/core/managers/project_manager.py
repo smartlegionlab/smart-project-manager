@@ -126,25 +126,14 @@ class ProjectManager:
             self, title: str,
             task_id: str,
             project_id: str,
-            priority: int = 3,
-            description: Optional[str] = None,
-            due_date: Optional[str] = None,
-            labels: Optional[List[str]] = None
+            priority: int = 3
     ) -> SubTask:
         subtask = SubTask(
             title=title,
             task_id=task_id,
             project_id=project_id,
-            priority=priority,
-            description=description,
-            due_date=due_date
+            priority=priority
         )
-
-        if labels:
-            for label_id in labels:
-                label = self.get_label(label_id)
-                if label:
-                    subtask.add_label(label_id)
 
         self.subtasks[subtask.id] = subtask
 
@@ -198,14 +187,6 @@ class ProjectManager:
     def update_subtask(self, subtask_id: str, **kwargs):
         subtask = self.get_subtask(subtask_id)
         if subtask:
-            if 'labels' in kwargs:
-                labels = kwargs.pop('labels')
-                subtask.labels.clear()
-                for label_id in labels:
-                    label = self.get_label(label_id)
-                    if label:
-                        subtask.add_label(label_id)
-
             for key, value in kwargs.items():
                 if hasattr(subtask, key):
                     setattr(subtask, key, value)
@@ -232,7 +213,7 @@ class ProjectManager:
 
     def create_label(self, name: str, color: str = "#3498db", text_color: str = "#ffffff",
                      description: Optional[str] = None) -> Label:
-        label = Label(name=name, color=color, text_color=text_color,description=description)
+        label = Label(name=name, color=color, text_color=text_color, description=description)
         self.labels[label.id] = label
         self.save_data()
         return label
@@ -253,10 +234,6 @@ class ProjectManager:
             if label_id in task.labels:
                 task.labels.remove(label_id)
 
-        for subtask in self.subtasks.values():
-            if label_id in subtask.labels:
-                subtask.labels.remove(label_id)
-
         del self.labels[label_id]
         self.save_data()
 
@@ -274,19 +251,6 @@ class ProjectManager:
         task = self.get_task(task_id)
         if task:
             task.remove_label(label_id)
-            self.save_data()
-
-    def add_label_to_subtask(self, subtask_id: str, label_id: str):
-        subtask = self.get_subtask(subtask_id)
-        label = self.get_label(label_id)
-        if subtask and label:
-            subtask.add_label(label_id)
-            self.save_data()
-
-    def remove_label_from_subtask(self, subtask_id: str, label_id: str):
-        subtask = self.get_subtask(subtask_id)
-        if subtask:
-            subtask.remove_label(label_id)
             self.save_data()
 
     def get_project_progress(self, project_id: str) -> float:

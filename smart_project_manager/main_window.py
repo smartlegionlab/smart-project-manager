@@ -8,15 +8,14 @@ from typing import Optional
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
-    QMainWindow, QSplitter, QFrame
+    QMainWindow, QSplitter
 )
-from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
 from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.dialogs.project_dialog import ProjectDialog
-from smart_project_manager.ui.dialogs.task_detail_dialog import TaskDetailsDialog
 from smart_project_manager.ui.dialogs.task_dialog import TaskDialog
 from smart_project_manager.ui.dialogs.subtask_dialog import SubTaskDialog
 from smart_project_manager.ui.widgets.project_progress_widget import ProjectProgressWidget
@@ -34,6 +33,8 @@ class MainWindow(QMainWindow):
         self.manager = ProjectManager()
         self.current_project_id: Optional[str] = None
         self.current_task_id: Optional[str] = None
+
+        self._updating = False
 
         self.setWindowTitle('Smart Project Manager')
         self.setMinimumSize(1100, 700)
@@ -67,7 +68,7 @@ class MainWindow(QMainWindow):
         self.setup_ui()
         self.setup_status_bar()
 
-        self.load_projects()
+        self._reload_preserving_selection()
         self.cleanup_old_backups_on_start()
 
         self.center_window()
@@ -324,7 +325,6 @@ class MainWindow(QMainWindow):
         task_header_row.setSpacing(6)
         task_header = PanelHeader("TASK")
         task_header_row.addWidget(task_header, 1)
-
         subtasks_layout.addLayout(task_header_row)
 
         self.task_header = TaskHeaderWidget(self)
@@ -348,6 +348,8 @@ class MainWindow(QMainWindow):
 
         self.subtask_list = SubtaskListWidget(self)
         self.subtask_list.manager = self.manager
+        self.subtask_list.subtask_selected.connect(self.on_subtask_selected)
+        self.subtask_list.subtask_toggled.connect(self.toggle_subtask_status)
         self.subtask_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.subtask_list.customContextMenuRequested.connect(self.show_subtask_context_menu)
         subtasks_layout.addWidget(self.subtask_list, 1)
@@ -406,57 +408,106 @@ class MainWindow(QMainWindow):
 
         self.status_bar.showMessage('Ready')
 
-    def load_projects(self):
+    def _save_selection(self):
+        return self.current_project_id, self.current_task_id
+
+    def _reload_preserving_selection(self, project_id=None, task_id=None):
+        if self._updating:
+            return
+
+        self._updating = True
+
+        if project_id is None:
+            project_id = self.current_project_id
+        if task_id is None:
+            task_id = self.current_task_id
+
         projects = self.manager.get_all_projects()
         self.project_list.load_projects(projects, self.manager)
 
-        if self.current_project_id:
-            self.project_list.select_project(self.current_project_id)
-        elif projects:
-            self.project_list.setCurrentRow(0)
+        project_exists = project_id and self.manager.get_project(project_id)
+        if not project_exists and projects:
+            project_id = projects[0].id
+        elif not projects:
+            project_id = None
 
-        self.update_statistics()
-
-    def on_project_selected(self, project_id: str):
         self.current_project_id = project_id
-        self.current_task_id = None
+        self.current_task_id = task_id
 
-        project = self.manager.get_project(project_id)
-        if not project:
-            return
+        if project_id:
+            self.project_progress_widget.setVisible(True)
+            self.project_progress_widget.update_progress(
+                self.manager.get_project(project_id), self.manager
+            )
 
-        self.project_progress_widget.setVisible(True)
-        self.project_progress_widget.update_progress(project, self.manager)
+            self.project_list.set_current_id(project_id)
 
-        tasks = self.manager.get_tasks_by_project(project_id)
+            tasks = self.manager.get_tasks_by_project(project_id)
+            project = self.manager.get_project(project_id)
+            if project and project.task_order:
+                tasks_dict = {task.id: task for task in tasks}
+                sorted_tasks = []
+                for tid in project.task_order:
+                    if tid in tasks_dict:
+                        sorted_tasks.append(tasks_dict.pop(tid))
+                sorted_tasks.extend(tasks_dict.values())
+                tasks = sorted_tasks
 
-        if project.task_order:
-            tasks_dict = {task.id: task for task in tasks}
-            sorted_tasks = []
-            for task_id in project.task_order:
-                if task_id in tasks_dict:
-                    sorted_tasks.append(tasks_dict.pop(task_id))
-            sorted_tasks.extend(tasks_dict.values())
-            tasks = sorted_tasks
+            self.task_list.load_tasks(tasks)
 
-        self.task_list.load_tasks(tasks)
+            task_exists = task_id and self.manager.get_task(task_id) and \
+                          self.manager.get_task(task_id).project_id == project_id
 
-        if tasks:
-            self.task_list.setCurrentRow(0)
+            if not task_exists and tasks:
+                task_id = tasks[0].id
+            elif not tasks:
+                task_id = None
+
+            self.current_task_id = task_id
+
+            if task_id:
+                self.task_list.set_current_id(task_id)
+                task = self.manager.get_task(task_id)
+                self.task_header.update_task(task, self.manager)
+
+                subtasks = self.manager.get_subtasks_by_task(task_id)
+                self.subtask_list.load_subtasks(subtasks)
+            else:
+                self.task_list.set_current_id(None)
+                self.task_header.update_task(None, self.manager)
+                self.subtask_list.load_subtasks([])
         else:
+            self.project_progress_widget.setVisible(False)
+            self.project_list.set_current_id(None)
+            self.task_list.load_tasks([])
             self.task_header.update_task(None, self.manager)
             self.subtask_list.load_subtasks([])
 
+        self.update_statistics()
+
+        self._updating = False
+
+    def on_project_selected(self, project_id: str):
+        if self._updating:
+            return
+        self.current_project_id = project_id
+        self.current_task_id = None
+        self._reload_preserving_selection(project_id=project_id, task_id=None)
+
     def on_task_selected(self, task_id: str):
+        if self._updating:
+            return
         self.current_task_id = task_id
         task = self.manager.get_task(task_id)
         if not task:
             return
 
         self.task_header.update_task(task, self.manager)
-
         subtasks = self.manager.get_subtasks_by_task(task_id)
         self.subtask_list.load_subtasks(subtasks)
+
+    def on_subtask_selected(self, subtask_id: str):
+        pass
 
     def create_project(self):
         dialog = ProjectDialog(self, manager=self.manager)
@@ -467,9 +518,7 @@ class MainWindow(QMainWindow):
                 return
 
             project = self.manager.create_project(**data)
-            self.load_projects()
-            self.project_list.select_project(project.id)
-            self.on_project_selected(project.id)
+            self._reload_preserving_selection(project_id=project.id, task_id=None)
 
     def edit_current_project(self):
         if not self.current_project_id:
@@ -488,9 +537,7 @@ class MainWindow(QMainWindow):
                 return
 
             self.manager.update_project(project.id, **data)
-            self.load_projects()
-            self.project_list.select_project(project.id)
-            self.on_project_selected(project.id)
+            self._reload_preserving_selection(project_id=project.id)
 
     def delete_current_project(self):
         if not self.current_project_id:
@@ -509,14 +556,7 @@ class MainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             self.manager.delete_project(project.id)
-            self.current_project_id = None
-            self.current_task_id = None
-            self.project_progress_widget.setVisible(False)
-            self.task_list.clear()
-            self.subtask_list.clear()
-            self.task_header.update_task(None, self.manager)
-            self.load_projects()
-            self.update_statistics()
+            self._reload_preserving_selection(project_id=None, task_id=None)
 
     def show_project_context_menu(self, position):
         item = self.project_list.itemAt(position)
@@ -548,21 +588,17 @@ class MainWindow(QMainWindow):
         menu.exec_(self.project_list.viewport().mapToGlobal(position))
 
     def edit_project_by_id(self, project_id: str):
-        project = self.manager.get_project(project_id)
-        if not project:
-            return
         if self.current_project_id != project_id:
-            self.project_list.select_project(project_id)
-            self.on_project_selected(project_id)
+            self.current_project_id = project_id
+            self.current_task_id = None
+            self._reload_preserving_selection(project_id=project_id, task_id=None)
         self.edit_current_project()
 
     def delete_project_by_id(self, project_id: str):
-        project = self.manager.get_project(project_id)
-        if not project:
-            return
         if self.current_project_id != project_id:
-            self.project_list.select_project(project_id)
-            self.on_project_selected(project_id)
+            self.current_project_id = project_id
+            self.current_task_id = None
+            self._reload_preserving_selection(project_id=project_id, task_id=None)
         self.delete_current_project()
 
     def create_task_in_current_project(self):
@@ -578,12 +614,9 @@ class MainWindow(QMainWindow):
                 return
 
             task = self.manager.create_task(**data)
-            self.load_projects()
-            self.project_list.select_project(self.current_project_id)
-            self.on_project_selected(self.current_project_id)
-            self.task_list.select_task(task.id)
-            self.on_task_selected(task.id)
-            self.update_statistics()
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=task.id
+            )
 
     def edit_current_task(self):
         if not self.current_task_id:
@@ -639,14 +672,9 @@ class MainWindow(QMainWindow):
         task.toggle_complete()
         self.manager.update_task(task_id, completed=task.completed)
 
-        project_id = self.current_project_id
-
-        self.load_projects()
-        self.project_list.select_project(project_id)
-        self.on_project_selected(project_id)
-        self.task_list.select_task(task_id)
-        self.on_task_selected(task_id)
-        self.update_statistics()
+        self._reload_preserving_selection(
+            project_id=self.current_project_id, task_id=task_id
+        )
 
     def edit_task_by_id(self, task_id: str):
         task = self.manager.get_task(task_id)
@@ -661,11 +689,9 @@ class MainWindow(QMainWindow):
                 return
 
             self.manager.update_task(task.id, **data)
-            project_id = self.current_project_id
-            self.on_project_selected(project_id)
-            self.task_list.select_task(task_id)
-            self.on_task_selected(task_id)
-            self.update_statistics()
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=task_id
+            )
 
     def delete_task_by_id(self, task_id: str):
         task = self.manager.get_task(task_id)
@@ -680,12 +706,9 @@ class MainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             self.manager.delete_task(task.id)
-            self.current_task_id = None
-            project_id = self.current_project_id
-            self.load_projects()
-            self.project_list.select_project(project_id)
-            self.on_project_selected(project_id)
-            self.update_statistics()
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=None
+            )
 
     def create_subtask_in_current_task(self):
         if not self.current_task_id:
@@ -710,14 +733,9 @@ class MainWindow(QMainWindow):
                 return
 
             self.manager.create_subtask(**data)
-            project_id = self.current_project_id
-            task_id = self.current_task_id
-            self.load_projects()
-            self.project_list.select_project(project_id)
-            self.on_project_selected(project_id)
-            self.task_list.select_task(task_id)
-            self.on_task_selected(task_id)
-            self.update_statistics()
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=self.current_task_id
+            )
 
     def show_subtask_context_menu(self, position):
         item = self.subtask_list.itemAt(position)
@@ -761,16 +779,9 @@ class MainWindow(QMainWindow):
         subtask.toggle_complete()
         self.manager.update_subtask(subtask_id, completed=subtask.completed)
 
-        task_id = self.current_task_id
-        project_id = self.current_project_id
-
-        self.load_projects()
-        self.project_list.select_project(project_id)
-        self.on_project_selected(project_id)
-        if task_id:
-            self.task_list.select_task(task_id)
-            self.on_task_selected(task_id)
-        self.update_statistics()
+        self._reload_preserving_selection(
+            project_id=self.current_project_id, task_id=self.current_task_id
+        )
 
     def edit_subtask_by_id(self, subtask_id: str):
         subtask = self.manager.get_subtask(subtask_id)
@@ -785,13 +796,9 @@ class MainWindow(QMainWindow):
                 return
 
             self.manager.update_subtask(subtask_id, **data)
-            task_id = self.current_task_id
-            project_id = self.current_project_id
-            self.on_project_selected(project_id)
-            if task_id:
-                self.task_list.select_task(task_id)
-                self.on_task_selected(task_id)
-            self.update_statistics()
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=self.current_task_id
+            )
 
     def delete_subtask_by_id(self, subtask_id: str):
         subtask = self.manager.get_subtask(subtask_id)
@@ -806,37 +813,22 @@ class MainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             self.manager.delete_subtask(subtask_id)
-            task_id = self.current_task_id
-            project_id = self.current_project_id
-            self.load_projects()
-            self.project_list.select_project(project_id)
-            self.on_project_selected(project_id)
-            if task_id:
-                self.task_list.select_task(task_id)
-                self.on_task_selected(task_id)
-            self.update_statistics()
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=self.current_task_id
+            )
 
     def manage_labels(self):
         dialog = LabelManagerDialog(self, self.manager)
         dialog.exec_()
-        self.update_statistics()
-        if self.current_project_id:
-            self.on_project_selected(self.current_project_id)
-            if self.current_task_id:
-                self.task_list.select_task(self.current_task_id)
-                self.on_task_selected(self.current_task_id)
+        self._reload_preserving_selection(
+            project_id=self.current_project_id, task_id=self.current_task_id
+        )
 
     def refresh_view(self):
-        project_id = self.current_project_id
-        task_id = self.current_task_id
         self.manager.load_data()
-        self.load_projects()
-        if project_id:
-            self.on_project_selected(project_id)
-            if task_id:
-                self.task_list.select_task(task_id)
-                self.on_task_selected(task_id)
-        self.update_statistics()
+        self._reload_preserving_selection(
+            project_id=self.current_project_id, task_id=self.current_task_id
+        )
         self.status_bar.showMessage('View refreshed', 3000)
 
     def update_statistics(self):
@@ -873,12 +865,7 @@ class MainWindow(QMainWindow):
             self.manager.load_data()
             self.current_project_id = None
             self.current_task_id = None
-            self.project_progress_widget.setVisible(False)
-            self.task_list.clear()
-            self.subtask_list.clear()
-            self.task_header.update_task(None, self.manager)
-            self.load_projects()
-            self.update_statistics()
+            self._reload_preserving_selection(project_id=None, task_id=None)
 
             items = result.get('imported_items', {})
             message = "Import successful!\n\n"

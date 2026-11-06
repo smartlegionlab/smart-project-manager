@@ -4,7 +4,6 @@ from datetime import datetime
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QHBoxLayout, QLabel, QVBoxLayout
 )
-from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from smart_project_manager.ui.widgets.label_widget import LabelWidget
@@ -47,8 +46,6 @@ class TaskListWidget(QListWidget):
         self.setSpacing(2)
 
     def load_tasks(self, tasks):
-        current_id = self.get_current_task_id()
-
         self.blockSignals(True)
         self.clear()
 
@@ -70,9 +67,6 @@ class TaskListWidget(QListWidget):
                 self._add_task_row(task)
 
         self.blockSignals(False)
-
-        if current_id:
-            self.select_task(current_id)
 
     def _add_task_row(self, task):
         widget = QWidget()
@@ -164,34 +158,53 @@ class TaskListWidget(QListWidget):
         bottom_line.addStretch()
         layout.addLayout(bottom_line)
 
-        widget.setStyleSheet("""
-            QWidget#taskRow {
-                background-color: transparent;
-                border-radius: 4px;
-            }
-            QWidget#taskRow:hover {
-                background-color: #23262c;
-            }
-        """)
-
         item = QListWidgetItem()
         item.setData(Qt.UserRole, task.id)
         item.setSizeHint(widget.sizeHint())
         self.addItem(item)
         self.setItemWidget(item, widget)
-        item.setBackground(QColor(0, 0, 0, 0))
+
+        self._apply_row_style(widget, False)
         return item
 
-    def select_task(self, task_id):
+    def _apply_row_style(self, widget, selected):
+        if selected:
+            widget.setStyleSheet("""
+                QWidget#taskRow {
+                    background-color: #2a6fb0;
+                    border-radius: 4px;
+                }
+            """)
+        else:
+            widget.setStyleSheet("""
+                QWidget#taskRow {
+                    background-color: transparent;
+                    border-radius: 4px;
+                }
+                QWidget#taskRow:hover {
+                    background-color: #23262c;
+                }
+            """)
+
+    def set_current_id(self, task_id):
+        self.blockSignals(True)
+
+        target_item = None
         for i in range(self.count()):
             item = self.item(i)
             if item.data(Qt.UserRole) == task_id:
-                self.blockSignals(True)
-                self.setCurrentItem(item)
-                self.blockSignals(False)
-                return
-        self.blockSignals(True)
-        self.clearSelection()
+                target_item = item
+                break
+
+        if target_item is not None:
+            self.setCurrentItem(target_item)
+            for i in range(self.count()):
+                widget = self.itemWidget(self.item(i))
+                if widget:
+                    self._apply_row_style(widget, self.item(i) is target_item)
+        else:
+            self.clearSelection()
+
         self.blockSignals(False)
 
     def get_current_task_id(self):
@@ -204,22 +217,12 @@ class TaskListWidget(QListWidget):
         if previous is not None:
             prev_widget = self.itemWidget(previous)
             if prev_widget:
-                prev_widget.setStyleSheet("""
-                    QWidget#taskRow {
-                        background-color: transparent;
-                        border-radius: 4px;
-                    }
-                """)
+                self._apply_row_style(prev_widget, False)
 
         if current is not None:
             cur_widget = self.itemWidget(current)
             if cur_widget:
-                cur_widget.setStyleSheet("""
-                    QWidget#taskRow {
-                        background-color: #2a6fb0;
-                        border-radius: 4px;
-                    }
-                """)
+                self._apply_row_style(cur_widget, True)
 
             task_id = current.data(Qt.UserRole)
             if task_id:

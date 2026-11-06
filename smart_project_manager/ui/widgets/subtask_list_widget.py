@@ -1,17 +1,14 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
-from datetime import datetime
-
 from PyQt5.QtWidgets import (
-    QListWidget, QListWidgetItem, QWidget, QHBoxLayout, QLabel, QVBoxLayout
+    QListWidget, QListWidgetItem, QWidget, QHBoxLayout, QLabel, QVBoxLayout,
+    QCheckBox
 )
-from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, pyqtSignal
-
-from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 
 class SubtaskListWidget(QListWidget):
     subtask_selected = pyqtSignal(str)
+    subtask_toggled = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -72,34 +69,43 @@ class SubtaskListWidget(QListWidget):
     def _add_subtask_row(self, subtask):
         widget = QWidget()
         widget.setObjectName("subtaskRow")
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(12, 6, 12, 6)
-        layout.setSpacing(3)
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setSpacing(10)
 
-        top_line = QHBoxLayout()
-        top_line.setSpacing(8)
-
-        dot = QLabel()
-        dot.setFixedSize(6, 6)
-        if subtask.completed:
-            dot.setStyleSheet("QLabel { background-color: #4ee09c; border-radius: 3px; }")
-        else:
-            dot.setStyleSheet("QLabel { background-color: #ffb454; border-radius: 3px; }")
-        top_line.addWidget(dot, 0, Qt.AlignTop)
+        checkbox = QCheckBox()
+        checkbox.setChecked(subtask.completed)
+        checkbox.setCursor(Qt.PointingHandCursor)
+        checkbox.setStyleSheet("""
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                border: 1px solid #4a505b;
+                background-color: #23262c;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #2a8f5e;
+                border: 1px solid #2a8f5e;
+            }
+        """)
+        checkbox.clicked.connect(
+            lambda checked, sid=subtask.id: self.subtask_toggled.emit(sid)
+        )
+        layout.addWidget(checkbox)
 
         title_label = QLabel(subtask.title)
         if subtask.completed:
             title_label.setStyleSheet(
-                "QLabel { color: #6a7280; font-size: 11px; font-weight: bold; "
+                "QLabel { color: #6a7280; font-size: 12px; "
                 "text-decoration: line-through; background: transparent; }"
             )
         else:
             title_label.setStyleSheet(
-                "QLabel { color: #ffffff; font-size: 11px; font-weight: bold; "
-                "background: transparent; }"
+                "QLabel { color: #ffffff; font-size: 12px; background: transparent; }"
             )
         title_label.setWordWrap(True)
-        top_line.addWidget(title_label, 1)
+        layout.addWidget(title_label, 1)
 
         priority_text = ["High", "Medium", "Low"][subtask.priority - 1]
         priority_color = ["#ff6b6b", "#ffb454", "#4ee09c"][subtask.priority - 1]
@@ -108,69 +114,56 @@ class SubtaskListWidget(QListWidget):
             f"QLabel {{ color: {priority_color}; font-size: 9px; font-weight: bold; "
             f"background: transparent; }}"
         )
-        top_line.addWidget(priority_label, 0, Qt.AlignTop)
-
-        layout.addLayout(top_line)
-
-        bottom_line = QHBoxLayout()
-        bottom_line.setSpacing(10)
-
-        if subtask.due_date:
-            try:
-                due_date = datetime.fromisoformat(subtask.due_date).date()
-                due_text = subtask.due_date
-                if not subtask.completed and due_date < datetime.now().date():
-                    due_label = QLabel(due_text)
-                    due_label.setStyleSheet(
-                        "QLabel { color: #ff6b6b; font-size: 9px; background: transparent; }"
-                    )
-                else:
-                    due_label = QLabel(due_text)
-                    due_label.setStyleSheet(
-                        "QLabel { color: #7f8794; font-size: 9px; background: transparent; }"
-                    )
-                bottom_line.addWidget(due_label)
-            except Exception:
-                pass
-
-        if self.manager and subtask.labels:
-            for label_id in subtask.labels[:2]:
-                label = self.manager.get_label(label_id)
-                if label:
-                    label_widget = LabelWidget(label.name, label.color, label.text_color)
-                    label_widget.setFixedHeight(14)
-                    label_widget.setMinimumWidth(34)
-                    bottom_line.addWidget(label_widget)
-
-        bottom_line.addStretch()
-        layout.addLayout(bottom_line)
-
-        widget.setStyleSheet("""
-            QWidget#subtaskRow {
-                background-color: transparent;
-                border-radius: 4px;
-            }
-            QWidget#subtaskRow:hover {
-                background-color: #23262c;
-            }
-        """)
+        layout.addWidget(priority_label)
 
         item = QListWidgetItem()
         item.setData(Qt.UserRole, subtask.id)
         item.setSizeHint(widget.sizeHint())
         self.addItem(item)
         self.setItemWidget(item, widget)
-        item.setBackground(QColor(0, 0, 0, 0))
+
+        self._apply_row_style(widget, False)
         return item
 
-    def select_subtask(self, subtask_id):
+    def _apply_row_style(self, widget, selected):
+        if selected:
+            widget.setStyleSheet("""
+                QWidget#subtaskRow {
+                    background-color: #2a6fb0;
+                    border-radius: 4px;
+                }
+            """)
+        else:
+            widget.setStyleSheet("""
+                QWidget#subtaskRow {
+                    background-color: transparent;
+                    border-radius: 4px;
+                }
+                QWidget#subtaskRow:hover {
+                    background-color: #23262c;
+                }
+            """)
+
+    def set_current_id(self, subtask_id):
+        self.blockSignals(True)
+
+        target_item = None
         for i in range(self.count()):
             item = self.item(i)
             if item.data(Qt.UserRole) == subtask_id:
-                self.blockSignals(True)
-                self.setCurrentItem(item)
-                self.blockSignals(False)
-                return
+                target_item = item
+                break
+
+        if target_item is not None:
+            self.setCurrentItem(target_item)
+            for i in range(self.count()):
+                widget = self.itemWidget(self.item(i))
+                if widget:
+                    self._apply_row_style(widget, self.item(i) is target_item)
+        else:
+            self.clearSelection()
+
+        self.blockSignals(False)
 
     def get_current_subtask_id(self):
         item = self.currentItem()
@@ -179,7 +172,16 @@ class SubtaskListWidget(QListWidget):
         return None
 
     def on_current_changed(self, current, previous):
+        if previous is not None:
+            prev_widget = self.itemWidget(previous)
+            if prev_widget:
+                self._apply_row_style(prev_widget, False)
+
         if current is not None:
+            cur_widget = self.itemWidget(current)
+            if cur_widget:
+                self._apply_row_style(cur_widget, True)
+
             subtask_id = current.data(Qt.UserRole)
             if subtask_id:
                 self.subtask_selected.emit(subtask_id)
