@@ -1,4 +1,6 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
+from datetime import datetime
+
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QListView
@@ -84,6 +86,18 @@ class ProjectListWidget(QListWidget):
         self.blockSignals(False)
         self._relayout_items()
 
+    def _format_created_at(self, created_at: str) -> str:
+        if not created_at:
+            return ""
+        try:
+            dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            return dt.strftime("%d %b %Y")
+        except Exception:
+            try:
+                return created_at[:10]
+            except Exception:
+                return ""
+
     def _add_project_row(self, project, manager):
         task_count = len(project.tasks)
         completed_tasks = sum(
@@ -110,9 +124,14 @@ class ProjectListWidget(QListWidget):
         info_text = f"{completed_tasks}/{task_count} tasks"
         if task_count > 0 and completed_tasks == task_count:
             info_text += " • done"
+
+        created_text = self._format_created_at(project.created_at)
+        if created_text:
+            info_text += f" • added {created_text}"
+
         info_label = QLabel(info_text)
         info_label.setStyleSheet(
-            "QLabel { color: #c8ccd4; font-size: 11.5px; font-weight: 600; background: transparent; }"
+            "QLabel { color: #c8ccd4; font-size: 11px; font-weight: 600; background: transparent; }"
         )
         info_label.setWordWrap(True)
         text_column.addWidget(info_label)
@@ -138,6 +157,8 @@ class ProjectListWidget(QListWidget):
             tooltip_parts.append(project.description)
         if project.link:
             tooltip_parts.append(f"Link: {project.link}")
+        if created_text:
+            tooltip_parts.append(f"Created: {created_text}")
         if tooltip_parts:
             widget.setToolTip("\n".join(tooltip_parts))
 
