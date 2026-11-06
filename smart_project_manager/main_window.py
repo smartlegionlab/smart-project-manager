@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         self._updating = False
 
         self.setWindowTitle('Smart Project Manager')
-        self.setMinimumSize(1100, 700)
+        self.setMinimumSize(800, 600)
         self.resize(1300, 800)
 
         self.setup_application_icon()
@@ -264,7 +264,7 @@ class MainWindow(QMainWindow):
         self.project_progress_widget = ProjectProgressWidget(self)
         self.project_progress_widget.btn_edit_project.clicked.connect(self.edit_current_project)
         self.project_progress_widget.btn_delete_project.clicked.connect(self.delete_current_project)
-        self.project_progress_widget.setVisible(False)
+        self.project_progress_widget.show_empty()
 
         self.right_splitter = QSplitter(Qt.Vertical)
         self.right_splitter.setChildrenCollapsible(False)
@@ -423,7 +423,6 @@ class MainWindow(QMainWindow):
         self.current_task_id = task_id
 
         if project_id:
-            self.project_progress_widget.setVisible(True)
             self.project_progress_widget.update_progress(
                 self.manager.get_project(project_id), self.manager
             )
@@ -465,7 +464,7 @@ class MainWindow(QMainWindow):
                 self.task_header.update_task(None, self.manager)
                 self.subtask_list.load_subtasks([])
         else:
-            self.project_progress_widget.setVisible(False)
+            self.project_progress_widget.show_empty()
             self.project_list.set_current_id(None)
             self.task_list.load_tasks([])
             self.task_header.update_task(None, self.manager)

@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-    QSizePolicy
+    QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy
 )
 
 
@@ -19,7 +18,7 @@ class ProjectProgressWidget(QFrame):
             }
         """)
         self.setup_ui()
-        self.setVisible(False)
+        self.show_empty()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -36,7 +35,8 @@ class ProjectProgressWidget(QFrame):
         self.project_name_label.setStyleSheet(
             "QLabel { font-size: 20px; font-weight: bold; color: #ffffff; background: transparent; }"
         )
-        self.project_name_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.project_name_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self.project_name_label.setMinimumWidth(0)
         self.project_name_label.setWordWrap(True)
         title_column.addWidget(self.project_name_label)
 
@@ -45,6 +45,10 @@ class ProjectProgressWidget(QFrame):
             "QLabel { font-size: 12px; color: #8b94a3; background: transparent; }"
         )
         self.project_description_label.setWordWrap(True)
+        self.project_description_label.setSizePolicy(
+            QSizePolicy.Ignored, QSizePolicy.Preferred
+        )
+        self.project_description_label.setMinimumWidth(0)
         title_column.addWidget(self.project_description_label)
 
         self.project_link_label = QLabel("")
@@ -55,6 +59,10 @@ class ProjectProgressWidget(QFrame):
         self.project_link_label.setTextFormat(Qt.RichText)
         self.project_link_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.project_link_label.setWordWrap(True)
+        self.project_link_label.setSizePolicy(
+            QSizePolicy.Ignored, QSizePolicy.Preferred
+        )
+        self.project_link_label.setMinimumWidth(0)
         self.project_link_label.setVisible(False)
         title_column.addWidget(self.project_link_label)
 
@@ -133,6 +141,10 @@ class ProjectProgressWidget(QFrame):
             QPushButton:pressed {
                 background-color: #2f333a;
             }
+            QPushButton:disabled {
+                background-color: #2a2d33;
+                color: #5a606b;
+            }
         """)
         return btn
 
@@ -179,17 +191,62 @@ class ProjectProgressWidget(QFrame):
             f"{display}</a>"
         )
 
+    def show_empty(self):
+        self.project_name_label.setText("No project selected")
+        self.project_name_label.setStyleSheet(
+            "QLabel { font-size: 20px; font-weight: bold; color: #6a7280; "
+            "background: transparent; }"
+        )
+        self.project_description_label.setText(
+            "Pick a project from the list on the left, or create a new one."
+        )
+        self.project_description_label.setStyleSheet(
+            "QLabel { font-size: 12px; color: #5a606b; background: transparent; }"
+        )
+        self.project_link_label.setText("")
+        self.project_link_label.setVisible(False)
+        self.project_status_badge.setText("")
+        self.project_status_badge.setStyleSheet("""
+            QLabel {
+                background-color: transparent;
+                color: transparent;
+                padding: 0px;
+                min-width: 90px;
+                max-width: 90px;
+            }
+        """)
+        self.project_tasks_total.setText("0/0")
+        self.project_subtasks_total.setText("0/0")
+        self.project_updated_label.setText("--")
+        self.project_progress_text.setText("0%")
+        self.btn_edit_project.setEnabled(False)
+        self.btn_delete_project.setEnabled(False)
+
     def update_progress(self, project, manager):
-        self.setVisible(True)
+        if not project:
+            self.show_empty()
+            return
+
+        self.btn_edit_project.setEnabled(True)
+        self.btn_delete_project.setEnabled(True)
 
         self.project_name_label.setText(project.name)
+        self.project_name_label.setStyleSheet(
+            "QLabel { font-size: 20px; font-weight: bold; color: #ffffff; "
+            "background: transparent; }"
+        )
 
         if project.description:
             self.project_description_label.setText(project.description)
-            self.project_description_label.setVisible(True)
+            self.project_description_label.setStyleSheet(
+                "QLabel { font-size: 12px; color: #8b94a3; background: transparent; }"
+            )
         else:
             self.project_description_label.setText("No description")
-            self.project_description_label.setVisible(True)
+            self.project_description_label.setStyleSheet(
+                "QLabel { font-size: 12px; color: #5a606b; font-style: italic; "
+                "background: transparent; }"
+            )
 
         if project.link:
             self.project_link_label.setText(

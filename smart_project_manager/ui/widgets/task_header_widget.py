@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from datetime import datetime
 
 from PyQt5.QtCore import Qt
@@ -37,7 +36,8 @@ class TaskHeaderWidget(QFrame):
             "QLabel { font-size: 16px; font-weight: bold; color: #ffffff; background: transparent; }"
         )
         self.title_label.setWordWrap(True)
-        self.title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.title_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self.title_label.setMinimumWidth(0)
         title_column.addWidget(self.title_label)
 
         self.description_label = QLabel("")
@@ -45,6 +45,8 @@ class TaskHeaderWidget(QFrame):
             "QLabel { font-size: 11px; color: #8b94a3; background: transparent; }"
         )
         self.description_label.setWordWrap(True)
+        self.description_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        self.description_label.setMinimumWidth(0)
         title_column.addWidget(self.description_label)
 
         top_line.addLayout(title_column, 1)
