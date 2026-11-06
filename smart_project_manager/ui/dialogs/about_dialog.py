@@ -80,9 +80,10 @@ class AboutDialog(QDialog):
             <li>Projects with name, description and an optional link</li>
             <li>Tasks with priority and due date</li>
             <li>Simplified subtasks: title and priority only</li>
-            <li>Automatic completion when all subtasks are completed</li>
+            <li>Manual task completion, no auto-complete from subtasks</li>
             <li>Length limits with live counters in dialogs</li>
             <li>JSON export and import</li>
+            <li>Export a single project to a Markdown document</li>
             <li>Stable selection across all CRUD operations</li>
             <li>Dark theme optimized for extended use</li>
             </ul>"""

@@ -3,8 +3,7 @@ from datetime import datetime
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy,
-    QGridLayout
+    QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy
 )
 
 
@@ -94,10 +93,14 @@ class ProjectProgressWidget(QFrame):
         buttons_line.setSpacing(6)
         buttons_line.setAlignment(Qt.AlignRight)
 
-        self.btn_edit_project = self._make_button("Edit")
+        self.btn_edit_project = self._make_button(
+            "Edit", "#FFC107", "#FFA000", "#000000"
+        )
         buttons_line.addWidget(self.btn_edit_project)
 
-        self.btn_delete_project = self._make_button("Delete")
+        self.btn_delete_project = self._make_button(
+            "Delete", "#e74c3c", "#c0392b", "#ffffff"
+        )
         buttons_line.addWidget(self.btn_delete_project)
 
         right_column.addLayout(buttons_line)
@@ -126,30 +129,30 @@ class ProjectProgressWidget(QFrame):
 
         layout.addLayout(tiles_line)
 
-    def _make_button(self, text):
+    def _make_button(self, text, bg, bg_hover, fg):
         btn = QPushButton(text)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setFlat(True)
-        btn.setStyleSheet("""
-            QPushButton {
-                background-color: #3a3f48;
-                color: #e6e9ee;
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {bg};
+                color: {fg};
                 font-weight: bold;
                 font-size: 11px;
                 padding: 5px 14px;
                 border: none;
                 border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #4a505b;
-            }
-            QPushButton:pressed {
-                background-color: #2f333a;
-            }
-            QPushButton:disabled {
+            }}
+            QPushButton:hover {{
+                background-color: {bg_hover};
+            }}
+            QPushButton:pressed {{
+                background-color: #23262c;
+            }}
+            QPushButton:disabled {{
                 background-color: #2a2d33;
                 color: #5a606b;
-            }
+            }}
         """)
         return btn
 

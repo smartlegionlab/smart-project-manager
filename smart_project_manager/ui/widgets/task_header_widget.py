@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from datetime import datetime
 
 from PyQt5.QtCore import Qt
@@ -75,15 +76,21 @@ class TaskHeaderWidget(QFrame):
         buttons_line.setSpacing(6)
         buttons_line.setAlignment(Qt.AlignRight)
 
-        self.btn_toggle = self._make_button("Toggle")
+        self.btn_toggle = self._make_button(
+            "Toggle", "#2a8f5e", "#34a56e", "#ffffff"
+        )
         self.btn_toggle.clicked.connect(self.on_toggle_clicked)
         buttons_line.addWidget(self.btn_toggle)
 
-        self.btn_edit = self._make_button("Edit")
+        self.btn_edit = self._make_button(
+            "Edit", "#FFC107", "#FFA000", "#000000"
+        )
         self.btn_edit.clicked.connect(self.on_edit_clicked)
         buttons_line.addWidget(self.btn_edit)
 
-        self.btn_delete = self._make_button("Delete")
+        self.btn_delete = self._make_button(
+            "Delete", "#e74c3c", "#c0392b", "#ffffff"
+        )
         self.btn_delete.clicked.connect(self.on_delete_clicked)
         buttons_line.addWidget(self.btn_delete)
 
@@ -120,30 +127,30 @@ class TaskHeaderWidget(QFrame):
 
         self.update_task(None, None)
 
-    def _make_button(self, text):
+    def _make_button(self, text, bg, bg_hover, fg):
         btn = QPushButton(text)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setFlat(True)
-        btn.setStyleSheet("""
-            QPushButton {
-                background-color: #3a3f48;
-                color: #e6e9ee;
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {bg};
+                color: {fg};
                 font-weight: bold;
                 font-size: 11px;
                 padding: 5px 14px;
                 border: none;
                 border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #4a505b;
-            }
-            QPushButton:pressed {
-                background-color: #2f333a;
-            }
-            QPushButton:disabled {
+            }}
+            QPushButton:hover {{
+                background-color: {bg_hover};
+            }}
+            QPushButton:pressed {{
+                background-color: #23262c;
+            }}
+            QPushButton:disabled {{
                 background-color: #2a2d33;
                 color: #5a606b;
-            }
+            }}
         """)
         return btn
 
