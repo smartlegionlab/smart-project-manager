@@ -1,8 +1,6 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QVBoxLayout, QHBoxLayout, QLabel
 )
-from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, pyqtSignal
 
 
@@ -78,7 +76,7 @@ class ProjectListWidget(QListWidget):
         layout.setSpacing(10)
 
         text_column = QVBoxLayout()
-        text_column.setSpacing(2)
+        text_column.setSpacing(3)
 
         name_label = QLabel(project.name)
         name_label.setStyleSheet(
@@ -92,7 +90,7 @@ class ProjectListWidget(QListWidget):
             info_text += " • done"
         info_label = QLabel(info_text)
         info_label.setStyleSheet(
-            "QLabel { color: #7f8794; font-size: 11px; background: transparent; }"
+            "QLabel { color: #c8ccd4; font-size: 11.5px; font-weight: 600; background: transparent; }"
         )
         text_column.addWidget(info_label)
 
@@ -112,8 +110,13 @@ class ProjectListWidget(QListWidget):
         )
         layout.addWidget(dot, 0, Qt.AlignVCenter)
 
+        tooltip_parts = []
         if project.description:
-            widget.setToolTip(project.description)
+            tooltip_parts.append(project.description)
+        if project.link:
+            tooltip_parts.append(f"Link: {project.link}")
+        if tooltip_parts:
+            widget.setToolTip("\n".join(tooltip_parts))
 
         item = QListWidgetItem()
         item.setData(Qt.UserRole, project.id)

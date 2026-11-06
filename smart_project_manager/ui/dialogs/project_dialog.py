@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -11,6 +10,7 @@ from PyQt5.QtWidgets import (
     QFrame,
     QGridLayout
 )
+from PyQt5.QtCore import Qt
 
 from smart_project_manager.core.models.project import Project
 
@@ -24,8 +24,8 @@ class ProjectDialog(QDialog):
         self.manager = manager
 
         self.setWindowTitle('Edit Project' if self.is_edit_mode else 'Create New Project')
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(250)
+        self.setMinimumWidth(520)
+        self.setMinimumHeight(260 if not self.is_edit_mode else 340)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(10)
@@ -44,6 +44,16 @@ class ProjectDialog(QDialog):
         if project:
             self.name_input.setText(project.name)
         name_layout.addWidget(self.name_input, 0, 1)
+
+        if self.is_edit_mode:
+            self.link_label = QLabel('Link (optional):')
+            name_layout.addWidget(self.link_label, 1, 0)
+
+            self.link_input = QLineEdit()
+            self.link_input.setPlaceholderText("https://...")
+            if project and project.link:
+                self.link_input.setText(project.link)
+            name_layout.addWidget(self.link_input, 1, 1)
 
         self.layout.addWidget(name_group)
 
@@ -105,10 +115,13 @@ class ProjectDialog(QDialog):
         self.layout.addLayout(button_layout)
 
     def get_project_data(self) -> dict:
-        return {
+        data = {
             'name': self.name_input.text().strip(),
             'description': self.desc_input.toPlainText().strip() or None
         }
+        if self.is_edit_mode:
+            data['link'] = self.link_input.text().strip() or None
+        return data
 
     def accept(self):
         data = self.get_project_data()

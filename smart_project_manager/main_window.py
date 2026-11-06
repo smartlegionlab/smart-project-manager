@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import os
 import sys
 from datetime import datetime
@@ -241,14 +240,6 @@ class MainWindow(QMainWindow):
         self.btn_new_project.clicked.connect(self.create_project)
         buttons_layout.addWidget(self.btn_new_project)
 
-        self.btn_edit_project = self._make_flat_button("Edit", "#3a3f48", "#4a505b")
-        self.btn_edit_project.clicked.connect(self.edit_current_project)
-        buttons_layout.addWidget(self.btn_edit_project)
-
-        self.btn_delete_project = self._make_flat_button("Delete", "#3a3f48", "#4a505b")
-        self.btn_delete_project.clicked.connect(self.delete_current_project)
-        buttons_layout.addWidget(self.btn_delete_project)
-
         buttons_layout.addStretch()
 
         layout.addLayout(buttons_layout)
@@ -407,9 +398,6 @@ class MainWindow(QMainWindow):
         self.status_bar.addPermanentWidget(self.mini_stats)
 
         self.status_bar.showMessage('Ready')
-
-    def _save_selection(self):
-        return self.current_project_id, self.current_task_id
 
     def _reload_preserving_selection(self, project_id=None, task_id=None):
         if self._updating:
