@@ -604,12 +604,6 @@ class MainWindow(QMainWindow):
         if item:
             project_id = item.data(Qt.UserRole)
             if project_id:
-                open_action = QAction("Open", self)
-                open_action.triggered.connect(lambda: self.on_project_selected(project_id))
-                menu.addAction(open_action)
-
-                menu.addSeparator()
-
                 edit_action = QAction("Edit Project", self)
                 edit_action.triggered.connect(lambda: self.edit_project_by_id(project_id))
                 menu.addAction(edit_action)
