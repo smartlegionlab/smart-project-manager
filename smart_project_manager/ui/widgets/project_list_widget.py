@@ -39,9 +39,24 @@ class ProjectListWidget(QListWidget):
         self.setUniformItemSizes(False)
         self.setVerticalScrollMode(QListWidget.ScrollPerPixel)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.setResizeMode(QListView.Adjust)
         self.setWordWrap(True)
         self.setSpacing(2)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._relayout_items()
+
+    def _relayout_items(self):
+        width = max(self.viewport().width() - 8, 80)
+        for i in range(self.count()):
+            item = self.item(i)
+            widget = self.itemWidget(item)
+            if widget:
+                widget.setFixedWidth(width)
+                item.setSizeHint(widget.sizeHint())
+        self.doItemsLayout()
 
     def load_projects(self, projects, manager):
         self.blockSignals(True)
@@ -66,6 +81,7 @@ class ProjectListWidget(QListWidget):
                 self._add_project_row(project, manager)
 
         self.blockSignals(False)
+        self._relayout_items()
 
     def _add_project_row(self, project, manager):
         task_count = len(project.tasks)
@@ -97,6 +113,7 @@ class ProjectListWidget(QListWidget):
         info_label.setStyleSheet(
             "QLabel { color: #c8ccd4; font-size: 11.5px; font-weight: 600; background: transparent; }"
         )
+        info_label.setWordWrap(True)
         text_column.addWidget(info_label)
 
         layout.addLayout(text_column, 1)
