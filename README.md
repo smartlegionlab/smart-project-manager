@@ -1,4 +1,4 @@
-# Smart Project Manager <sup>v1.1.2</sup>
+# Smart Project Manager <sup>v1.2.3</sup>
 
 ---
 
@@ -19,59 +19,68 @@
 
 ---
 
-## Disclaimer
+## Screenshot
 
-**By using this software, you agree to the full disclaimer terms.**
-
-**Summary:** Software provided "AS IS" without warranty. You assume all risks.
-
-**Full legal disclaimer:** See [DISCLAIMER.md](https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md)
+![Smart Project Manager](https://github.com/smartlegionlab/smart-project-manager/blob/master/data/images/smart-project-manager.png)
 
 ---
 
 ## Features
 
-### Tab-Based Project Manager
-*   Projects open as tabs on the right side, one tab per project
-*   Multiple projects can be open at the same time
-*   Close a project tab without deleting the project - it stays in the tree on the left
-*   Tasks open as nested tabs below the task list, one tab per task
-*   Multiple tasks can be open at the same time inside one project
+### Three-Pane Splitter Workspace
+*   Left pane: project list
+*   Top-right: project card with status, counters and overall progress
+*   Bottom-right, two panes side by side: task list and the selected task with its subtasks
+*   Splitter handles are resizable; panes never collapse completely
+*   Each pane has a strict uppercase label (`PROJECTS`, `PROJECT`, `TASKS`, `TASK`, `SUBTASKS`)
 
 ### Project Management
-*   Create, edit and delete projects with name and description
-*   Hierarchical structure: **Projects -> Tasks -> Subtasks**
-*   Automatic progress calculation per project based on task completion
+*   Create, edit and delete projects with name, optional description, and optional link
+*   The link field is available only when editing an existing project, so project creation stays minimal
+*   Link input is validated: a scheme (for example `https://`) is required
+*   Project name is limited to 100 characters and description to 2000 characters, with live counters
+*   Full CRUD for projects via context menu, Edit menu, and the project card buttons
 
-### Task & Subtask System
-*   Tasks with title, description, priority (High/Medium/Low) and optional due date
-*   Subtasks with the same fields, nested inside tasks
-*   Automatic completion logic: when all subtasks are completed, the parent task is marked complete
-*   Toggle completion status for tasks and subtasks directly from the UI
-*   Drag and drop task rows to reorder them
+### Task Management
+*   Task list with inline visual state (status dot, title, priority, progress, due date, labels)
+*   Create, edit and delete tasks
+*   Task title limited to 100 characters and description to 2000 characters, with live counters
+*   Toggle completion, edit and delete directly from the task list context menu or the task header
+*   Automatic task completion when all subtasks are completed
 
-### Label System
+### Subtasks
+*   Simplified subtasks: title and priority only
+*   Subtask title limited to 100 characters, with a live counter
+*   Mark as completed with a checkbox on the row, or via context menu
+*   Create, edit and delete subtasks
+
+### Labels
 *   Custom labels with name, color, text color and description
-*   Assign labels to tasks and subtasks for categorization and filtering
+*   Assign labels to tasks for categorization
 *   Dedicated Label Manager dialog for creating, editing and deleting labels
 
 ### Progress Tracking & Statistics
-*   Visual progress bars for tasks, subtasks and overall projects
-*   Global statistics panel with counts and completion rates
-*   Per-project progress panel with task/subtask counts and last update time
+*   Per-project progress bar in the project card
+*   Per-task progress based on subtasks
+*   Compact global statistics panel in the status bar (always visible): projects, tasks, subtasks, labels, and completion rates
 
 ### User Interface
 *   Dark theme optimized for extended use
-*   Two-panel layout: project tree on the left, tabs and task details on the right
-*   Context menus for quick task actions (view, edit, mark complete, delete)
-*   Search and filters by priority, label and completion status
-*   Built-in Keyboard Shortcuts dialog accessible from Help menu or `Ctrl+/`
+*   No decorative borders, only subtle background separation between panes
+*   Flat buttons, uppercase panel headers
+*   Context menus everywhere for CRUD actions
+*   Built-in Help, About and Keyboard Shortcuts dialogs accessible from the Help menu
 
 ### Data Persistence
 *   Automatic saving to `~/.smart_project_manager/projects.json`
 *   JSON-based storage for projects, tasks, subtasks and labels
 *   Data loaded automatically on application startup
 *   Manual backups and automatic cleanup of backups older than 30 days
+
+### Stable Selection
+*   Selection in all three lists is preserved across any CRUD operation
+*   Programmatic selection updates do not emit change signals
+*   A single reload path restores project, task and subtask selection consistently
 
 ---
 
@@ -217,33 +226,55 @@ rm -rf ~/.smart_project_manager
 ## How to Use
 
 ### Getting Started
-1.  **Create a project:** `File -> New Project` or the **+ New Project** button in the left panel.
-2.  **Open a project:** click it in the tree on the left - it opens as a tab on the right.
-3.  **Create a task:** with a project tab active, use `File -> New Task` or the **Add Task** button.
-4.  **Open a task:** double-click a task row - its subtasks open as a nested tab below the task list.
-5.  **Manage labels:** `Edit -> Manage Labels` to create, edit and delete labels.
+1.  **Create a project:** `File -> New Project` (`Ctrl+N`) or the **+ New** button in the `PROJECTS` pane. Enter a name and, optionally, a description. The link field becomes available later, when you edit the project.
+2.  **Select a project:** click it in the `PROJECTS` list on the left. The project card in the top-right and the task list in the bottom-left update automatically.
+3.  **Create a task:** with a project selected, use `File -> New Task` (`Ctrl+T`) or the **+ Add** button in the `TASKS` pane.
+4.  **Select a task:** click it in the `TASKS` list. The `TASK` header and the `SUBTASKS` list update automatically.
+5.  **Create a subtask:** with a task selected, use `File -> New Subtask` (`Ctrl+Shift+T`) or the **+ Add** button in the `SUBTASKS` pane. Fill in title and priority.
+6.  **Manage labels:** `Edit -> Manage Labels` (`Ctrl+L`) to create, edit and delete labels.
 
-### Working with Tabs
+### Workspace Layout
 
-*   Each opened project has its own tab on the right. Switching between project tabs switches the whole working context.
-*   Inside a project tab, double-clicking a task opens a subtask tab below the task table. Multiple subtask tabs can be open at the same time.
-*   Closing a project tab does not delete the project - it stays in the tree on the left.
-*   Closing a subtask tab does not delete the task - it stays in the task list.
+*   The window is split into three logical areas, each with its own header.
+*   The vertical splitter on the left separates the project list from the workspace.
+*   The workspace is split vertically into the project card (top) and the task/subtask area (bottom).
+*   The task/subtask area is split horizontally into the task list (left) and the selected task with its subtasks (right).
+*   All splitter handles are draggable. Panes never collapse completely, so you cannot accidentally hide the project list or the task list.
 
-### Tasks and Subtasks
+### Projects
 
-*   Tasks and subtasks support title, description, priority, due date and labels.
-*   Marking all subtasks complete auto-marks the parent task complete.
-*   Drag task rows up or down to reorder them inside a project.
-*   Right-click a task for quick actions: view details, open subtasks, mark complete/pending, edit, delete.
+*   Name is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
+*   The optional link is only shown in edit mode. It is validated: a scheme such as `https://` is required.
+*   The project card shows the name, description, optional link, status badge, and four tiles: `TASKS`, `SUBTASKS`, `UPDATED`, `PROGRESS`.
+*   Full CRUD: context menu in the project list, `Edit -> Edit Project` (`Ctrl+E`), `Edit -> Delete Project` (`Ctrl+D`), and the `Edit` / `Delete` buttons on the project card.
 
-### Search and Filters
+### Tasks
 
-*   Type into the search box to filter tasks by title and description.
-*   Filter by priority using the Priority dropdown.
-*   Filter by label using the Label dropdown.
-*   Toggle **Show Completed** to hide or show completed tasks.
-*   Click **Reset** to clear all filters.
+*   Title is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
+*   The task list shows a status dot, the title, the priority, the progress, the due date and up to two labels.
+*   Double-clicking a task is not required - selection is instant. The `TASK` header shows the title, description, priority, due date, progress, and the toggle / edit / delete buttons.
+*   Full CRUD: context menu in the task list, `Edit -> Edit Task` (`Ctrl+Shift+E`), `Edit -> Delete Task` (`Ctrl+Shift+D`), and the buttons in the `TASK` header.
+
+### Subtasks
+
+*   Subtasks are simplified: title and priority only.
+*   Title is limited to 100 characters, with a live counter in the dialog.
+*   Mark a subtask complete with the checkbox on the row, or via the context menu.
+*   Full CRUD: context menu in the `SUBTASKS` list, or **+ Add** in the `SUBTASKS` pane header.
+*   When all subtasks of a task are completed, the parent task is marked completed automatically.
+
+### Stable Selection
+
+Selection in the three lists is preserved across every CRUD operation. For example:
+
+*   Select a project, select a task, then create a new subtask. The task and project selections stay in place.
+*   Select a project, select a task, switch to another project, then come back. The previously selected task is restored.
+*   Toggle a task or subtask. The corresponding row remains selected.
+
+This works because:
+
+*   Programmatic selection updates do not emit change signals.
+*   A single reload path restores project, task, and subtask selection consistently.
 
 ---
 
@@ -278,19 +309,24 @@ The application allows you to create desktop entries directly from the menu:
 
 ### Keyboard Shortcuts
 
-| Shortcut       | Action                     |
-|----------------|----------------------------|
-| `Ctrl+N`       | New Project                |
-| `Ctrl+T`       | New Task                   |
-| `Ctrl+B`       | Create Backup              |
-| `Ctrl+I`       | Import                     |
-| `Ctrl+Shift+E` | Export                     |
-| `Ctrl+L`       | Manage Labels              |
-| `F5`           | Refresh View               |
-| `F1`           | Open Help                  |
-| `Ctrl+/`       | Show Keyboard Shortcuts    |
-| `Ctrl+A`       | Open About                 |
-| `Ctrl+Q`       | Exit Application           |
+| Shortcut         | Action                                |
+|------------------|---------------------------------------|
+| `Ctrl+N`         | New project                           |
+| `Ctrl+T`         | New task in the current project       |
+| `Ctrl+Shift+T`   | New subtask in the current task       |
+| `Ctrl+E`         | Edit current project                  |
+| `Ctrl+D`         | Delete current project                |
+| `Ctrl+Shift+E`   | Edit current task                     |
+| `Ctrl+Shift+D`   | Delete current task                   |
+| `Ctrl+B`         | Create backup                         |
+| `Ctrl+I`         | Import                                |
+| `Ctrl+Shift+S`   | Export                                |
+| `Ctrl+L`         | Manage labels                         |
+| `F5`             | Refresh view                          |
+| `F1`             | Open help                             |
+| `Ctrl+/`         | Show keyboard shortcuts dialog        |
+| `Ctrl+A`         | Open about                            |
+| `Ctrl+Q`         | Exit application                      |
 
 ---
 
@@ -303,6 +339,13 @@ The application allows you to create desktop entries directly from the menu:
 
 Backups older than 30 days are cleaned up automatically on application startup. Manual cleanup is also available from `File -> Show Backups`.
 
+### Data Format Notes
+
+*   `projects` entries may contain `link` (optional string, added in this release).
+*   `subtasks` entries contain only `id`, `title`, `priority`, `completed`, `task_id`, `project_id`, and timestamps.
+*   Older data files with `description`, `due_date`, or `labels` on subtasks still load correctly; those fields are ignored on import.
+*   Exports from this version no longer include those unused subtask fields.
+
 ---
 
 ## License
@@ -313,9 +356,14 @@ This project is licensed under the **BSD 3-Clause License**. See the [`LICENSE`]
 
 **Copyright (c) 2026, Alexander Suvorov. All rights reserved.**
 
+
 ---
 
-## Screenshot
+## Disclaimer
 
-![Smart Project Manager](https://github.com/smartlegionlab/smart-project-manager/blob/master/data/images/smart-project-manager.png)
+**By using this software, you agree to the full disclaimer terms.**
+
+**Summary:** Software provided "AS IS" without warranty. You assume all risks.
+
+**Full legal disclaimer:** See [DISCLAIMER.md](https://github.com/smartlegionlab/smart-project-manager/blob/master/DISCLAIMER.md)
 

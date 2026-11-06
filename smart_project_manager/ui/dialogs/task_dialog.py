@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog,
     QVBoxLayout,
@@ -23,6 +22,10 @@ from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDi
 from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 
+TASK_TITLE_MAX_LENGTH = 100
+TASK_DESCRIPTION_MAX_LENGTH = 2000
+
+
 class TaskDialog(QDialog):
     task_updated = pyqtSignal()
 
@@ -36,7 +39,7 @@ class TaskDialog(QDialog):
         self.max_labels = 3
 
         self.setWindowTitle('Edit Task' if self.is_edit_mode else 'Create New Task')
-        self.setMinimumSize(700, 600)
+        self.setMinimumSize(700, 620)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(10)
@@ -72,21 +75,29 @@ class TaskDialog(QDialog):
         title_group = QFrame()
         title_group.setFrameStyle(QFrame.StyledPanel)
         title_layout = QVBoxLayout(title_group)
+        title_layout.setSpacing(4)
 
         self.title_label = QLabel('Task Title:')
         title_layout.addWidget(self.title_label)
 
         self.title_input = QLineEdit()
         self.title_input.setPlaceholderText("Enter task title")
+        self.title_input.setMaxLength(TASK_TITLE_MAX_LENGTH)
         if self.task:
             self.title_input.setText(self.task.title)
+        self.title_input.textChanged.connect(self.update_title_counter)
         title_layout.addWidget(self.title_input)
+
+        self.title_counter = QLabel()
+        self.title_counter.setAlignment(Qt.AlignRight)
+        title_layout.addWidget(self.title_counter)
 
         layout.addWidget(title_group)
 
         desc_group = QFrame()
         desc_group.setFrameStyle(QFrame.StyledPanel)
         desc_layout = QVBoxLayout(desc_group)
+        desc_layout.setSpacing(4)
 
         self.desc_label = QLabel('Description:')
         desc_layout.addWidget(self.desc_label)
@@ -96,7 +107,12 @@ class TaskDialog(QDialog):
         self.desc_input.setPlaceholderText("Enter task description")
         if self.task and self.task.description:
             self.desc_input.setText(self.task.description)
+        self.desc_input.textChanged.connect(self.update_desc_counter)
         desc_layout.addWidget(self.desc_input)
+
+        self.desc_counter = QLabel()
+        self.desc_counter.setAlignment(Qt.AlignRight)
+        desc_layout.addWidget(self.desc_counter)
 
         layout.addWidget(desc_group)
 
@@ -191,6 +207,37 @@ class TaskDialog(QDialog):
             self.update_selected_labels_display()
 
         layout.addStretch()
+
+        self.update_title_counter()
+        self.update_desc_counter()
+
+    def update_title_counter(self):
+        current_length = len(self.title_input.text())
+        remaining = TASK_TITLE_MAX_LENGTH - current_length
+        self.title_counter.setText(
+            f"{current_length}/{TASK_TITLE_MAX_LENGTH} characters"
+        )
+
+        if remaining <= 10:
+            self.title_counter.setStyleSheet("color: #ff6b6b; font-size: 10px; font-weight: bold;")
+        elif remaining <= 30:
+            self.title_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
+        else:
+            self.title_counter.setStyleSheet("color: #888; font-size: 10px;")
+
+    def update_desc_counter(self):
+        current_length = len(self.desc_input.toPlainText())
+        remaining = TASK_DESCRIPTION_MAX_LENGTH - current_length
+        self.desc_counter.setText(
+            f"{current_length}/{TASK_DESCRIPTION_MAX_LENGTH} characters"
+        )
+
+        if remaining <= 100:
+            self.desc_counter.setStyleSheet("color: #ff6b6b; font-size: 10px; font-weight: bold;")
+        elif remaining <= 300:
+            self.desc_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
+        else:
+            self.desc_counter.setStyleSheet("color: #888; font-size: 10px;")
 
     def add_label(self):
         if len(self.selected_label_ids) >= self.max_labels:
@@ -341,6 +388,22 @@ class TaskDialog(QDialog):
 
         if not data['title']:
             QMessageBox.warning(self, 'Error', 'Task title is required')
+            return
+
+        if len(data['title']) > TASK_TITLE_MAX_LENGTH:
+            QMessageBox.warning(
+                self, 'Title Too Long',
+                f'Task title cannot exceed {TASK_TITLE_MAX_LENGTH} characters.\n'
+                f'Current length: {len(data["title"])} characters.'
+            )
+            return
+
+        if data['description'] and len(data['description']) > TASK_DESCRIPTION_MAX_LENGTH:
+            QMessageBox.warning(
+                self, 'Description Too Long',
+                f'Task description cannot exceed {TASK_DESCRIPTION_MAX_LENGTH} characters.\n'
+                f'Current length: {len(data["description"])} characters.'
+            )
             return
 
         super().accept()

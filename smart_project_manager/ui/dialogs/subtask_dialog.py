@@ -1,10 +1,13 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QMessageBox, QFrame, QGridLayout, QComboBox
 )
+from PyQt5.QtCore import Qt
 
 from smart_project_manager.core.models.subtask import SubTask
+
+
+SUBTASK_TITLE_MAX_LENGTH = 100
 
 
 class SubTaskDialog(QDialog):
@@ -29,16 +32,22 @@ class SubTaskDialog(QDialog):
         title_group.setFrameStyle(QFrame.StyledPanel)
         title_layout = QVBoxLayout(title_group)
         title_layout.setContentsMargins(10, 10, 10, 10)
+        title_layout.setSpacing(4)
 
         self.title_label = QLabel('Title:')
         title_layout.addWidget(self.title_label)
 
         self.title_input = QLineEdit()
         self.title_input.setPlaceholderText("Enter subtask title")
-        self.title_input.setMaxLength(200)
+        self.title_input.setMaxLength(SUBTASK_TITLE_MAX_LENGTH)
         if subtask:
             self.title_input.setText(subtask.title)
+        self.title_input.textChanged.connect(self.update_title_counter)
         title_layout.addWidget(self.title_input)
+
+        self.title_counter = QLabel()
+        self.title_counter.setAlignment(Qt.AlignRight)
+        title_layout.addWidget(self.title_counter)
 
         self.layout.addWidget(title_group)
 
@@ -82,6 +91,22 @@ class SubTaskDialog(QDialog):
 
         self.title_input.setFocus()
 
+        self.update_title_counter()
+
+    def update_title_counter(self):
+        current_length = len(self.title_input.text())
+        remaining = SUBTASK_TITLE_MAX_LENGTH - current_length
+        self.title_counter.setText(
+            f"{current_length}/{SUBTASK_TITLE_MAX_LENGTH} characters"
+        )
+
+        if remaining <= 10:
+            self.title_counter.setStyleSheet("color: #ff6b6b; font-size: 10px; font-weight: bold;")
+        elif remaining <= 30:
+            self.title_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
+        else:
+            self.title_counter.setStyleSheet("color: #888; font-size: 10px;")
+
     def get_subtask_data(self) -> dict:
         priority_map = {"High": 1, "Medium": 2, "Low": 3}
         return {
@@ -93,7 +118,17 @@ class SubTaskDialog(QDialog):
 
     def accept(self):
         data = self.get_subtask_data()
+
         if not data['title']:
             QMessageBox.warning(self, 'Error', 'Subtask title is required')
             return
+
+        if len(data['title']) > SUBTASK_TITLE_MAX_LENGTH:
+            QMessageBox.warning(
+                self, 'Title Too Long',
+                f'Subtask title cannot exceed {SUBTASK_TITLE_MAX_LENGTH} characters.\n'
+                f'Current length: {len(data["title"])} characters.'
+            )
+            return
+
         super().accept()
