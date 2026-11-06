@@ -416,17 +416,18 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage('Ready')
 
     def _update_panel_counters(self):
+        projects = self.manager.get_all_projects()
+        self.projects_header.set_title_with_count("PROJECTS", len(projects))
+
         if self.current_project_id:
             tasks = self.manager.get_tasks_by_project(self.current_project_id)
-            tasks_count = len(tasks)
-            self.tasks_header.set_title_with_count("TASKS", tasks_count)
+            self.tasks_header.set_title_with_count("TASKS", len(tasks))
         else:
             self.tasks_header.set_title_plain("TASKS")
 
         if self.current_task_id:
             subtasks = self.manager.get_subtasks_by_task(self.current_task_id)
-            subtasks_count = len(subtasks)
-            self.subtasks_header.set_title_with_count("SUBTASKS", subtasks_count)
+            self.subtasks_header.set_title_with_count("SUBTASKS", len(subtasks))
         else:
             self.subtasks_header.set_title_plain("SUBTASKS")
 
