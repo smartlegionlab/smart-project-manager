@@ -1,7 +1,6 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
 
 
 class PanelHeader(QWidget):

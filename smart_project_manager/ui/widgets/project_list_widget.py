@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QListView

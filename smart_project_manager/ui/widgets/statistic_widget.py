@@ -2,7 +2,6 @@
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QHBoxLayout, QProgressBar
 )
-from PyQt5.QtCore import Qt
 
 
 class StatisticsWidget(QWidget):

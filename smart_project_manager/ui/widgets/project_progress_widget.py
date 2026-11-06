@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from datetime import datetime
 
 from PyQt5.QtCore import Qt

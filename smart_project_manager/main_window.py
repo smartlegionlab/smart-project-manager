@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 import os
 import sys
 from datetime import datetime
@@ -5,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from PyQt5.QtWidgets import (
-    QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox, QDialog,
+    QWidget, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
     QMainWindow, QSplitter
 )
@@ -36,7 +37,7 @@ class MainWindow(QMainWindow):
         self._updating = False
 
         self.setWindowTitle('Smart Project Manager')
-        self.setMinimumSize(1100, 700)
+        self.setMinimumSize(800, 600)
         self.resize(1300, 800)
 
         self.setup_application_icon()
