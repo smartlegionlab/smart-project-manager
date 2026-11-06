@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QSizePolicy, QListView
+    QListView
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 
@@ -43,19 +43,6 @@ class ProjectListWidget(QListWidget):
         self.setWordWrap(True)
         self.setSpacing(2)
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self._update_item_sizes()
-
-    def _update_item_sizes(self):
-        width = max(self.viewport().width() - 8, 80)
-        for i in range(self.count()):
-            item = self.item(i)
-            widget = self.itemWidget(item)
-            if widget:
-                widget.setFixedWidth(width)
-                item.setSizeHint(widget.sizeHint())
-
     def load_projects(self, projects, manager):
         self.blockSignals(True)
         self.clear()
@@ -79,7 +66,6 @@ class ProjectListWidget(QListWidget):
                 self._add_project_row(project, manager)
 
         self.blockSignals(False)
-        self._update_item_sizes()
 
     def _add_project_row(self, project, manager):
         task_count = len(project.tasks)
@@ -102,9 +88,6 @@ class ProjectListWidget(QListWidget):
             "QLabel { color: #ffffff; font-size: 13px; font-weight: bold; background: transparent; }"
         )
         name_label.setWordWrap(True)
-        name_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        name_label.setMinimumWidth(0)
-        name_label.setTextInteractionFlags(Qt.NoTextInteraction)
         text_column.addWidget(name_label)
 
         info_text = f"{completed_tasks}/{task_count} tasks"
@@ -114,9 +97,6 @@ class ProjectListWidget(QListWidget):
         info_label.setStyleSheet(
             "QLabel { color: #c8ccd4; font-size: 11.5px; font-weight: 600; background: transparent; }"
         )
-        info_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
-        info_label.setMinimumWidth(0)
-        info_label.setTextInteractionFlags(Qt.NoTextInteraction)
         text_column.addWidget(info_label)
 
         layout.addLayout(text_column, 1)
