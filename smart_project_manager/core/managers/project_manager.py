@@ -6,6 +6,7 @@ from smart_project_manager.core.models.project import Project
 from smart_project_manager.core.models.subtask import SubTask
 from smart_project_manager.core.models.task import Task
 from smart_project_manager.core.services.import_export_service import ImportExportService
+from smart_project_manager.core.services.project_markdown_service import ProjectMarkdownService
 from smart_project_manager.core.utils import load_json, save_json, format_datetime
 
 
@@ -219,3 +220,43 @@ class ProjectManager:
 
     def export_data(self, export_path: str) -> Dict:
         return ImportExportService.export_data(self.data_file, export_path)
+
+    def export_project_to_markdown(self, project_id: str, file_path: str) -> Dict:
+        project = self.get_project(project_id)
+        if not project:
+            return {
+                'success': False,
+                'error': f'Project {project_id} not found'
+            }
+
+        try:
+            tasks = self.get_tasks_by_project(project_id)
+            if project.task_order:
+                tasks_dict = {task.id: task for task in tasks}
+                sorted_tasks = []
+                for tid in project.task_order:
+                    if tid in tasks_dict:
+                        sorted_tasks.append(tasks_dict.pop(tid))
+                sorted_tasks.extend(tasks_dict.values())
+                tasks = sorted_tasks
+
+            subtasks_by_task = {}
+            for task in tasks:
+                subtasks_by_task[task.id] = self.get_subtasks_by_task(task.id)
+
+            progress = self.get_project_progress(project_id)
+
+            ProjectMarkdownService.write_to_file(
+                project, tasks, subtasks_by_task, progress, file_path
+            )
+
+            return {
+                'success': True,
+                'export_path': file_path,
+                'export_size': os.path.getsize(file_path)
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }

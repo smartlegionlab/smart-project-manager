@@ -75,8 +75,9 @@ class HelpDialog(QDialog):
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li>Name up to 100 characters, description up to 2000 characters, both with live counters in the dialog.</li>
             <li>The optional link is only shown in edit mode. It is validated, a scheme such as <code>https://</code> is required.</li>
-            <li>The project card shows the name, description, optional link, a status badge, and four tiles: <b>TASKS</b>, <b>SUBTASKS</b>, <b>UPDATED</b>, <b>PROGRESS</b>.</li>
+            <li>The project card shows the name, description, optional link, a status badge, and five tiles: <b>TASKS</b>, <b>SUBTASKS</b>, <b>PROGRESS</b>, <b>CREATED</b>, <b>UPDATED</b>.</li>
             <li>Full CRUD: right-click in the list, <b>Edit -> Edit Project</b> (<code>Ctrl+E</code>), <b>Edit -> Delete Project</b> (<code>Ctrl+D</code>), or the <b>Edit</b> / <b>Delete</b> buttons on the card.</li>
+            <li>Right-click a project and choose <b>Export to Markdown...</b> to save the project as a Markdown document with its tasks and subtasks.</li>
             <li>When no project is selected, the card shows a placeholder, so the pane never looks empty.</li>
             </ul>"""
         ))
@@ -119,6 +120,7 @@ class HelpDialog(QDialog):
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li><b>File -> Export</b> (<code>Ctrl+Shift+S</code>) - writes the whole dataset to a single JSON file.</li>
             <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with a JSON file. <b>This overwrites all existing data.</b> A temporary backup of the current file is created automatically before import and removed on success.</li>
+            <li><b>File -> Export Project to Markdown...</b> (<code>Ctrl+Shift+M</code>) - saves the currently selected project as a Markdown document. The document includes the project name, description, link, dates, progress, status, all tasks with their fields, and all subtasks. Use it for reports, documentation, or printing.</li>
             <li>Use Export before Import to keep a copy of your current data if you want to be extra safe.</li>
             </ul>"""
         ))
@@ -144,7 +146,8 @@ class HelpDialog(QDialog):
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+E</code></td><td>Edit current task</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+D</code></td><td>Delete current task</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+I</code></td><td>Import</td></tr>
-            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+S</code></td><td>Export</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+S</code></td><td>Export JSON</td></tr>
+            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+M</code></td><td>Export current project to Markdown</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F5</code></td><td>Refresh view</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F1</code></td><td>Open help</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+/</code></td><td>Show keyboard shortcuts</td></tr>

@@ -77,7 +77,8 @@ class ShortcutsDialog(QDialog):
             "DATA",
             [
                 ("Ctrl+I", "Import data"),
-                ("Ctrl+Shift+S", "Export data"),
+                ("Ctrl+Shift+S", "Export data as JSON"),
+                ("Ctrl+Shift+M", "Export current project to Markdown"),
             ]
         ))
 

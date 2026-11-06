@@ -61,10 +61,16 @@
 *   Per-task progress based on subtasks
 *   Compact global statistics panel in the status bar (always visible): projects, tasks, subtasks, and completion rates
 
+### Export
+*   Export the entire dataset to a JSON file (`File -> Export...`, `Ctrl+Shift+S`)
+*   Import a JSON file back (`File -> Import...`, `Ctrl+I`) with automatic temporary backup
+*   Export a single project to a Markdown document (`File -> Export Project to Markdown...`, `Ctrl+Shift+M`), or via the project context menu
+*   The Markdown document includes the project name, description, link, creation and update dates, progress, status, all tasks with their fields, and all subtasks in a readable hierarchy
+
 ### User Interface
 *   Dark theme optimized for extended use
 *   No decorative borders, only subtle background separation between panes
-*   Flat buttons, uppercase panel headers
+*   Flat buttons, uppercase panel headers with live counters
 *   Context menus everywhere for CRUD actions
 *   Built-in Help, About and Keyboard Shortcuts dialogs accessible from the Help menu
 
@@ -72,8 +78,6 @@
 *   Automatic saving to `~/.smart_project_manager/projects.json`
 *   JSON-based storage for projects, tasks and subtasks
 *   Data loaded automatically on application startup
-*   JSON export to any file
-*   JSON import with automatic temporary backup before overwrite
 
 ### Stable Selection
 *   Selection in all three lists is preserved across any CRUD operation
@@ -242,8 +246,9 @@ rm -rf ~/.smart_project_manager
 
 *   Name is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
 *   The optional link is only shown in edit mode. It is validated: a scheme such as `https://` is required.
-*   The project card shows the name, description, optional link, status badge, and four tiles: `TASKS`, `SUBTASKS`, `UPDATED`, `PROGRESS`.
+*   The project card shows the name, description, optional link, status badge, and five tiles: `TASKS`, `SUBTASKS`, `PROGRESS`, `CREATED`, `UPDATED`.
 *   Full CRUD: context menu in the project list, `Edit -> Edit Project` (`Ctrl+E`), `Edit -> Delete Project` (`Ctrl+D`), and the `Edit` / `Delete` buttons on the project card.
+*   Right-click a project and choose **Export to Markdown...** to save it as a Markdown document.
 
 ### Tasks
 
@@ -260,6 +265,11 @@ rm -rf ~/.smart_project_manager
 *   Mark a subtask complete with the checkbox on the row, or via the context menu.
 *   Full CRUD: context menu in the `SUBTASKS` list, or **+ Add** in the `SUBTASKS` pane header.
 *   Subtask completion does not change the parent task status.
+
+### Export
+
+*   **Export to JSON:** `File -> Export...` (`Ctrl+Shift+S`) writes the whole dataset (projects, tasks, subtasks) to a single JSON file.
+*   **Export project to Markdown:** `File -> Export Project to Markdown...` (`Ctrl+Shift+M`), or right-click a project in the list and choose **Export to Markdown...**. Saves the selected project as a readable `.md` document with name, description, link, dates, progress, status, all tasks and their subtasks.
 
 ### Stable Selection
 
@@ -316,8 +326,9 @@ The application allows you to create desktop entries directly from the menu:
 | `Ctrl+D`         | Delete current project                |
 | `Ctrl+Shift+E`   | Edit current task                     |
 | `Ctrl+Shift+D`   | Delete current task                   |
-| `Ctrl+I`         | Import                                |
-| `Ctrl+Shift+S`   | Export                                |
+| `Ctrl+I`         | Import JSON                           |
+| `Ctrl+Shift+S`   | Export JSON                           |
+| `Ctrl+Shift+M`   | Export current project to Markdown    |
 | `F5`             | Refresh view                          |
 | `F1`             | Open help                             |
 | `Ctrl+/`         | Show keyboard shortcuts dialog        |
@@ -338,6 +349,7 @@ The application allows you to create desktop entries directly from the menu:
 *   `subtasks` entries contain only `id`, `title`, `priority`, `completed`, `task_id`, `project_id`, and timestamps.
 *   Older data files with `labels` on tasks still load correctly; the `labels` field is ignored on import.
 *   Exports from this version no longer include `labels` in the data.
+*   Markdown export is read-only and does not affect the stored JSON data.
 
 ---
 

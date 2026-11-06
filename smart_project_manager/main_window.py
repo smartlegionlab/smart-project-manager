@@ -126,6 +126,11 @@ class MainWindow(QMainWindow):
         export_action.triggered.connect(self.export_data)
         file_menu.addAction(export_action)
 
+        export_md_action = QAction('Export Project to Markdown...', self)
+        export_md_action.setShortcut('Ctrl+Shift+M')
+        export_md_action.triggered.connect(self.export_project_to_markdown)
+        file_menu.addAction(export_md_action)
+
         file_menu.addSeparator()
 
         exit_action = QAction('Exit', self)
@@ -615,6 +620,14 @@ class MainWindow(QMainWindow):
 
                 menu.addSeparator()
 
+                export_md_action = QAction("Export to Markdown...", self)
+                export_md_action.triggered.connect(
+                    lambda: self.export_project_to_markdown_by_id(project_id)
+                )
+                menu.addAction(export_md_action)
+
+                menu.addSeparator()
+
         new_action = QAction("New Project", self)
         new_action.triggered.connect(self.create_project)
         menu.addAction(new_action)
@@ -887,6 +900,57 @@ class MainWindow(QMainWindow):
     def update_statistics(self):
         stats = self.manager.get_statistics()
         self.mini_stats.update_stats(stats)
+
+    def export_project_to_markdown(self):
+        if not self.current_project_id:
+            self.status_bar.showMessage('No project selected', 2000)
+            return
+
+        project = self.manager.get_project(self.current_project_id)
+        if not project:
+            return
+
+        self.export_project_to_markdown_by_id(project.id)
+
+    def export_project_to_markdown_by_id(self, project_id: str):
+        project = self.manager.get_project(project_id)
+        if not project:
+            return
+
+        home_dir = str(Path.home())
+        safe_name = "".join(
+            c if c.isalnum() or c in " -_." else "_" for c in project.name
+        ).strip() or "project"
+        default_file_name = os.path.join(home_dir, f"{safe_name}.md")
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Export Project to Markdown", default_file_name,
+            "Markdown Files (*.md);;All Files (*)"
+        )
+        if not file_path:
+            return
+        if not file_path.endswith('.md'):
+            file_path += '.md'
+
+        try:
+            result = self.manager.export_project_to_markdown(project_id, file_path)
+            if result.get('success'):
+                message = (
+                    f"Project exported!\n\n"
+                    f"File: {result['export_path']}\n"
+                    f"Size: {result['export_size'] / 1024:.1f} KB"
+                )
+                QMessageBox.information(self, "Export Complete", message)
+                self.status_bar.showMessage(
+                    f'Project exported to {file_path}', 3000
+                )
+            else:
+                QMessageBox.critical(
+                    self, "Export Error",
+                    f"Export failed:\n\n{result.get('error', 'Unknown error')}"
+                )
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Export failed:\n\n{str(e)}")
 
     def import_data(self):
         home_dir = str(Path.home())
