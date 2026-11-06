@@ -3,7 +3,8 @@ from datetime import datetime
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy
+    QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy,
+    QGridLayout
 )
 
 
@@ -113,11 +114,14 @@ class ProjectProgressWidget(QFrame):
         self.project_subtasks_total = self._make_tile(
             tiles_line, "Subtasks", "#b07ce8", "0/0"
         )
-        self.project_updated_label = self._make_tile(
-            tiles_line, "Updated", "#ff8a80", "--"
-        )
         self.project_progress_text = self._make_tile(
             tiles_line, "Progress", "#4ee09c", "0%"
+        )
+        self.project_created_label = self._make_tile(
+            tiles_line, "Created", "#ffcc66", "--"
+        )
+        self.project_updated_label = self._make_tile(
+            tiles_line, "Updated", "#ff8a80", "--"
         )
 
         layout.addLayout(tiles_line)
@@ -159,11 +163,11 @@ class ProjectProgressWidget(QFrame):
                 border-radius: 6px;
             }
         """)
-        tile.setMinimumHeight(70)
+        tile.setMinimumHeight(64)
         tile.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         tile_layout = QVBoxLayout(tile)
-        tile_layout.setContentsMargins(12, 10, 12, 10)
+        tile_layout.setContentsMargins(12, 8, 12, 8)
         tile_layout.setSpacing(2)
 
         title_label = QLabel(title.upper())
@@ -175,7 +179,8 @@ class ProjectProgressWidget(QFrame):
 
         value_label = QLabel(initial_value)
         value_label.setStyleSheet(
-            "QLabel { color: #ffffff; font-size: 20px; font-weight: bold; background: transparent; }"
+            "QLabel { color: #ffffff; font-size: 16px; font-weight: bold; "
+            "background: transparent; }"
         )
         value_label.setWordWrap(False)
         tile_layout.addWidget(value_label)
@@ -191,6 +196,18 @@ class ProjectProgressWidget(QFrame):
             f"<a href='{link}' style='color: #4ea1ff; text-decoration: none;'>"
             f"{display}</a>"
         )
+
+    def _format_date(self, date_str: str) -> str:
+        if not date_str:
+            return "--"
+        try:
+            dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            return dt.strftime("%d %b %Y")
+        except Exception:
+            try:
+                return date_str[:10]
+            except Exception:
+                return "--"
 
     def show_empty(self):
         self.project_name_label.setText("No project selected")
@@ -218,8 +235,9 @@ class ProjectProgressWidget(QFrame):
         """)
         self.project_tasks_total.setText("0/0")
         self.project_subtasks_total.setText("0/0")
-        self.project_updated_label.setText("--")
         self.project_progress_text.setText("0%")
+        self.project_created_label.setText("--")
+        self.project_updated_label.setText("--")
         self.btn_edit_project.setEnabled(False)
         self.btn_delete_project.setEnabled(False)
 
@@ -307,11 +325,5 @@ class ProjectProgressWidget(QFrame):
         self.project_tasks_total.setText(f"{completed_tasks}/{total_tasks}")
         self.project_subtasks_total.setText(f"{completed_subtasks}/{total_subtasks}")
 
-        if project.updated_at:
-            try:
-                updated_date = datetime.fromisoformat(project.updated_at.replace('Z', '+00:00'))
-                self.project_updated_label.setText(updated_date.strftime("%d %b"))
-            except Exception:
-                self.project_updated_label.setText(project.updated_at[:5])
-        else:
-            self.project_updated_label.setText("--")
+        self.project_created_label.setText(self._format_date(project.created_at))
+        self.project_updated_label.setText(self._format_date(project.updated_at))
