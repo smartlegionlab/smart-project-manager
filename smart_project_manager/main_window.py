@@ -211,8 +211,8 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
 
-        header = PanelHeader("PROJECTS")
-        layout.addWidget(header)
+        self.projects_header = PanelHeader("PROJECTS")
+        layout.addWidget(self.projects_header)
 
         buttons_layout = QHBoxLayout()
         buttons_layout.setSpacing(4)
@@ -239,8 +239,8 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(8, 0, 0, 0)
         layout.setSpacing(8)
 
-        project_header = PanelHeader("PROJECT")
-        layout.addWidget(project_header)
+        self.project_header = PanelHeader("PROJECT")
+        layout.addWidget(self.project_header)
 
         self.project_progress_widget = ProjectProgressWidget(self)
         self.project_progress_widget.btn_edit_project.clicked.connect(self.edit_current_project)
@@ -270,8 +270,8 @@ class MainWindow(QMainWindow):
 
         tasks_header_row = QHBoxLayout()
         tasks_header_row.setSpacing(6)
-        tasks_header = PanelHeader("TASKS")
-        tasks_header_row.addWidget(tasks_header, 1)
+        self.tasks_header = PanelHeader("TASKS")
+        tasks_header_row.addWidget(self.tasks_header, 1)
 
         self.btn_clear_completed = self._make_flat_button(
             "Clear Completed (0)", "#3a3f48", "#4a505b"
@@ -302,8 +302,8 @@ class MainWindow(QMainWindow):
 
         task_header_row = QHBoxLayout()
         task_header_row.setSpacing(6)
-        task_header = PanelHeader("TASK")
-        task_header_row.addWidget(task_header, 1)
+        self.task_header_panel = PanelHeader("TASK")
+        task_header_row.addWidget(self.task_header_panel, 1)
         task_subtask_layout.addLayout(task_header_row)
 
         self.task_subtask_splitter = QSplitter(Qt.Vertical)
@@ -332,8 +332,8 @@ class MainWindow(QMainWindow):
 
         subtasks_header_row = QHBoxLayout()
         subtasks_header_row.setSpacing(6)
-        subtasks_header = PanelHeader("SUBTASKS")
-        subtasks_header_row.addWidget(subtasks_header, 1)
+        self.subtasks_header = PanelHeader("SUBTASKS")
+        subtasks_header_row.addWidget(self.subtasks_header, 1)
 
         self.btn_new_subtask = self._make_flat_button("+ Add", "#2a8f5e", "#34a56e")
         self.btn_new_subtask.clicked.connect(self.create_subtask_in_current_task)
@@ -414,6 +414,21 @@ class MainWindow(QMainWindow):
         self.status_bar.addPermanentWidget(self.mini_stats)
 
         self.status_bar.showMessage('Ready')
+
+    def _update_panel_counters(self):
+        if self.current_project_id:
+            tasks = self.manager.get_tasks_by_project(self.current_project_id)
+            tasks_count = len(tasks)
+            self.tasks_header.set_title_with_count("TASKS", tasks_count)
+        else:
+            self.tasks_header.set_title_plain("TASKS")
+
+        if self.current_task_id:
+            subtasks = self.manager.get_subtasks_by_task(self.current_task_id)
+            subtasks_count = len(subtasks)
+            self.subtasks_header.set_title_with_count("SUBTASKS", subtasks_count)
+        else:
+            self.subtasks_header.set_title_plain("SUBTASKS")
 
     def _update_clear_completed_button(self):
         if not self.current_project_id:
@@ -498,6 +513,7 @@ class MainWindow(QMainWindow):
             self.subtask_list.load_subtasks([])
 
         self._update_clear_completed_button()
+        self._update_panel_counters()
         self.update_statistics()
 
         self._updating = False
@@ -515,11 +531,13 @@ class MainWindow(QMainWindow):
         self.current_task_id = task_id
         task = self.manager.get_task(task_id)
         if not task:
+            self._update_panel_counters()
             return
 
         self.task_header.update_task(task, self.manager)
         subtasks = self.manager.get_subtasks_by_task(task_id)
         self.subtask_list.load_subtasks(subtasks)
+        self._update_panel_counters()
 
     def on_subtask_selected(self, subtask_id: str):
         pass

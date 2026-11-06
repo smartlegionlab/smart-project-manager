@@ -27,3 +27,9 @@ class PanelHeader(QWidget):
 
     def set_title(self, title: str):
         self.title_label.setText(title)
+
+    def set_title_with_count(self, title: str, count: int):
+        self.title_label.setText(f"{title} ({count})")
+
+    def set_title_plain(self, title: str):
+        self.title_label.setText(title)
