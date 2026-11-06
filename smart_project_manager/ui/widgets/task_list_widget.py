@@ -1,12 +1,9 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QHBoxLayout, QLabel, QVBoxLayout
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-
-from smart_project_manager.ui.widgets.label_widget import LabelWidget
 
 
 class TaskListWidget(QListWidget):
@@ -139,21 +136,6 @@ class TaskListWidget(QListWidget):
                 bottom_line.addWidget(due_label)
             except Exception:
                 pass
-
-        if self.manager and task.labels:
-            for label_id in task.labels[:2]:
-                label = self.manager.get_label(label_id)
-                if label:
-                    label_widget = LabelWidget(label.name, label.color, label.text_color)
-                    label_widget.setFixedHeight(16)
-                    label_widget.setMinimumWidth(38)
-                    bottom_line.addWidget(label_widget)
-            if len(task.labels) > 2:
-                more = QLabel(f"+{len(task.labels) - 2}")
-                more.setStyleSheet(
-                    "QLabel { color: #7f8794; font-size: 9px; background: transparent; }"
-                )
-                bottom_line.addWidget(more)
 
         bottom_line.addStretch()
         layout.addLayout(bottom_line)

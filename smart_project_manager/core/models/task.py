@@ -14,7 +14,6 @@ class Task:
     priority: int = 3
     description: Optional[str] = None
     completed: bool = False
-    labels: List[str] = field(default_factory=list)
     subtasks: List[str] = field(default_factory=list)
     due_date: Optional[str] = None
     completed_at: Optional[str] = None
@@ -26,7 +25,6 @@ class Task:
             project_id: str,
             priority: int = 3,
             description: Optional[str] = None,
-            labels: Optional[List[str]] = None,
             due_date: Optional[str] = None,
             id: Optional[str] = None
     ):
@@ -35,7 +33,6 @@ class Task:
         self.project_id = project_id
         self.priority = priority
         self.description = description
-        self.labels = labels or []
         self.subtasks = []
         self.due_date = due_date
         self.completed = False
@@ -65,19 +62,6 @@ class Task:
     def remove_subtask(self, subtask_id: str):
         if subtask_id in self.subtasks:
             self.subtasks.remove(subtask_id)
-            self.updated_at = format_datetime()
-
-    def has_label(self, label_id: str) -> bool:
-        return label_id in self.labels
-
-    def add_label(self, label_id: str):
-        if label_id not in self.labels:
-            self.labels.append(label_id)
-            self.updated_at = format_datetime()
-
-    def remove_label(self, label_id: str):
-        if label_id in self.labels:
-            self.labels.remove(label_id)
             self.updated_at = format_datetime()
 
     def check_completion(self, all_subtasks: Dict[str, SubTask]) -> bool:
@@ -127,7 +111,6 @@ class Task:
             "priority": self.priority,
             "completed": self.completed,
             "project_id": self.project_id,
-            "labels": self.labels,
             "subtasks": self.subtasks,
             "due_date": self.due_date,
             "completed_at": self.completed_at,
@@ -143,7 +126,6 @@ class Task:
             project_id=data['project_id'],
             priority=data['priority'],
             description=data.get('description'),
-            labels=data.get('labels', []),
             due_date=data.get('due_date')
         )
         task.completed = data['completed']

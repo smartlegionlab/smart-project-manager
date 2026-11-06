@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -65,7 +64,7 @@ class HelpDialog(QDialog):
             """<ol style='color: #ddd; margin: 0; padding-left: 20px;'>
             <li>Click <b>+ New</b> in the <b>PROJECTS</b> pane or use <b>File -> New Project</b> (<code>Ctrl+N</code>).</li>
             <li>Select the new project in the list. The <b>PROJECT</b> card and the <b>TASKS</b> list update automatically.</li>
-            <li>Click <b>+ Add</b> in the <b>TASKS</b> pane or use <b>File -> New Task</b> (<code>Ctrl+T</code>). Fill in title, description, priority, due date and labels.</li>
+            <li>Click <b>+ Add</b> in the <b>TASKS</b> pane or use <b>File -> New Task</b> (<code>Ctrl+T</code>). Fill in title, description, priority and due date.</li>
             <li>Select the task. The <b>TASK</b> card and the <b>SUBTASKS</b> list update automatically.</li>
             <li>Click <b>+ Add</b> in the <b>SUBTASKS</b> pane or use <b>File -> New Subtask</b> (<code>Ctrl+Shift+T</code>). Fill in title and priority.</li>
             </ol>"""
@@ -86,7 +85,7 @@ class HelpDialog(QDialog):
             "TASKS",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li>Title up to 100 characters, description up to 2000 characters, both with live counters in the dialog.</li>
-            <li>Each row shows a status dot, the title, the priority, the progress, the due date and up to two labels.</li>
+            <li>Each row shows a status dot, the title, the priority, the progress and the due date.</li>
             <li>When all subtasks of a task are completed, the task is marked completed automatically.</li>
             <li>Full CRUD: right-click in the list, <b>Edit -> Edit Task</b> (<code>Ctrl+Shift+E</code>), <b>Edit -> Delete Task</b> (<code>Ctrl+Shift+D</code>), or the buttons in the <b>TASK</b> card.</li>
             <li>If no task is selected, the <b>TASK</b> card shows a placeholder.</li>
@@ -110,16 +109,6 @@ class HelpDialog(QDialog):
             <li>Select a project, select a task, create a subtask - project and task selection stay in place.</li>
             <li>Switch to another project and come back - the previously selected task is restored.</li>
             <li>Programmatic selection updates never emit change signals, and a single reload path restores everything consistently.</li>
-            </ul>"""
-        ))
-
-        content_layout.addWidget(self._make_section(
-            "LABELS",
-            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li>Open <b>Edit -> Manage Labels</b> to create, edit and delete labels.</li>
-            <li>Each label has a name (up to 8 characters), background color, text color and optional description.</li>
-            <li>Assign labels to tasks while creating or editing them.</li>
-            <li>Deleting a label removes it from all tasks that use it.</li>
             </ul>"""
         ))
 
@@ -157,7 +146,6 @@ class HelpDialog(QDialog):
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+B</code></td><td>Create backup</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+I</code></td><td>Import</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+S</code></td><td>Export</td></tr>
-            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+L</code></td><td>Manage labels</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F5</code></td><td>Refresh view</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F1</code></td><td>Open help</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+/</code></td><td>Show keyboard shortcuts</td></tr>
@@ -172,7 +160,7 @@ class HelpDialog(QDialog):
             All data is stored locally:
             </p>
             <ul style='color: #ddd; margin: 6px 0 0 0; padding-left: 18px;'>
-            <li>Projects, tasks, subtasks, labels: <code>~/.smart_project_manager/projects.json</code></li>
+            <li>Projects, tasks, subtasks: <code>~/.smart_project_manager/projects.json</code></li>
             <li>Backups: <code>~/.smart_project_manager/backups/</code></li>
             </ul>
             <p style='color: #ddd; margin: 8px 0 0 0;'>

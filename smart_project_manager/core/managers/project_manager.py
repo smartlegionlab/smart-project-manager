@@ -2,7 +2,6 @@
 import os
 from typing import Dict, List, Optional
 
-from smart_project_manager.core.models.label import Label
 from smart_project_manager.core.models.project import Project
 from smart_project_manager.core.models.subtask import SubTask
 from smart_project_manager.core.models.task import Task
@@ -21,7 +20,6 @@ class ProjectManager:
         self.projects: Dict[str, Project] = {}
         self.tasks: Dict[str, Task] = {}
         self.subtasks: Dict[str, SubTask] = {}
-        self.labels: Dict[str, Label] = {}
 
         self.load_data()
 
@@ -30,7 +28,6 @@ class ProjectManager:
 
         if not os.path.exists(self.data_file):
             empty_data = {
-                'labels': {},
                 'projects': {},
                 'tasks': {},
                 'subtasks': {}
@@ -40,11 +37,6 @@ class ProjectManager:
 
     def load_data(self):
         data = load_json(self.data_file)
-
-        self.labels = {}
-        for label_data in data.get('labels', {}).values():
-            label = Label.from_dict(label_data)
-            self.labels[label.id] = label
 
         self.projects = {}
         for project_data in data.get('projects', {}).values():
@@ -63,7 +55,6 @@ class ProjectManager:
 
     def save_data(self):
         data = {
-            'labels': {label_id: label.to_dict() for label_id, label in self.labels.items()},
             'projects': {project_id: project.to_dict() for project_id, project in self.projects.items()},
             'tasks': {task_id: task.to_dict() for task_id, task in self.tasks.items()},
             'subtasks': {subtask_id: subtask.to_dict() for subtask_id, subtask in self.subtasks.items()}
@@ -71,8 +62,9 @@ class ProjectManager:
         save_json(self.data_file, data)
 
     def create_project(self, name: str,
-                      description: Optional[str] = None) -> Project:
-        project = Project(name=name, description=description)
+                      description: Optional[str] = None,
+                      link: Optional[str] = None) -> Project:
+        project = Project(name=name, description=description, link=link)
         self.projects[project.id] = project
         self.save_data()
         return project
@@ -102,16 +94,10 @@ class ProjectManager:
         return list(self.projects.values())
 
     def create_task(self, title: str, project_id: str, priority: int = 3,
-                    description: Optional[str] = None, due_date: Optional[str] = None,
-                    labels: Optional[List[str]] = None) -> Task:
+                    description: Optional[str] = None,
+                    due_date: Optional[str] = None) -> Task:
         task = Task(title=title, project_id=project_id, priority=priority,
                     description=description, due_date=due_date)
-
-        if labels:
-            for label_id in labels:
-                label = self.get_label(label_id)
-                if label:
-                    task.add_label(label_id)
 
         self.tasks[task.id] = task
 
@@ -151,14 +137,6 @@ class ProjectManager:
     def update_task(self, task_id: str, **kwargs):
         task = self.get_task(task_id)
         if task:
-            if 'labels' in kwargs:
-                labels = kwargs.pop('labels')
-                task.labels.clear()
-                for label_id in labels:
-                    label = self.get_label(label_id)
-                    if label:
-                        task.add_label(label_id)
-
             for key, value in kwargs.items():
                 if hasattr(task, key):
                     setattr(task, key, value)
@@ -211,48 +189,6 @@ class ProjectManager:
     def get_subtasks_by_task(self, task_id: str) -> List[SubTask]:
         return [subtask for subtask in self.subtasks.values() if subtask.task_id == task_id]
 
-    def create_label(self, name: str, color: str = "#3498db", text_color: str = "#ffffff",
-                     description: Optional[str] = None) -> Label:
-        label = Label(name=name, color=color, text_color=text_color, description=description)
-        self.labels[label.id] = label
-        self.save_data()
-        return label
-
-    def get_label(self, label_id: str) -> Optional[Label]:
-        return self.labels.get(label_id)
-
-    def update_label(self, label_id: str, **kwargs):
-        label = self.get_label(label_id)
-        if label:
-            for key, value in kwargs.items():
-                if hasattr(label, key):
-                    setattr(label, key, value)
-            self.save_data()
-
-    def delete_label(self, label_id: str):
-        for task in self.tasks.values():
-            if label_id in task.labels:
-                task.labels.remove(label_id)
-
-        del self.labels[label_id]
-        self.save_data()
-
-    def get_all_labels(self) -> List[Label]:
-        return list(self.labels.values())
-
-    def add_label_to_task(self, task_id: str, label_id: str):
-        task = self.get_task(task_id)
-        label = self.get_label(label_id)
-        if task and label:
-            task.add_label(label_id)
-            self.save_data()
-
-    def remove_label_from_task(self, task_id: str, label_id: str):
-        task = self.get_task(task_id)
-        if task:
-            task.remove_label(label_id)
-            self.save_data()
-
     def get_project_progress(self, project_id: str) -> float:
         project = self.get_project(project_id)
         if project:
@@ -269,7 +205,6 @@ class ProjectManager:
         total_projects = len(self.projects)
         total_tasks = len(self.tasks)
         total_subtasks = len(self.subtasks)
-        total_labels = len(self.labels)
 
         completed_tasks = sum(1 for task in self.tasks.values() if task.completed)
         completed_subtasks = sum(1 for subtask in self.subtasks.values() if subtask.completed)
@@ -278,7 +213,6 @@ class ProjectManager:
             'projects': total_projects,
             'tasks': total_tasks,
             'subtasks': total_subtasks,
-            'labels': total_labels,
             'completed_tasks': completed_tasks,
             'completed_subtasks': completed_subtasks,
             'task_completion_rate': (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,

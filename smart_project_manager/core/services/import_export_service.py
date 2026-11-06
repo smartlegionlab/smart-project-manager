@@ -109,10 +109,7 @@ class ImportExportService:
         if not isinstance(data, dict):
             return False
 
-        if not isinstance(data, dict):
-            return False
-
-        required_sections = {'labels', 'projects', 'tasks', 'subtasks'}
+        required_sections = {'projects', 'tasks', 'subtasks'}
         for section in required_sections:
             if section not in data:
                 return False
@@ -124,7 +121,6 @@ class ImportExportService:
     @staticmethod
     def _count_items(data: Dict) -> Dict:
         return {
-            'labels': len(data.get('labels', {})),
             'projects': len(data.get('projects', {})),
             'tasks': len(data.get('tasks', {})),
             'subtasks': len(data.get('subtasks', {}))

@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -80,7 +79,6 @@ class ShortcutsDialog(QDialog):
                 ("Ctrl+B", "Create backup"),
                 ("Ctrl+I", "Import data"),
                 ("Ctrl+Shift+S", "Export data"),
-                ("Ctrl+L", "Manage labels"),
             ]
         ))
 

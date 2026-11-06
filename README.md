@@ -4,7 +4,7 @@
 
 ## Overview
 
-**Smart Project Manager** is a desktop application for comprehensive project and task management, built with Python and PyQt5. It provides a hierarchical system for organizing projects, tasks, and subtasks, featuring visual labels, automatic progress tracking, and a dark-themed user interface.
+**Smart Project Manager** is a desktop application for comprehensive project and task management, built with Python and PyQt5. It provides a hierarchical system for organizing projects, tasks, and subtasks, featuring automatic progress tracking and a dark-themed user interface.
 
 *   **Author:** Alexander Suvorov
 *   **GitHub:** [smartlegionlab](https://github.com/smartlegionlab)
@@ -42,7 +42,7 @@
 *   Full CRUD for projects via context menu, Edit menu, and the project card buttons
 
 ### Task Management
-*   Task list with inline visual state (status dot, title, priority, progress, due date, labels)
+*   Task list with inline visual state (status dot, title, priority, progress, due date)
 *   Create, edit and delete tasks
 *   Task title limited to 100 characters and description to 2000 characters, with live counters
 *   Toggle completion, edit and delete directly from the task list context menu or the task header
@@ -54,15 +54,10 @@
 *   Mark as completed with a checkbox on the row, or via context menu
 *   Create, edit and delete subtasks
 
-### Labels
-*   Custom labels with name, color, text color and description
-*   Assign labels to tasks for categorization
-*   Dedicated Label Manager dialog for creating, editing and deleting labels
-
 ### Progress Tracking & Statistics
 *   Per-project progress bar in the project card
 *   Per-task progress based on subtasks
-*   Compact global statistics panel in the status bar (always visible): projects, tasks, subtasks, labels, and completion rates
+*   Compact global statistics panel in the status bar (always visible): projects, tasks, subtasks, and completion rates
 
 ### User Interface
 *   Dark theme optimized for extended use
@@ -73,7 +68,7 @@
 
 ### Data Persistence
 *   Automatic saving to `~/.smart_project_manager/projects.json`
-*   JSON-based storage for projects, tasks, subtasks and labels
+*   JSON-based storage for projects, tasks and subtasks
 *   Data loaded automatically on application startup
 *   Manual backups and automatic cleanup of backups older than 30 days
 
@@ -203,7 +198,7 @@ curl -fsSL https://raw.githubusercontent.com/smartlegionlab/smart-project-manage
 *   `~/Desktop/smart-project-manager.desktop` - the Desktop shortcut (if present)
 
 **What the uninstaller never touches:**
-*   `~/.smart_project_manager/projects.json` - your projects, tasks, subtasks and labels. It is your data. Only you decide what to do with it.
+*   `~/.smart_project_manager/projects.json` - your projects, tasks and subtasks. It is your data. Only you decide what to do with it.
 
 If you want to remove your data as well, run after uninstall:
 
@@ -231,7 +226,6 @@ rm -rf ~/.smart_project_manager
 3.  **Create a task:** with a project selected, use `File -> New Task` (`Ctrl+T`) or the **+ Add** button in the `TASKS` pane.
 4.  **Select a task:** click it in the `TASKS` list. The `TASK` header and the `SUBTASKS` list update automatically.
 5.  **Create a subtask:** with a task selected, use `File -> New Subtask` (`Ctrl+Shift+T`) or the **+ Add** button in the `SUBTASKS` pane. Fill in title and priority.
-6.  **Manage labels:** `Edit -> Manage Labels` (`Ctrl+L`) to create, edit and delete labels.
 
 ### Workspace Layout
 
@@ -251,7 +245,7 @@ rm -rf ~/.smart_project_manager
 ### Tasks
 
 *   Title is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
-*   The task list shows a status dot, the title, the priority, the progress, the due date and up to two labels.
+*   The task list shows a status dot, the title, the priority, the progress and the due date.
 *   Double-clicking a task is not required - selection is instant. The `TASK` header shows the title, description, priority, due date, progress, and the toggle / edit / delete buttons.
 *   Full CRUD: context menu in the task list, `Edit -> Edit Task` (`Ctrl+Shift+E`), `Edit -> Delete Task` (`Ctrl+Shift+D`), and the buttons in the `TASK` header.
 
@@ -321,7 +315,6 @@ The application allows you to create desktop entries directly from the menu:
 | `Ctrl+B`         | Create backup                         |
 | `Ctrl+I`         | Import                                |
 | `Ctrl+Shift+S`   | Export                                |
-| `Ctrl+L`         | Manage labels                         |
 | `F5`             | Refresh view                          |
 | `F1`             | Open help                             |
 | `Ctrl+/`         | Show keyboard shortcuts dialog        |
@@ -341,10 +334,10 @@ Backups older than 30 days are cleaned up automatically on application startup. 
 
 ### Data Format Notes
 
-*   `projects` entries may contain `link` (optional string, added in this release).
+*   `projects` entries may contain `link` (optional string).
 *   `subtasks` entries contain only `id`, `title`, `priority`, `completed`, `task_id`, `project_id`, and timestamps.
-*   Older data files with `description`, `due_date`, or `labels` on subtasks still load correctly; those fields are ignored on import.
-*   Exports from this version no longer include those unused subtask fields.
+*   Older data files with `labels` on tasks still load correctly; the `labels` field is ignored on import.
+*   Exports from this version no longer include `labels` in the data.
 
 ---
 
@@ -355,7 +348,6 @@ This project is licensed under the **BSD 3-Clause License**. See the [`LICENSE`]
 ---
 
 **Copyright (c) 2026, Alexander Suvorov. All rights reserved.**
-
 
 ---
 

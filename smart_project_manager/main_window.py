@@ -14,7 +14,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 
 from smart_project_manager.core.managers.project_manager import ProjectManager
-from smart_project_manager.ui.dialogs.label_manager_dialog import LabelManagerDialog
 from smart_project_manager.ui.dialogs.project_dialog import ProjectDialog
 from smart_project_manager.ui.dialogs.task_dialog import TaskDialog
 from smart_project_manager.ui.dialogs.subtask_dialog import SubTaskDialog
@@ -169,13 +168,6 @@ class MainWindow(QMainWindow):
         delete_task_action.setShortcut('Ctrl+Shift+D')
         delete_task_action.triggered.connect(self.delete_current_task)
         edit_menu.addAction(delete_task_action)
-
-        edit_menu.addSeparator()
-
-        labels_action = QAction('Manage Labels', self)
-        labels_action.setShortcut('Ctrl+L')
-        labels_action.triggered.connect(self.manage_labels)
-        edit_menu.addAction(labels_action)
 
         view_menu = menubar.addMenu('View')
 
@@ -829,13 +821,6 @@ class MainWindow(QMainWindow):
                 project_id=self.current_project_id, task_id=self.current_task_id
             )
 
-    def manage_labels(self):
-        dialog = LabelManagerDialog(self, self.manager)
-        dialog.exec_()
-        self._reload_preserving_selection(
-            project_id=self.current_project_id, task_id=self.current_task_id
-        )
-
     def refresh_view(self):
         self.manager.load_data()
         self._reload_preserving_selection(
@@ -887,8 +872,6 @@ class MainWindow(QMainWindow):
                 message += f"Tasks: {items.get('tasks', 0)}\n"
             if items.get('subtasks', 0) > 0:
                 message += f"Subtasks: {items.get('subtasks', 0)}\n"
-            if items.get('labels', 0) > 0:
-                message += f"Labels: {items.get('labels', 0)}\n"
             QMessageBox.information(self, "Import Complete", message)
 
         except Exception as e:

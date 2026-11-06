@@ -1,4 +1,3 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -79,11 +78,10 @@ class AboutDialog(QDialog):
             "CORE FEATURES",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li>Projects with name, description and an optional link</li>
-            <li>Tasks with priority, due date and labels</li>
+            <li>Tasks with priority and due date</li>
             <li>Simplified subtasks: title and priority only</li>
             <li>Automatic completion when all subtasks are completed</li>
             <li>Length limits with live counters in dialogs</li>
-            <li>Custom color labels</li>
             <li>Backups and JSON export/import</li>
             <li>Stable selection across all CRUD operations</li>
             <li>Dark theme optimized for extended use</li>

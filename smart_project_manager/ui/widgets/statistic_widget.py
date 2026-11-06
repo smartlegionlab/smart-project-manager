@@ -17,7 +17,6 @@ class StatisticsWidget(QWidget):
         self.projects_label = self._make_stat(layout, "Projects", "#4ea1ff", "0")
         self.tasks_label = self._make_stat(layout, "Tasks", "#4ee09c", "0/0")
         self.subtasks_label = self._make_stat(layout, "Subtasks", "#b07ce8", "0/0")
-        self.labels_label = self._make_stat(layout, "Labels", "#ff8a80", "0")
 
         layout.addStretch()
 
@@ -78,7 +77,6 @@ class StatisticsWidget(QWidget):
         self.projects_label.setText(str(stats['projects']))
         self.tasks_label.setText(f"{stats['completed_tasks']}/{stats['tasks']}")
         self.subtasks_label.setText(f"{stats['completed_subtasks']}/{stats['subtasks']}")
-        self.labels_label.setText(str(stats['labels']))
 
         tasks_pct = stats['task_completion_rate']
         self.tasks_progress_bar.setValue(int(tasks_pct))
