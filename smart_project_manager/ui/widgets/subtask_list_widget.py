@@ -1,7 +1,7 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QHBoxLayout, QLabel, QVBoxLayout,
-    QCheckBox
+    QCheckBox, QListView, QSizePolicy
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 
@@ -41,7 +41,25 @@ class SubtaskListWidget(QListWidget):
         """)
         self.setUniformItemSizes(False)
         self.setVerticalScrollMode(QListWidget.ScrollPerPixel)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.setResizeMode(QListView.Adjust)
+        self.setWordWrap(True)
         self.setSpacing(2)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._relayout_items()
+
+    def _relayout_items(self):
+        width = max(self.viewport().width() - 8, 80)
+        for i in range(self.count()):
+            item = self.item(i)
+            widget = self.itemWidget(item)
+            if widget:
+                widget.setFixedWidth(width)
+                item.setSizeHint(widget.sizeHint())
+        self.doItemsLayout()
 
     def load_subtasks(self, subtasks):
         self.blockSignals(True)
@@ -56,6 +74,7 @@ class SubtaskListWidget(QListWidget):
             empty_label = QLabel("No subtasks yet.\nClick + Add to create one.")
             empty_label.setStyleSheet("color: #5a606b; font-size: 12px;")
             empty_label.setAlignment(Qt.AlignCenter)
+            empty_label.setWordWrap(True)
             layout.addWidget(empty_label)
             empty.setSizeHint(widget.sizeHint())
             self.addItem(empty)
@@ -65,24 +84,33 @@ class SubtaskListWidget(QListWidget):
                 self._add_subtask_row(subtask)
 
         self.blockSignals(False)
+        self._relayout_items()
 
     def _add_subtask_row(self, subtask):
         widget = QWidget()
         widget.setObjectName("subtaskRow")
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(10)
+        layout.setAlignment(Qt.AlignTop)
 
         checkbox = QCheckBox()
+        checkbox.setFixedSize(18, 18)
         checkbox.setChecked(subtask.completed)
         checkbox.setCursor(Qt.PointingHandCursor)
         checkbox.setStyleSheet("""
+            QCheckBox {
+                background: transparent;
+            }
             QCheckBox::indicator {
                 width: 16px;
                 height: 16px;
                 border-radius: 4px;
                 border: 1px solid #4a505b;
                 background-color: #23262c;
+            }
+            QCheckBox::indicator:hover {
+                border: 1px solid #5a606b;
             }
             QCheckBox::indicator:checked {
                 background-color: #2a8f5e;
@@ -92,7 +120,7 @@ class SubtaskListWidget(QListWidget):
         checkbox.clicked.connect(
             lambda checked, sid=subtask.id: self.subtask_toggled.emit(sid)
         )
-        layout.addWidget(checkbox)
+        layout.addWidget(checkbox, 0, Qt.AlignTop)
 
         title_label = QLabel(subtask.title)
         if subtask.completed:
@@ -105,6 +133,8 @@ class SubtaskListWidget(QListWidget):
                 "QLabel { color: #ffffff; font-size: 12px; background: transparent; }"
             )
         title_label.setWordWrap(True)
+        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        title_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         layout.addWidget(title_label, 1)
 
         priority_text = ["High", "Medium", "Low"][subtask.priority - 1]
@@ -114,7 +144,8 @@ class SubtaskListWidget(QListWidget):
             f"QLabel {{ color: {priority_color}; font-size: 9px; font-weight: bold; "
             f"background: transparent; }}"
         )
-        layout.addWidget(priority_label)
+        priority_label.setAlignment(Qt.AlignTop | Qt.AlignRight)
+        layout.addWidget(priority_label, 0, Qt.AlignTop)
 
         item = QListWidgetItem()
         item.setData(Qt.UserRole, subtask.id)
