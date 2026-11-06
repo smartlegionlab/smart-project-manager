@@ -76,7 +76,6 @@ class ShortcutsDialog(QDialog):
         content_layout.addWidget(self._make_section(
             "DATA",
             [
-                ("Ctrl+B", "Create backup"),
                 ("Ctrl+I", "Import data"),
                 ("Ctrl+Shift+S", "Export data"),
             ]

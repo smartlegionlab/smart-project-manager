@@ -113,13 +113,11 @@ class HelpDialog(QDialog):
         ))
 
         content_layout.addWidget(self._make_section(
-            "BACKUPS, EXPORT, IMPORT",
+            "EXPORT AND IMPORT",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li><b>File -> Create Backup</b> (<code>Ctrl+B</code>) - saves a timestamped copy to <code>~/.smart_project_manager/backups/</code>.</li>
-            <li><b>File -> Show Backups</b> - lists current backups, shows total size, allows clearing all backups.</li>
-            <li>Backups older than 30 days are removed automatically at startup.</li>
             <li><b>File -> Export</b> (<code>Ctrl+Shift+S</code>) - writes the whole dataset to a single JSON file.</li>
-            <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with a JSON file. <b>This overwrites all existing data.</b> A temporary backup is created automatically before import.</li>
+            <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with a JSON file. <b>This overwrites all existing data.</b> A temporary backup of the current file is created automatically before import and removed on success.</li>
+            <li>Use Export before Import to keep a copy of your current data if you want to be extra safe.</li>
             </ul>"""
         ))
 
@@ -143,7 +141,6 @@ class HelpDialog(QDialog):
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+D</code></td><td>Delete current project</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+E</code></td><td>Edit current task</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+D</code></td><td>Delete current task</td></tr>
-            <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+B</code></td><td>Create backup</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+I</code></td><td>Import</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>Ctrl+Shift+S</code></td><td>Export</td></tr>
             <tr><td style='padding: 3px 16px 3px 0;'><code>F5</code></td><td>Refresh view</td></tr>
@@ -161,7 +158,6 @@ class HelpDialog(QDialog):
             </p>
             <ul style='color: #ddd; margin: 6px 0 0 0; padding-left: 18px;'>
             <li>Projects, tasks, subtasks: <code>~/.smart_project_manager/projects.json</code></li>
-            <li>Backups: <code>~/.smart_project_manager/backups/</code></li>
             </ul>
             <p style='color: #ddd; margin: 8px 0 0 0;'>
             The uninstaller never touches your data. To remove it manually: <code>rm -rf ~/.smart_project_manager</code>

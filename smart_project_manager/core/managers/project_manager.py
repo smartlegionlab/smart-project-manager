@@ -224,18 +224,3 @@ class ProjectManager:
 
     def export_data(self, export_path: str) -> Dict:
         return ImportExportService.export_data(self.data_file, export_path)
-
-    def create_backup(self) -> str:
-        return ImportExportService.create_backup(self.data_file)
-
-    def cleanup_old_backups(self, days_to_keep: int = 30) -> Dict:
-        backup_dir = os.path.join(self.data_dir, 'backups')
-        return ImportExportService.cleanup_old_backups(backup_dir, days_to_keep)
-
-    def get_backup_info(self) -> Dict:
-        backup_dir = os.path.join(self.data_dir, 'backups')
-        return ImportExportService.get_backup_info(backup_dir)
-
-    def clear_all_backups(self) -> Dict:
-        backup_dir = os.path.join(self.data_dir, 'backups')
-        return ImportExportService.clear_all_backups(backup_dir)

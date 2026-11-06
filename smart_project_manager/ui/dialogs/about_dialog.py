@@ -82,7 +82,7 @@ class AboutDialog(QDialog):
             <li>Simplified subtasks: title and priority only</li>
             <li>Automatic completion when all subtasks are completed</li>
             <li>Length limits with live counters in dialogs</li>
-            <li>Backups and JSON export/import</li>
+            <li>JSON export and import</li>
             <li>Stable selection across all CRUD operations</li>
             <li>Dark theme optimized for extended use</li>
             </ul>"""
@@ -93,7 +93,6 @@ class AboutDialog(QDialog):
             """<p style='color: #ddd; margin: 0;'>
             All data stays on your machine. No cloud, no telemetry, no network access at runtime.
             Your projects are stored in <code style='color: #2ecc71; background-color: #23262d; padding: 2px 6px; border-radius: 3px;'>~/.smart_project_manager/projects.json</code>.
-            Backups are managed automatically and never leave your device.
             </p>"""
         ))
 

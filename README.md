@@ -70,7 +70,8 @@
 *   Automatic saving to `~/.smart_project_manager/projects.json`
 *   JSON-based storage for projects, tasks and subtasks
 *   Data loaded automatically on application startup
-*   Manual backups and automatic cleanup of backups older than 30 days
+*   JSON export to any file
+*   JSON import with automatic temporary backup before overwrite
 
 ### Stable Selection
 *   Selection in all three lists is preserved across any CRUD operation
@@ -312,7 +313,6 @@ The application allows you to create desktop entries directly from the menu:
 | `Ctrl+D`         | Delete current project                |
 | `Ctrl+Shift+E`   | Edit current task                     |
 | `Ctrl+Shift+D`   | Delete current task                   |
-| `Ctrl+B`         | Create backup                         |
 | `Ctrl+I`         | Import                                |
 | `Ctrl+Shift+S`   | Export                                |
 | `F5`             | Refresh view                          |
@@ -328,9 +328,6 @@ The application allows you to create desktop entries directly from the menu:
 | Item           | Path                                                       |
 |----------------|------------------------------------------------------------|
 | Projects       | `~/.smart_project_manager/projects.json`                   |
-| Backups        | `~/.smart_project_manager/backups/`                        |
-
-Backups older than 30 days are cleaned up automatically on application startup. Manual cleanup is also available from `File -> Show Backups`.
 
 ### Data Format Notes
 

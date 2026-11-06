@@ -68,7 +68,6 @@ class MainWindow(QMainWindow):
         self.setup_status_bar()
 
         self._reload_preserving_selection()
-        self.cleanup_old_backups_on_start()
 
         self.center_window()
 
@@ -114,17 +113,6 @@ class MainWindow(QMainWindow):
         new_subtask_action.setShortcut('Ctrl+Shift+T')
         new_subtask_action.triggered.connect(self.create_subtask_in_current_task)
         file_menu.addAction(new_subtask_action)
-
-        file_menu.addSeparator()
-
-        backup_action = QAction('Create Backup', self)
-        backup_action.setShortcut('Ctrl+B')
-        backup_action.triggered.connect(self.create_backup)
-        file_menu.addAction(backup_action)
-
-        backup_manager_action = QAction('Show Backups', self)
-        backup_manager_action.triggered.connect(self.show_backup_manager)
-        file_menu.addAction(backup_manager_action)
 
         file_menu.addSeparator()
 
@@ -901,57 +889,6 @@ class MainWindow(QMainWindow):
                 QMessageBox.information(self, "Export Complete", message)
         except Exception as e:
             QMessageBox.critical(self, "Export Error", f"Export failed:\n\n{str(e)}")
-
-    def create_backup(self):
-        try:
-            backup_path = self.manager.create_backup()
-            QMessageBox.information(self, "Backup Created", f"Backup created successfully!\n\n{backup_path}")
-        except FileNotFoundError:
-            QMessageBox.warning(self, "No Data File", "Cannot create backup: No data file found.")
-        except Exception as e:
-            QMessageBox.critical(self, "Backup Error", f"Failed to create backup:\n\n{str(e)}")
-
-    def cleanup_old_backups_on_start(self):
-        try:
-            self.manager.cleanup_old_backups(days_to_keep=30)
-        except Exception as e:
-            print(f"Backup cleanup error: {e}")
-
-    def show_backup_manager(self):
-        try:
-            info = self.manager.get_backup_info()
-            message = "Backup Manager\n\n"
-            if info['total'] == 0:
-                message += "No backups found."
-            else:
-                message += f"Total backups: {info['total']}\n"
-                message += f"Total size: {info['total_size_mb']:.2f} MB\n\n"
-                for backup in info['backups']:
-                    message += f"- {backup['date']} ({backup['size_mb']:.1f} MB)\n"
-
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle("Backup Manager")
-            msg_box.setText(message)
-            msg_box.setIcon(QMessageBox.Information)
-            clear_btn = msg_box.addButton("Clear All Backups", QMessageBox.ActionRole)
-            close_btn = msg_box.addButton("Close", QMessageBox.RejectRole)
-            msg_box.exec_()
-            if msg_box.clickedButton() == clear_btn:
-                self.clear_all_backups()
-        except Exception as e:
-            QMessageBox.warning(self, "Backup Error", f"Failed to show backup info: {str(e)}")
-
-    def clear_all_backups(self):
-        info = self.manager.get_backup_info()
-        if info['total'] == 0:
-            return
-        reply = QMessageBox.warning(
-            self, "Clear All Backups",
-            f"Delete ALL {info['total']} backups?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
-        )
-        if reply == QMessageBox.Yes:
-            self.manager.clear_all_backups()
 
     def show_about(self):
         from smart_project_manager.ui.dialogs.about_dialog import AboutDialog
