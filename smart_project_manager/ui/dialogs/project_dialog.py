@@ -18,6 +18,29 @@ from smart_project_manager.core.models.project import Project
 NAME_MAX_LENGTH = 100
 DESCRIPTION_MAX_LENGTH = 2000
 
+ALLOWED_WITH_HOST = ('http', 'https', 'ftp', 'ftps', 'git', 'ssh')
+ALLOWED_WITH_PATH = ('file', 'mailto')
+
+
+def is_valid_link(text: str) -> bool:
+    if not text:
+        return True
+
+    url = QUrl(text)
+
+    if not url.isValid() or url.isRelative():
+        return False
+
+    scheme = url.scheme()
+
+    if scheme in ALLOWED_WITH_HOST:
+        return bool(url.host())
+
+    if scheme in ALLOWED_WITH_PATH:
+        return bool(url.path())
+
+    return False
+
 
 class ProjectDialog(QDialog):
 
@@ -61,7 +84,7 @@ class ProjectDialog(QDialog):
             name_layout.addWidget(self.link_label, 2, 0)
 
             self.link_input = QLineEdit()
-            self.link_input.setPlaceholderText("https://...")
+            self.link_input.setPlaceholderText("https://github.com/user/repo")
             if project and project.link:
                 self.link_input.setText(project.link)
             self.link_input.textChanged.connect(self.validate_link)
@@ -174,17 +197,16 @@ class ProjectDialog(QDialog):
             self.link_status.setStyleSheet("font-size: 10px;")
             return
 
-        url = QUrl.fromUserInput(text)
-
-        if url.isValid() and url.scheme() in ('http', 'https', 'ftp', 'ftps', 'file', 'git', 'ssh') and url.host():
+        if is_valid_link(text):
             self.link_status.setText("Valid link")
-            self.link_status.setStyleSheet("color: #2ecc71; font-size: 10px; font-weight: bold;")
-        elif url.isValid() and url.scheme() in ('mailto',):
-            self.link_status.setText("Valid link")
-            self.link_status.setStyleSheet("color: #2ecc71; font-size: 10px; font-weight: bold;")
+            self.link_status.setStyleSheet(
+                "color: #2ecc71; font-size: 10px; font-weight: bold;"
+            )
         else:
-            self.link_status.setText("Invalid link")
-            self.link_status.setStyleSheet("color: #e74c3c; font-size: 10px; font-weight: bold;")
+            self.link_status.setText("Invalid link (use a scheme, e.g. https://...)")
+            self.link_status.setStyleSheet(
+                "color: #e74c3c; font-size: 10px; font-weight: bold;"
+            )
 
     def get_project_data(self) -> dict:
         data = {
@@ -212,14 +234,13 @@ class ProjectDialog(QDialog):
 
         if self.is_edit_mode:
             link = data.get('link')
-            if link:
-                url = QUrl.fromUserInput(link)
-                if not url.isValid() or not url.scheme():
-                    QMessageBox.warning(
-                        self, 'Invalid Link',
-                        'Please enter a valid URL (for example https://github.com/user/repo) '
-                        'or leave the field empty.'
-                    )
-                    return
+            if link and not is_valid_link(link):
+                QMessageBox.warning(
+                    self, 'Invalid Link',
+                    'Please enter a valid URL with scheme, for example:\n'
+                    'https://github.com/user/repo\n'
+                    'or leave the field empty.'
+                )
+                return
 
         super().accept()
