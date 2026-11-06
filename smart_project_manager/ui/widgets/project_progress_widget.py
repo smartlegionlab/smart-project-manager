@@ -1,10 +1,9 @@
-# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from datetime import datetime
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtWidgets import (
     QFrame, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-    QSizePolicy, QWidget
+    QSizePolicy
 )
 
 
@@ -48,6 +47,17 @@ class ProjectProgressWidget(QFrame):
         self.project_description_label.setWordWrap(True)
         title_column.addWidget(self.project_description_label)
 
+        self.project_link_label = QLabel("")
+        self.project_link_label.setStyleSheet(
+            "QLabel { font-size: 11px; background: transparent; }"
+        )
+        self.project_link_label.setOpenExternalLinks(True)
+        self.project_link_label.setTextFormat(Qt.RichText)
+        self.project_link_label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.project_link_label.setWordWrap(True)
+        self.project_link_label.setVisible(False)
+        title_column.addWidget(self.project_link_label)
+
         top_line.addLayout(title_column, 1)
 
         right_column = QVBoxLayout()
@@ -74,16 +84,10 @@ class ProjectProgressWidget(QFrame):
         buttons_line.setSpacing(6)
         buttons_line.setAlignment(Qt.AlignRight)
 
-        self.btn_edit_project = self._make_button(
-            "Edit", "#3a3f48", "#4a505b", "#e6e9ee"
-        )
-        self.btn_edit_project.clicked.connect(self._noop)
+        self.btn_edit_project = self._make_button("Edit")
         buttons_line.addWidget(self.btn_edit_project)
 
-        self.btn_delete_project = self._make_button(
-            "Delete", "#3a3f48", "#4a505b", "#e6e9ee"
-        )
-        self.btn_delete_project.clicked.connect(self._noop)
+        self.btn_delete_project = self._make_button("Delete")
         buttons_line.addWidget(self.btn_delete_project)
 
         right_column.addLayout(buttons_line)
@@ -109,26 +113,26 @@ class ProjectProgressWidget(QFrame):
 
         layout.addLayout(tiles_line)
 
-    def _make_button(self, text, bg, bg_hover, fg):
+    def _make_button(self, text):
         btn = QPushButton(text)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setFlat(True)
-        btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {bg};
-                color: {fg};
+        btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3a3f48;
+                color: #e6e9ee;
                 font-weight: bold;
                 font-size: 11px;
                 padding: 5px 14px;
                 border: none;
                 border-radius: 4px;
-            }}
-            QPushButton:hover {{
-                background-color: {bg_hover};
-            }}
-            QPushButton:pressed {{
+            }
+            QPushButton:hover {
+                background-color: #4a505b;
+            }
+            QPushButton:pressed {
                 background-color: #2f333a;
-            }}
+            }
         """)
         return btn
 
@@ -166,8 +170,14 @@ class ProjectProgressWidget(QFrame):
         parent_layout.addWidget(tile, 1)
         return value_label
 
-    def _noop(self):
-        pass
+    def _format_link_html(self, link: str) -> str:
+        display = link
+        if len(display) > 60:
+            display = display[:57] + "..."
+        return (
+            f"<a href='{link}' style='color: #4ea1ff; text-decoration: none;'>"
+            f"{display}</a>"
+        )
 
     def update_progress(self, project, manager):
         self.setVisible(True)
@@ -176,8 +186,20 @@ class ProjectProgressWidget(QFrame):
 
         if project.description:
             self.project_description_label.setText(project.description)
+            self.project_description_label.setVisible(True)
         else:
             self.project_description_label.setText("No description")
+            self.project_description_label.setVisible(True)
+
+        if project.link:
+            self.project_link_label.setText(
+                f"Link: {self._format_link_html(project.link)}"
+            )
+            self.project_link_label.setVisible(True)
+            self.project_link_label.setToolTip(project.link)
+        else:
+            self.project_link_label.setText("")
+            self.project_link_label.setVisible(False)
 
         tasks = manager.get_tasks_by_project(project.id)
         total_tasks = len(tasks)

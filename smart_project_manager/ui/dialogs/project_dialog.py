@@ -10,9 +10,13 @@ from PyQt5.QtWidgets import (
     QFrame,
     QGridLayout
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
 
 from smart_project_manager.core.models.project import Project
+
+
+NAME_MAX_LENGTH = 100
+DESCRIPTION_MAX_LENGTH = 2000
 
 
 class ProjectDialog(QDialog):
@@ -24,8 +28,8 @@ class ProjectDialog(QDialog):
         self.manager = manager
 
         self.setWindowTitle('Edit Project' if self.is_edit_mode else 'Create New Project')
-        self.setMinimumWidth(520)
-        self.setMinimumHeight(260 if not self.is_edit_mode else 340)
+        self.setMinimumWidth(560)
+        self.setMinimumHeight(300 if not self.is_edit_mode else 420)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(10)
@@ -34,26 +38,39 @@ class ProjectDialog(QDialog):
         name_group.setFrameStyle(QFrame.StyledPanel)
         name_layout = QGridLayout(name_group)
         name_layout.setContentsMargins(10, 10, 10, 10)
+        name_layout.setVerticalSpacing(4)
 
         self.name_label = QLabel('Project Name:')
         name_layout.addWidget(self.name_label, 0, 0)
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Enter project name")
+        self.name_input.setMaxLength(NAME_MAX_LENGTH)
         self.name_input.setFocus()
         if project:
             self.name_input.setText(project.name)
+        self.name_input.textChanged.connect(self.update_name_counter)
         name_layout.addWidget(self.name_input, 0, 1)
+
+        self.name_counter = QLabel()
+        self.name_counter.setAlignment(Qt.AlignRight)
+        name_layout.addWidget(self.name_counter, 1, 1)
 
         if self.is_edit_mode:
             self.link_label = QLabel('Link (optional):')
-            name_layout.addWidget(self.link_label, 1, 0)
+            name_layout.addWidget(self.link_label, 2, 0)
 
             self.link_input = QLineEdit()
             self.link_input.setPlaceholderText("https://...")
             if project and project.link:
                 self.link_input.setText(project.link)
-            name_layout.addWidget(self.link_input, 1, 1)
+            self.link_input.textChanged.connect(self.validate_link)
+            name_layout.addWidget(self.link_input, 2, 1)
+
+            self.link_status = QLabel("")
+            self.link_status.setAlignment(Qt.AlignRight)
+            self.link_status.setStyleSheet("font-size: 10px;")
+            name_layout.addWidget(self.link_status, 3, 1)
 
         self.layout.addWidget(name_group)
 
@@ -61,6 +78,7 @@ class ProjectDialog(QDialog):
         desc_group.setFrameStyle(QFrame.StyledPanel)
         desc_layout = QVBoxLayout(desc_group)
         desc_layout.setContentsMargins(10, 10, 10, 10)
+        desc_layout.setSpacing(4)
 
         self.desc_label = QLabel('Description:')
         desc_layout.addWidget(self.desc_label)
@@ -70,7 +88,12 @@ class ProjectDialog(QDialog):
         self.desc_input.setPlaceholderText("Enter project description")
         if project and project.description:
             self.desc_input.setText(project.description)
+        self.desc_input.textChanged.connect(self.update_desc_counter)
         desc_layout.addWidget(self.desc_input)
+
+        self.desc_counter = QLabel()
+        self.desc_counter.setAlignment(Qt.AlignRight)
+        desc_layout.addWidget(self.desc_counter)
 
         self.layout.addWidget(desc_group)
 
@@ -114,6 +137,55 @@ class ProjectDialog(QDialog):
 
         self.layout.addLayout(button_layout)
 
+        self.update_name_counter()
+        self.update_desc_counter()
+        if self.is_edit_mode:
+            self.validate_link()
+
+    def update_name_counter(self):
+        current_length = len(self.name_input.text())
+        remaining = NAME_MAX_LENGTH - current_length
+        self.name_counter.setText(f"{current_length}/{NAME_MAX_LENGTH} characters")
+
+        if remaining <= 10:
+            self.name_counter.setStyleSheet("color: #ff6b6b; font-size: 10px; font-weight: bold;")
+        elif remaining <= 30:
+            self.name_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
+        else:
+            self.name_counter.setStyleSheet("color: #888; font-size: 10px;")
+
+    def update_desc_counter(self):
+        current_length = len(self.desc_input.toPlainText())
+        remaining = DESCRIPTION_MAX_LENGTH - current_length
+        self.desc_counter.setText(f"{current_length}/{DESCRIPTION_MAX_LENGTH} characters")
+
+        if remaining <= 100:
+            self.desc_counter.setStyleSheet("color: #ff6b6b; font-size: 10px; font-weight: bold;")
+        elif remaining <= 300:
+            self.desc_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
+        else:
+            self.desc_counter.setStyleSheet("color: #888; font-size: 10px;")
+
+    def validate_link(self):
+        text = self.link_input.text().strip()
+
+        if not text:
+            self.link_status.setText("")
+            self.link_status.setStyleSheet("font-size: 10px;")
+            return
+
+        url = QUrl.fromUserInput(text)
+
+        if url.isValid() and url.scheme() in ('http', 'https', 'ftp', 'ftps', 'file', 'git', 'ssh') and url.host():
+            self.link_status.setText("Valid link")
+            self.link_status.setStyleSheet("color: #2ecc71; font-size: 10px; font-weight: bold;")
+        elif url.isValid() and url.scheme() in ('mailto',):
+            self.link_status.setText("Valid link")
+            self.link_status.setStyleSheet("color: #2ecc71; font-size: 10px; font-weight: bold;")
+        else:
+            self.link_status.setText("Invalid link")
+            self.link_status.setStyleSheet("color: #e74c3c; font-size: 10px; font-weight: bold;")
+
     def get_project_data(self) -> dict:
         data = {
             'name': self.name_input.text().strip(),
@@ -129,5 +201,25 @@ class ProjectDialog(QDialog):
         if not data['name']:
             QMessageBox.warning(self, 'Error', 'Project name is required')
             return
+
+        if len(data['name']) > NAME_MAX_LENGTH:
+            QMessageBox.warning(
+                self, 'Name Too Long',
+                f'Project name cannot exceed {NAME_MAX_LENGTH} characters.\n'
+                f'Current length: {len(data["name"])} characters.'
+            )
+            return
+
+        if self.is_edit_mode:
+            link = data.get('link')
+            if link:
+                url = QUrl.fromUserInput(link)
+                if not url.isValid() or not url.scheme():
+                    QMessageBox.warning(
+                        self, 'Invalid Link',
+                        'Please enter a valid URL (for example https://github.com/user/repo) '
+                        'or leave the field empty.'
+                    )
+                    return
 
         super().accept()
