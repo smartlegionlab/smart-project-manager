@@ -86,7 +86,8 @@ class HelpDialog(QDialog):
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li>Title up to 100 characters, description up to 2000 characters, both with live counters in the dialog.</li>
             <li>Each row shows a status dot, the title, the priority, the progress and the due date.</li>
-            <li>When all subtasks of a task are completed, the task is marked completed automatically.</li>
+            <li>Task completion is manual: use the toggle button in the <b>TASK</b> card, or right-click in the list and choose <b>Mark as Complete</b> / <b>Mark as Pending</b>.</li>
+            <li><b>Clear Completed (N)</b> removes all completed tasks from the current project. The count is shown on the button.</li>
             <li>Full CRUD: right-click in the list, <b>Edit -> Edit Task</b> (<code>Ctrl+Shift+E</code>), <b>Edit -> Delete Task</b> (<code>Ctrl+Shift+D</code>), or the buttons in the <b>TASK</b> card.</li>
             <li>If no task is selected, the <b>TASK</b> card shows a placeholder.</li>
             </ul>"""
@@ -98,6 +99,7 @@ class HelpDialog(QDialog):
             <li>Subtasks are simplified: title and priority only.</li>
             <li>Title up to 100 characters, with a live counter in the dialog.</li>
             <li>Toggle completion with the checkbox on the row, or via the context menu.</li>
+            <li>Subtask completion does not change the parent task status. The task must be completed manually.</li>
             <li>Full CRUD: right-click in the list, or <b>+ Add</b> in the <b>SUBTASKS</b> pane header.</li>
             </ul>"""
         ))

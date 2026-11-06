@@ -273,6 +273,13 @@ class MainWindow(QMainWindow):
         tasks_header = PanelHeader("TASKS")
         tasks_header_row.addWidget(tasks_header, 1)
 
+        self.btn_clear_completed = self._make_flat_button(
+            "Clear Completed (0)", "#3a3f48", "#4a505b"
+        )
+        self.btn_clear_completed.clicked.connect(self.clear_completed_tasks_in_current_project)
+        self.btn_clear_completed.setEnabled(False)
+        tasks_header_row.addWidget(self.btn_clear_completed)
+
         self.btn_new_task = self._make_flat_button("+ Add", "#2a8f5e", "#34a56e")
         self.btn_new_task.clicked.connect(self.create_task_in_current_project)
         tasks_header_row.addWidget(self.btn_new_task)
@@ -385,6 +392,10 @@ class MainWindow(QMainWindow):
             QPushButton:pressed {{
                 background-color: #23262c;
             }}
+            QPushButton:disabled {{
+                background-color: #23262c;
+                color: #5a606b;
+            }}
         """)
         return btn
 
@@ -403,6 +414,17 @@ class MainWindow(QMainWindow):
         self.status_bar.addPermanentWidget(self.mini_stats)
 
         self.status_bar.showMessage('Ready')
+
+    def _update_clear_completed_button(self):
+        if not self.current_project_id:
+            self.btn_clear_completed.setText("Clear Completed (0)")
+            self.btn_clear_completed.setEnabled(False)
+            return
+
+        tasks = self.manager.get_tasks_by_project(self.current_project_id)
+        completed_count = sum(1 for task in tasks if task.completed)
+        self.btn_clear_completed.setText(f"Clear Completed ({completed_count})")
+        self.btn_clear_completed.setEnabled(completed_count > 0)
 
     def _reload_preserving_selection(self, project_id=None, task_id=None):
         if self._updating:
@@ -475,6 +497,7 @@ class MainWindow(QMainWindow):
             self.task_header.update_task(None, self.manager)
             self.subtask_list.load_subtasks([])
 
+        self._update_clear_completed_button()
         self.update_statistics()
 
         self._updating = False
@@ -698,6 +721,32 @@ class MainWindow(QMainWindow):
 
         if reply == QMessageBox.Yes:
             self.manager.delete_task(task.id)
+            self._reload_preserving_selection(
+                project_id=self.current_project_id, task_id=None
+            )
+
+    def clear_completed_tasks_in_current_project(self):
+        if not self.current_project_id:
+            return
+
+        tasks = self.manager.get_tasks_by_project(self.current_project_id)
+        completed_tasks = [task for task in tasks if task.completed]
+
+        if not completed_tasks:
+            QMessageBox.information(self, 'Info', 'No completed tasks to clear')
+            return
+
+        reply = QMessageBox.question(
+            self, 'Clear Completed Tasks',
+            f'Clear {len(completed_tasks)} completed task(s)?\n\n'
+            'This action cannot be undone.',
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+
+        if reply == QMessageBox.Yes:
+            for task in completed_tasks:
+                self.manager.delete_task(task.id)
+
             self._reload_preserving_selection(
                 project_id=self.current_project_id, task_id=None
             )

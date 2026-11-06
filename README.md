@@ -45,14 +45,16 @@
 *   Task list with inline visual state (status dot, title, priority, progress, due date)
 *   Create, edit and delete tasks
 *   Task title limited to 100 characters and description to 2000 characters, with live counters
+*   Task completion is manual: toggle the task yourself, subtask completion does not auto-complete the parent
+*   Clear completed tasks with the `Clear Completed (N)` button in the TASKS pane
 *   Toggle completion, edit and delete directly from the task list context menu or the task header
-*   Automatic task completion when all subtasks are completed
 
 ### Subtasks
 *   Simplified subtasks: title and priority only
 *   Subtask title limited to 100 characters, with a live counter
 *   Mark as completed with a checkbox on the row, or via context menu
 *   Create, edit and delete subtasks
+*   Subtask completion does not change the parent task status
 
 ### Progress Tracking & Statistics
 *   Per-project progress bar in the project card
@@ -247,7 +249,8 @@ rm -rf ~/.smart_project_manager
 
 *   Title is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
 *   The task list shows a status dot, the title, the priority, the progress and the due date.
-*   Double-clicking a task is not required - selection is instant. The `TASK` header shows the title, description, priority, due date, progress, and the toggle / edit / delete buttons.
+*   Task completion is manual. Click the toggle button in the `TASK` header, or right-click in the list and choose `Mark as Complete` / `Mark as Pending`. Subtask completion does not auto-complete the parent task.
+*   The `Clear Completed (N)` button in the `TASKS` pane removes all completed tasks in the current project after a confirmation prompt.
 *   Full CRUD: context menu in the task list, `Edit -> Edit Task` (`Ctrl+Shift+E`), `Edit -> Delete Task` (`Ctrl+Shift+D`), and the buttons in the `TASK` header.
 
 ### Subtasks
@@ -256,7 +259,7 @@ rm -rf ~/.smart_project_manager
 *   Title is limited to 100 characters, with a live counter in the dialog.
 *   Mark a subtask complete with the checkbox on the row, or via the context menu.
 *   Full CRUD: context menu in the `SUBTASKS` list, or **+ Add** in the `SUBTASKS` pane header.
-*   When all subtasks of a task are completed, the parent task is marked completed automatically.
+*   Subtask completion does not change the parent task status.
 
 ### Stable Selection
 

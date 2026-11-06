@@ -64,33 +64,6 @@ class Task:
             self.subtasks.remove(subtask_id)
             self.updated_at = format_datetime()
 
-    def check_completion(self, all_subtasks: Dict[str, SubTask]) -> bool:
-        if not self.subtasks:
-            return self.completed
-
-        for subtask_id in self.subtasks:
-            subtask = all_subtasks.get(subtask_id)
-            if subtask and not subtask.completed:
-                return False
-        return True
-
-    def update_completion(self, all_subtasks: Dict[str, SubTask]):
-        if self.subtasks:
-            all_completed = True
-            for subtask_id in self.subtasks:
-                subtask = all_subtasks.get(subtask_id)
-                if subtask and not subtask.completed:
-                    all_completed = False
-                    break
-
-            if all_completed != self.completed:
-                self.completed = all_completed
-                self.updated_at = format_datetime()
-                if self.completed:
-                    self.completed_at = self.updated_at
-                else:
-                    self.completed_at = None
-
     def get_progress(self, all_subtasks: Dict[str, SubTask]) -> float:
         if not self.subtasks:
             return 100.0 if self.completed else 0.0

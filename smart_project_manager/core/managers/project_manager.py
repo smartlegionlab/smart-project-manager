@@ -126,7 +126,6 @@ class ProjectManager:
         task = self.get_task(task_id)
         if task:
             task.add_subtask(subtask.id)
-            task.update_completion(self.subtasks)
 
         self.save_data()
         return subtask
@@ -169,10 +168,6 @@ class ProjectManager:
                 if hasattr(subtask, key):
                     setattr(subtask, key, value)
             subtask.updated_at = format_datetime()
-
-            task = self.get_task(subtask.task_id)
-            if task:
-                task.update_completion(self.subtasks)
 
             self.save_data()
 
