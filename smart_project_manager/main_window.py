@@ -36,6 +36,7 @@ class MainWindow(QMainWindow):
         self._updating = False
         self._project_search_text = ""
         self._task_search_text = ""
+        self._subtask_search_text = ""
 
         self.setWindowTitle('Smart Project Manager')
         self.setMinimumSize(800, 600)
@@ -386,6 +387,25 @@ class MainWindow(QMainWindow):
 
         subtasks_section_layout.addLayout(subtasks_header_row)
 
+        self.subtask_search_input = QLineEdit(self)
+        self.subtask_search_input.setPlaceholderText("Search subtasks...")
+        self.subtask_search_input.setClearButtonEnabled(True)
+        self.subtask_search_input.textChanged.connect(self.on_subtask_search_changed)
+        self.subtask_search_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #1c1f24;
+                border: 1px solid #2f343d;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-size: 12px;
+                color: #ffffff;
+            }
+            QLineEdit:focus {
+                border: 1px solid #2a6fb0;
+            }
+        """)
+        subtasks_section_layout.addWidget(self.subtask_search_input)
+
         self.subtask_list = SubtaskListWidget(self)
         self.subtask_list.manager = self.manager
         self.subtask_list.subtask_selected.connect(self.on_subtask_selected)
@@ -515,6 +535,19 @@ class MainWindow(QMainWindow):
                 filtered.append(task)
         return filtered
 
+    def _get_filtered_subtasks(self, task_id):
+        subtasks = self.manager.get_subtasks_by_task(task_id)
+        if not self._subtask_search_text:
+            return subtasks
+
+        search = self._subtask_search_text.lower()
+        filtered = []
+        for subtask in subtasks:
+            title = (subtask.title or "").lower()
+            if search in title:
+                filtered.append(subtask)
+        return filtered
+
     def on_project_search_changed(self, text):
         self._project_search_text = text.strip()
         self._reload_projects_only()
@@ -522,6 +555,10 @@ class MainWindow(QMainWindow):
     def on_task_search_changed(self, text):
         self._task_search_text = text.strip()
         self._reload_tasks_only()
+
+    def on_subtask_search_changed(self, text):
+        self._subtask_search_text = text.strip()
+        self._reload_subtasks_only()
 
     def _reload_projects_only(self):
         if self._updating:
@@ -557,6 +594,20 @@ class MainWindow(QMainWindow):
         elif tasks:
             self.current_task_id = tasks[0].id
             self.task_list.set_current_id(self.current_task_id)
+
+        self._updating = False
+
+    def _reload_subtasks_only(self):
+        if self._updating:
+            return
+
+        if not self.current_task_id:
+            return
+
+        self._updating = True
+
+        subtasks = self._get_filtered_subtasks(self.current_task_id)
+        self.subtask_list.load_subtasks(subtasks)
 
         self._updating = False
 
@@ -608,7 +659,7 @@ class MainWindow(QMainWindow):
                 task = self.manager.get_task(task_id)
                 self.task_header.update_task(task, self.manager)
 
-                subtasks = self.manager.get_subtasks_by_task(task_id)
+                subtasks = self._get_filtered_subtasks(task_id)
                 self.subtask_list.load_subtasks(subtasks)
             else:
                 self.task_list.set_current_id(None)
@@ -644,7 +695,7 @@ class MainWindow(QMainWindow):
             return
 
         self.task_header.update_task(task, self.manager)
-        subtasks = self.manager.get_subtasks_by_task(task_id)
+        subtasks = self._get_filtered_subtasks(task_id)
         self.subtask_list.load_subtasks(subtasks)
         self._update_panel_counters()
 
