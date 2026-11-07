@@ -478,16 +478,6 @@ class MainWindow(QMainWindow):
             self.project_list.set_current_id(project_id)
 
             tasks = self.manager.get_tasks_by_project(project_id)
-            project = self.manager.get_project(project_id)
-            if project and project.task_order:
-                tasks_dict = {task.id: task for task in tasks}
-                sorted_tasks = []
-                for tid in project.task_order:
-                    if tid in tasks_dict:
-                        sorted_tasks.append(tasks_dict.pop(tid))
-                sorted_tasks.extend(tasks_dict.values())
-                tasks = sorted_tasks
-
             self.task_list.load_tasks(tasks)
 
             task_exists = task_id and self.manager.get_task(task_id) and \

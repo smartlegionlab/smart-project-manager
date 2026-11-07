@@ -92,7 +92,9 @@ class ProjectManager:
             self.save_data()
 
     def get_all_projects(self) -> List[Project]:
-        return list(self.projects.values())
+        projects = list(self.projects.values())
+        projects.sort(key=lambda p: p.created_at or "")
+        return projects
 
     def create_task(self, title: str, project_id: str, priority: int = 3,
                     description: Optional[str] = None,
@@ -157,7 +159,9 @@ class ProjectManager:
             self.save_data()
 
     def get_tasks_by_project(self, project_id: str) -> List[Task]:
-        return [task for task in self.tasks.values() if task.project_id == project_id]
+        tasks = [task for task in self.tasks.values() if task.project_id == project_id]
+        tasks.sort(key=lambda t: t.created_at or "")
+        return tasks
 
     def get_subtask(self, subtask_id: str) -> Optional[SubTask]:
         return self.subtasks.get(subtask_id)
@@ -183,7 +187,9 @@ class ProjectManager:
             self.save_data()
 
     def get_subtasks_by_task(self, task_id: str) -> List[SubTask]:
-        return [subtask for subtask in self.subtasks.values() if subtask.task_id == task_id]
+        subtasks = [subtask for subtask in self.subtasks.values() if subtask.task_id == task_id]
+        subtasks.sort(key=lambda s: s.created_at or "")
+        return subtasks
 
     def get_project_progress(self, project_id: str) -> float:
         project = self.get_project(project_id)
@@ -231,14 +237,6 @@ class ProjectManager:
 
         try:
             tasks = self.get_tasks_by_project(project_id)
-            if project.task_order:
-                tasks_dict = {task.id: task for task in tasks}
-                sorted_tasks = []
-                for tid in project.task_order:
-                    if tid in tasks_dict:
-                        sorted_tasks.append(tasks_dict.pop(tid))
-                sorted_tasks.extend(tasks_dict.values())
-                tasks = sorted_tasks
 
             subtasks_by_task = {}
             for task in tasks:
