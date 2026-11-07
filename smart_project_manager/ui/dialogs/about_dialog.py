@@ -69,7 +69,7 @@ class AboutDialog(QDialog):
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li>Three-pane layout with resizable splitter handles</li>
             <li>Left: project list with selection preserved across actions</li>
-            <li>Top-right: project card with status, tiles and progress</li>
+            <li>Top-right: project card with status, tiles, author and progress</li>
             <li>Bottom-right: task list on the left, task card and subtasks on the right</li>
             <li>Panes never collapse completely, so the context is always visible</li>
             </ul>"""
@@ -78,7 +78,7 @@ class AboutDialog(QDialog):
         content_layout.addWidget(self._make_section(
             "CORE FEATURES",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li>Projects with name, description and an optional link</li>
+            <li>Projects with name, description, optional author, optional link</li>
             <li>Tasks with priority and due date</li>
             <li>Simplified subtasks: title and priority only</li>
             <li>Manual task completion, no auto-complete from subtasks</li>

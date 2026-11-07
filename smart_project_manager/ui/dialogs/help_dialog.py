@@ -99,11 +99,12 @@ class HelpDialog(QDialog):
         content_layout.addWidget(self._make_section(
             "PROJECTS",
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
-            <li>Name up to 100 characters, description up to 2000 characters, both with live counters in the dialog.</li>
-            <li>The optional link is only shown in edit mode. It is validated, a scheme such as <code>https://</code> is required.</li>
-            <li>The project card shows the name, description, optional link, a status badge, and five tiles: <b>TASKS</b>, <b>SUBTASKS</b>, <b>PROGRESS</b>, <b>CREATED</b>, <b>UPDATED</b>.</li>
+            <li>Name up to 100 characters, description up to 2000 characters, author up to 50 characters, all with live counters in the dialog.</li>
+            <li>Author and link are optional and can be set during creation and edited later.</li>
+            <li>The link is validated: a scheme such as <code>https://</code> is required.</li>
+            <li>The project card shows the name, author (<b>Author: ...</b> or <b>Author: Not specified</b>), description, optional link, a status badge, and five tiles: <b>TASKS</b>, <b>SUBTASKS</b>, <b>PROGRESS</b>, <b>CREATED</b>, <b>UPDATED</b>.</li>
             <li>Full CRUD: right-click in the list, <b>Edit -> Edit Project</b> (<code>Ctrl+E</code>), <b>Edit -> Delete Project</b> (<code>Ctrl+D</code>), or the <b>Edit</b> / <b>Delete</b> buttons on the card.</li>
-            <li>Right-click a project and choose <b>Export to Markdown...</b> to save the project as a Markdown document with its tasks and subtasks.</li>
+            <li>Right-click a project and choose <b>Export to Markdown...</b> to save the project as a Markdown document with its author, tasks and subtasks.</li>
             <li>When no project is selected, the card shows a placeholder, so the pane never looks empty.</li>
             </ul>"""
         ))
@@ -146,7 +147,7 @@ class HelpDialog(QDialog):
             """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
             <li><b>File -> Export</b> (<code>Ctrl+Shift+S</code>) - writes the whole dataset to a single JSON file.</li>
             <li><b>File -> Import</b> (<code>Ctrl+I</code>) - replaces the current dataset with a JSON file. <b>This overwrites all existing data.</b> A temporary backup of the current file is created automatically before import and removed on success.</li>
-            <li><b>File -> Export Project to Markdown...</b> (<code>Ctrl+Shift+M</code>) - saves the currently selected project as a Markdown document. The document includes the project name, description, link, dates, progress, status, all tasks with their fields, and all subtasks. Use it for reports, documentation, or printing.</li>
+            <li><b>File -> Export Project to Markdown...</b> (<code>Ctrl+Shift+M</code>) - saves the currently selected project as a Markdown document. The document includes the project name, author, description, link, dates, progress, status, all tasks with their fields, and all subtasks. Use it for reports, documentation, or printing.</li>
             <li>Use Export before Import to keep a copy of your current data if you want to be extra safe.</li>
             </ul>"""
         ))

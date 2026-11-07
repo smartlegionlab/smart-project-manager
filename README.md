@@ -50,8 +50,9 @@
 *   Manual ordering is not supported at the moment
 
 ### Project Management
-*   Create, edit and delete projects with name, optional description, and optional link
-*   The link field is available only when editing an existing project, so project creation stays minimal
+*   Create, edit and delete projects with name, optional description, optional author, and optional link
+*   Both the author and the link can be set during creation and edited later
+*   Author is limited to 50 characters and validated with a live counter
 *   Link input is validated: a scheme (for example `https://`) is required
 *   Project name is limited to 100 characters and description to 2000 characters, with live counters
 *   Full CRUD for projects via context menu, Edit menu, and the project card buttons
@@ -80,7 +81,7 @@
 *   Export the entire dataset to a JSON file (`File -> Export...`, `Ctrl+Shift+S`)
 *   Import a JSON file back (`File -> Import...`, `Ctrl+I`) with automatic temporary backup
 *   Export a single project to a Markdown document (`File -> Export Project to Markdown...`, `Ctrl+Shift+M`), or via the project context menu
-*   The Markdown document includes the project name, description, link, creation and update dates, progress, status, all tasks with their fields, and all subtasks in a readable hierarchy
+*   The Markdown document includes the project name, author, description, link, creation and update dates, progress, status, all tasks with their fields, and all subtasks in a readable hierarchy
 
 ### User Interface
 *   Dark theme optimized for extended use
@@ -243,7 +244,7 @@ rm -rf ~/.smart_project_manager
 ## How to Use
 
 ### Getting Started
-1.  **Create a project:** `File -> New Project` (`Ctrl+N`) or the **+ New** button in the `PROJECTS` pane. Enter a name and, optionally, a description. The link field becomes available later, when you edit the project.
+1.  **Create a project:** `File -> New Project` (`Ctrl+N`) or the **+ New** button in the `PROJECTS` pane. Enter a name and, optionally, a description, author and link.
 2.  **Select a project:** click it in the `PROJECTS` list on the left. The project card in the top-right and the task list in the bottom-left update automatically.
 3.  **Create a task:** with a project selected, use `File -> New Task` (`Ctrl+T`) or the **+ Add** button in the `TASKS` pane.
 4.  **Select a task:** click it in the `TASKS` list. The `TASK` header and the `SUBTASKS` list update automatically.
@@ -277,8 +278,10 @@ Search is case-insensitive, matches substrings, and each box has a built-in clea
 ### Projects
 
 *   Name is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
-*   The optional link is only shown in edit mode. It is validated: a scheme such as `https://` is required.
-*   The project card shows the name, description, optional link, status badge, and five tiles: `TASKS`, `SUBTASKS`, `PROGRESS`, `CREATED`, `UPDATED`.
+*   Author is optional, limited to 50 characters, with a live counter in the dialog.
+*   The optional link is validated: a scheme such as `https://` is required.
+*   Both author and link can be set during creation and edited later.
+*   The project card shows the name, author (`Author: ...` or `Author: Not specified`), description, optional link, status badge, and five tiles: `TASKS`, `SUBTASKS`, `PROGRESS`, `CREATED`, `UPDATED`.
 *   Full CRUD: context menu in the project list, `Edit -> Edit Project` (`Ctrl+E`), `Edit -> Delete Project` (`Ctrl+D`), and the `Edit` / `Delete` buttons on the project card.
 *   Right-click a project and choose **Export to Markdown...** to save it as a Markdown document.
 
@@ -301,7 +304,7 @@ Search is case-insensitive, matches substrings, and each box has a built-in clea
 ### Export
 
 *   **Export to JSON:** `File -> Export...` (`Ctrl+Shift+S`) writes the whole dataset (projects, tasks, subtasks) to a single JSON file.
-*   **Export project to Markdown:** `File -> Export Project to Markdown...` (`Ctrl+Shift+M`), or right-click a project in the list and choose **Export to Markdown...**. Saves the selected project as a readable `.md` document with name, description, link, dates, progress, status, all tasks and their subtasks.
+*   **Export project to Markdown:** `File -> Export Project to Markdown...` (`Ctrl+Shift+M`), or right-click a project in the list and choose **Export to Markdown...**. Saves the selected project as a readable `.md` document with name, author, description, link, dates, progress, status, all tasks and their subtasks.
 
 ### Stable Selection
 
@@ -377,10 +380,11 @@ The application allows you to create desktop entries directly from the menu:
 
 ### Data Format Notes
 
-*   `projects` entries may contain `link` (optional string).
+*   `projects` entries may contain `link` (optional string) and `author` (optional string, up to 50 characters).
 *   `subtasks` entries contain only `id`, `title`, `priority`, `completed`, `task_id`, `project_id`, and timestamps.
 *   Older data files with `labels` on tasks still load correctly; the `labels` field is ignored on import.
 *   Older data files with `task_order` on projects still load correctly; the `task_order` field is ignored. Manual task ordering is not supported.
+*   Older data files without `author` load correctly; the project gets `author = null` and the UI shows `Author: Not specified`.
 *   Exports from this version no longer include `labels` or `task_order` in the data.
 *   Markdown export is read-only and does not affect the stored JSON data.
 
