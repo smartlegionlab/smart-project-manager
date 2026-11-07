@@ -8,7 +8,7 @@ from typing import Optional
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QVBoxLayout, QMessageBox, QDialog,
     QHBoxLayout, QMenu, QAction, QDesktopWidget, QStatusBar, QFileDialog,
-    QMainWindow, QSplitter
+    QMainWindow, QSplitter, QLineEdit
 )
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         self.current_task_id: Optional[str] = None
 
         self._updating = False
+        self._project_search_text = ""
 
         self.setWindowTitle('Smart Project Manager')
         self.setMinimumSize(800, 600)
@@ -230,6 +231,25 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(buttons_layout)
 
+        self.project_search_input = QLineEdit(self)
+        self.project_search_input.setPlaceholderText("Search projects...")
+        self.project_search_input.setClearButtonEnabled(True)
+        self.project_search_input.textChanged.connect(self.on_project_search_changed)
+        self.project_search_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #1c1f24;
+                border: 1px solid #2f343d;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-size: 12px;
+                color: #ffffff;
+            }
+            QLineEdit:focus {
+                border: 1px solid #2a6fb0;
+            }
+        """)
+        layout.addWidget(self.project_search_input)
+
         self.project_list = ProjectListWidget(self)
         self.project_list.project_selected.connect(self.on_project_selected)
         self.project_list.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -421,8 +441,8 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage('Ready')
 
     def _update_panel_counters(self):
-        projects = self.manager.get_all_projects()
-        self.projects_header.set_title_with_count("PROJECTS", len(projects))
+        all_projects = self.manager.get_all_projects()
+        self.projects_header.set_title_with_count("PROJECTS", len(all_projects))
 
         if self.current_project_id:
             tasks = self.manager.get_tasks_by_project(self.current_project_id)
@@ -447,6 +467,41 @@ class MainWindow(QMainWindow):
         self.btn_clear_completed.setText(f"Clear Completed ({completed_count})")
         self.btn_clear_completed.setEnabled(completed_count > 0)
 
+    def _get_filtered_projects(self):
+        projects = self.manager.get_all_projects()
+        if not self._project_search_text:
+            return projects
+
+        search = self._project_search_text.lower()
+        filtered = []
+        for project in projects:
+            name = (project.name or "").lower()
+            description = (project.description or "").lower()
+            if search in name or search in description:
+                filtered.append(project)
+        return filtered
+
+    def on_project_search_changed(self, text):
+        self._project_search_text = text.strip()
+        self._reload_projects_only()
+
+    def _reload_projects_only(self):
+        if self._updating:
+            return
+
+        self._updating = True
+
+        projects = self._get_filtered_projects()
+        self.project_list.load_projects(projects, self.manager)
+
+        if self.current_project_id:
+            self.project_list.set_current_id(self.current_project_id)
+        elif projects:
+            self.current_project_id = projects[0].id
+            self.project_list.set_current_id(self.current_project_id)
+
+        self._updating = False
+
     def _reload_preserving_selection(self, project_id=None, task_id=None):
         if self._updating:
             return
@@ -458,7 +513,7 @@ class MainWindow(QMainWindow):
         if task_id is None:
             task_id = self.current_task_id
 
-        projects = self.manager.get_all_projects()
+        projects = self._get_filtered_projects()
         self.project_list.load_projects(projects, self.manager)
 
         project_exists = project_id and self.manager.get_project(project_id)
