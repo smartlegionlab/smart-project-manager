@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QListView
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
 
 
 class ProjectListWidget(QListWidget):
@@ -52,13 +52,18 @@ class ProjectListWidget(QListWidget):
         self._relayout_items()
 
     def _relayout_items(self):
-        width = max(self.viewport().width() - 8, 80)
+        width = self.viewport().width() - 8
+        if width <= 0:
+            return
         for i in range(self.count()):
             item = self.item(i)
             widget = self.itemWidget(item)
             if widget:
                 widget.setFixedWidth(width)
-                item.setSizeHint(widget.sizeHint())
+                height = widget.heightForWidth(width)
+                if height > 0:
+                    # +4 пикселя запаса под descent (g, y, p) и наклонный шрифт
+                    item.setSizeHint(QSize(width, height + 4))
         self.doItemsLayout()
 
     def load_projects(self, projects, manager):
@@ -108,33 +113,44 @@ class ProjectListWidget(QListWidget):
         widget = QWidget()
         widget.setObjectName("projectRow")
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setContentsMargins(12, 10, 12, 12)  # +2 снизу под descent
         layout.setSpacing(10)
 
         text_column = QVBoxLayout()
-        text_column.setSpacing(3)
+        text_column.setSpacing(4)
 
         name_label = QLabel(project.name)
         name_label.setStyleSheet(
-            "QLabel { color: #ffffff; font-size: 13px; font-weight: bold; background: transparent; }"
+            "QLabel { color: #ffffff; font-size: 13px; font-weight: bold; "
+            "background: transparent; padding-bottom: 2px; }"
         )
         name_label.setWordWrap(True)
+        name_label.setMinimumHeight(20)
         text_column.addWidget(name_label)
 
-        info_text = f"{completed_tasks}/{task_count} tasks"
+        # Счётчик задач — СИНИЙ
+        tasks_text = f"{completed_tasks}/{task_count} tasks"
         if task_count > 0 and completed_tasks == task_count:
-            info_text += " • done"
+            tasks_text += " • done"
 
+        tasks_label = QLabel(tasks_text)
+        tasks_label.setStyleSheet(
+            "QLabel { color: #4ea1ff; font-size: 11px; font-weight: 600; "
+            "background: transparent; }"
+        )
+        tasks_label.setWordWrap(True)
+        text_column.addWidget(tasks_label)
+
+        # Дата — СЕРАЯ и НАКЛОННАЯ
         created_text = self._format_created_at(project.created_at)
         if created_text:
-            info_text += f" • added {created_text}"
-
-        info_label = QLabel(info_text)
-        info_label.setStyleSheet(
-            "QLabel { color: #c8ccd4; font-size: 11px; font-weight: 600; background: transparent; }"
-        )
-        info_label.setWordWrap(True)
-        text_column.addWidget(info_label)
+            date_label = QLabel(f"added {created_text}")
+            date_label.setStyleSheet(
+                "QLabel { color: #8b94a3; font-size: 11px; font-style: italic; "
+                "background: transparent; padding-bottom: 2px; }"
+            )
+            date_label.setWordWrap(True)
+            text_column.addWidget(date_label)
 
         layout.addLayout(text_column, 1)
 
@@ -150,9 +166,11 @@ class ProjectListWidget(QListWidget):
         dot.setStyleSheet(
             f"QLabel {{ background-color: {dot_color}; border-radius: 4px; }}"
         )
-        layout.addWidget(dot, 0, Qt.AlignVCenter)
+        layout.addWidget(dot, 0, Qt.AlignTop)
 
         tooltip_parts = []
+        if project.author:
+            tooltip_parts.append(f"Author: {project.author}")
         if project.description:
             tooltip_parts.append(project.description)
         if project.link:
