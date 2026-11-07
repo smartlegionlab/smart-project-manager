@@ -32,7 +32,22 @@
 *   Top-right: project card with status, counters and overall progress
 *   Bottom-right, two panes side by side: task list and the selected task with its subtasks
 *   Splitter handles are resizable; panes never collapse completely
-*   Each pane has a strict uppercase label (`PROJECTS`, `PROJECT`, `TASKS`, `TASK`, `SUBTASKS`)
+*   Each pane has a strict uppercase label (`PROJECTS`, `PROJECT`, `TASKS`, `TASK`, `SUBTASKS`) with a live counter in parentheses
+
+### Search
+*   Dedicated search box in the `PROJECTS` pane, filters by project name and description
+*   Dedicated search box in the `TASKS` pane, filters by task title and description
+*   Dedicated search box in the `SUBTASKS` pane, filters by subtask title
+*   Search is case-insensitive and matches substrings
+*   Each search box has a built-in clear button
+*   Searches are independent of each other, so you can narrow down projects, then tasks, then subtasks
+*   Selection is preserved across CRUD operations, even if the current project or task is temporarily filtered out
+
+### Sorting
+*   Projects are always shown ordered by creation time, oldest first
+*   Tasks inside a project are always shown ordered by creation time, oldest first
+*   Subtasks inside a task are always shown ordered by creation time, oldest first
+*   Manual ordering is not supported at the moment
 
 ### Project Management
 *   Create, edit and delete projects with name, optional description, and optional link
@@ -242,6 +257,23 @@ rm -rf ~/.smart_project_manager
 *   The task/subtask area is split horizontally into the task list (left) and the selected task with its subtasks (right).
 *   All splitter handles are draggable. Panes never collapse completely, so you cannot accidentally hide the project list or the task list.
 
+### Search
+
+Each pane has its own search box:
+
+*   **PROJECTS** - filters projects by name and description
+*   **TASKS** - filters tasks of the current project by title and description
+*   **SUBTASKS** - filters subtasks of the current task by title
+
+Search is case-insensitive, matches substrings, and each box has a built-in clear button. Searches are independent, so you can combine them to narrow the workspace. Panel counters (`PROJECTS (N)`, `TASKS (N)`, `SUBTASKS (N)`) always show the total count, not the filtered count.
+
+### Sorting
+
+*   Projects are ordered by creation time, oldest first.
+*   Tasks inside a project are ordered by creation time, oldest first.
+*   Subtasks inside a task are ordered by creation time, oldest first.
+*   Manual ordering is not supported.
+
 ### Projects
 
 *   Name is limited to 100 characters and description to 2000 characters. Both have live counters in the dialog.
@@ -348,7 +380,8 @@ The application allows you to create desktop entries directly from the menu:
 *   `projects` entries may contain `link` (optional string).
 *   `subtasks` entries contain only `id`, `title`, `priority`, `completed`, `task_id`, `project_id`, and timestamps.
 *   Older data files with `labels` on tasks still load correctly; the `labels` field is ignored on import.
-*   Exports from this version no longer include `labels` in the data.
+*   Older data files with `task_order` on projects still load correctly; the `task_order` field is ignored. Manual task ordering is not supported.
+*   Exports from this version no longer include `labels` or `task_order` in the data.
 *   Markdown export is read-only and does not affect the stored JSON data.
 
 ---

@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -81,6 +82,8 @@ class AboutDialog(QDialog):
             <li>Tasks with priority and due date</li>
             <li>Simplified subtasks: title and priority only</li>
             <li>Manual task completion, no auto-complete from subtasks</li>
+            <li>Dedicated search box in each pane: projects, tasks, subtasks</li>
+            <li>Lists are sorted by creation time, oldest first</li>
             <li>Length limits with live counters in dialogs</li>
             <li>JSON export and import</li>
             <li>Export a single project to a Markdown document</li>

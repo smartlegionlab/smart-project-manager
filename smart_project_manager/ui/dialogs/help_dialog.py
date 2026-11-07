@@ -1,3 +1,4 @@
+# Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame
@@ -55,6 +56,8 @@ class HelpDialog(QDialog):
             <li>All splitter handles are draggable. Panes never collapse completely</li>
             <li>The <b>PROJECT</b> card stays on top, the <b>TASK</b> card and the <b>SUBTASKS</b> list are stacked below it</li>
             <li>The <b>TASKS</b> list sits on the left of the workspace and the selected task is shown on the right</li>
+            <li>The <b>PROJECTS</b>, <b>TASKS</b> and <b>SUBTASKS</b> panes each have their own search box</li>
+            <li>Panel headers show live counters in parentheses, for example <b>PROJECTS (3)</b> or <b>SUBTASKS (5)</b></li>
             <li>The global statistics panel is in the status bar at the bottom</li>
             </ul>"""
         ))
@@ -68,6 +71,29 @@ class HelpDialog(QDialog):
             <li>Select the task. The <b>TASK</b> card and the <b>SUBTASKS</b> list update automatically.</li>
             <li>Click <b>+ Add</b> in the <b>SUBTASKS</b> pane or use <b>File -> New Subtask</b> (<code>Ctrl+Shift+T</code>). Fill in title and priority.</li>
             </ol>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "SEARCH",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Each pane has its own search box: <b>Search projects...</b>, <b>Search tasks...</b>, <b>Search subtasks...</b></li>
+            <li>Search is case-insensitive and matches substrings</li>
+            <li>Projects filter by name and description, tasks by title and description, subtasks by title</li>
+            <li>Each search box has a built-in clear button</li>
+            <li>Searches are independent, so you can narrow down projects, then tasks, then subtasks</li>
+            <li>Panel counters always show the total count, not the filtered count</li>
+            <li>Selection is preserved across CRUD operations, even if the current project or task is temporarily filtered out</li>
+            </ul>"""
+        ))
+
+        content_layout.addWidget(self._make_section(
+            "SORTING",
+            """<ul style='color: #ddd; margin: 0; padding-left: 18px;'>
+            <li>Projects are ordered by creation time, oldest first</li>
+            <li>Tasks inside a project are ordered by creation time, oldest first</li>
+            <li>Subtasks inside a task are ordered by creation time, oldest first</li>
+            <li>Manual ordering is not supported at the moment</li>
+            </ul>"""
         ))
 
         content_layout.addWidget(self._make_section(
