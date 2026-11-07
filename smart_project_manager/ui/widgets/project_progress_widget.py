@@ -41,6 +41,17 @@ class ProjectProgressWidget(QFrame):
         self.project_name_label.setWordWrap(True)
         title_column.addWidget(self.project_name_label)
 
+        self.project_author_label = QLabel("")
+        self.project_author_label.setStyleSheet(
+            "QLabel { font-size: 11px; color: #b8bec7; background: transparent; }"
+        )
+        self.project_author_label.setWordWrap(True)
+        self.project_author_label.setSizePolicy(
+            QSizePolicy.Ignored, QSizePolicy.Preferred
+        )
+        self.project_author_label.setMinimumWidth(0)
+        title_column.addWidget(self.project_author_label)
+
         self.project_description_label = QLabel("--")
         self.project_description_label.setStyleSheet(
             "QLabel { font-size: 12px; color: #8b94a3; background: transparent; }"
@@ -218,6 +229,7 @@ class ProjectProgressWidget(QFrame):
             "QLabel { font-size: 20px; font-weight: bold; color: #6a7280; "
             "background: transparent; }"
         )
+        self.project_author_label.setText("")
         self.project_description_label.setText(
             "Pick a project from the list on the left, or create a new one."
         )
@@ -257,6 +269,18 @@ class ProjectProgressWidget(QFrame):
             "QLabel { font-size: 20px; font-weight: bold; color: #ffffff; "
             "background: transparent; }"
         )
+
+        if project.author:
+            self.project_author_label.setText(f"Author: {project.author}")
+            self.project_author_label.setStyleSheet(
+                "QLabel { font-size: 11px; color: #b8bec7; background: transparent; }"
+            )
+        else:
+            self.project_author_label.setText("Author: Not specified")
+            self.project_author_label.setStyleSheet(
+                "QLabel { font-size: 11px; color: #5a606b; font-style: italic; "
+                "background: transparent; }"
+            )
 
         if project.description:
             self.project_description_label.setText(project.description)

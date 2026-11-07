@@ -75,6 +75,11 @@ class ProjectMarkdownService:
         lines.append(f"**Created:** {ProjectMarkdownService._format_date(project.created_at)}  ")
         lines.append(f"**Updated:** {ProjectMarkdownService._format_date(project.updated_at)}  ")
 
+        if project.author:
+            lines.append(f"**Author:** {ProjectMarkdownService._escape_md(project.author)}  ")
+        else:
+            lines.append(f"**Author:** Not specified  ")
+
         if project.link:
             lines.append(f"**Link:** [{project.link}]({project.link})  ")
 

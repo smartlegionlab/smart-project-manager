@@ -12,6 +12,7 @@ class Project:
     name: str
     description: Optional[str] = None
     link: Optional[str] = None
+    author: Optional[str] = None
     tasks: List[str] = field(default_factory=list)
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -21,12 +22,14 @@ class Project:
             name: str,
             description: Optional[str] = None,
             link: Optional[str] = None,
+            author: Optional[str] = None,
             id: Optional[str] = None
     ):
         self.id = id or generate_id()
         self.name = name
         self.description = description
         self.link = link
+        self.author = author
         self.tasks = []
         self.created_at = format_datetime()
         self.updated_at = self.created_at
@@ -65,6 +68,7 @@ class Project:
             "name": self.name,
             "description": self.description,
             "link": self.link,
+            "author": self.author,
             "tasks": self.tasks,
             "created_at": self.created_at,
             "updated_at": self.updated_at
@@ -76,7 +80,8 @@ class Project:
             id=data['id'],
             name=data['name'],
             description=data.get('description'),
-            link=data.get('link')
+            link=data.get('link'),
+            author=data.get('author')
         )
         project.tasks = data.get('tasks', [])
         project.created_at = data.get('created_at')

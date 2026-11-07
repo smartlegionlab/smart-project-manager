@@ -18,6 +18,7 @@ from smart_project_manager.core.models.project import Project
 
 NAME_MAX_LENGTH = 100
 DESCRIPTION_MAX_LENGTH = 2000
+AUTHOR_MAX_LENGTH = 50
 
 ALLOWED_WITH_HOST = ('http', 'https', 'ftp', 'ftps', 'git', 'ssh')
 ALLOWED_WITH_PATH = ('file', 'mailto')
@@ -52,8 +53,8 @@ class ProjectDialog(QDialog):
         self.manager = manager
 
         self.setWindowTitle('Edit Project' if self.is_edit_mode else 'Create New Project')
-        self.setMinimumWidth(560)
-        self.setMinimumHeight(300 if not self.is_edit_mode else 420)
+        self.setMinimumWidth(580)
+        self.setMinimumHeight(460 if not self.is_edit_mode else 520)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(10)
@@ -80,21 +81,35 @@ class ProjectDialog(QDialog):
         self.name_counter.setAlignment(Qt.AlignRight)
         name_layout.addWidget(self.name_counter, 1, 1)
 
-        if self.is_edit_mode:
-            self.link_label = QLabel('Link (optional):')
-            name_layout.addWidget(self.link_label, 2, 0)
+        self.author_label = QLabel('Author (optional):')
+        name_layout.addWidget(self.author_label, 2, 0)
 
-            self.link_input = QLineEdit()
-            self.link_input.setPlaceholderText("https://github.com/user/repo")
-            if project and project.link:
-                self.link_input.setText(project.link)
-            self.link_input.textChanged.connect(self.validate_link)
-            name_layout.addWidget(self.link_input, 2, 1)
+        self.author_input = QLineEdit()
+        self.author_input.setPlaceholderText("Author name, max 50 characters")
+        self.author_input.setMaxLength(AUTHOR_MAX_LENGTH)
+        if project and project.author:
+            self.author_input.setText(project.author)
+        self.author_input.textChanged.connect(self.update_author_counter)
+        name_layout.addWidget(self.author_input, 2, 1)
 
-            self.link_status = QLabel("")
-            self.link_status.setAlignment(Qt.AlignRight)
-            self.link_status.setStyleSheet("font-size: 10px;")
-            name_layout.addWidget(self.link_status, 3, 1)
+        self.author_counter = QLabel()
+        self.author_counter.setAlignment(Qt.AlignRight)
+        name_layout.addWidget(self.author_counter, 3, 1)
+
+        self.link_label = QLabel('Link (optional):')
+        name_layout.addWidget(self.link_label, 4, 0)
+
+        self.link_input = QLineEdit()
+        self.link_input.setPlaceholderText("https://github.com/user/repo")
+        if project and project.link:
+            self.link_input.setText(project.link)
+        self.link_input.textChanged.connect(self.validate_link)
+        name_layout.addWidget(self.link_input, 4, 1)
+
+        self.link_status = QLabel("")
+        self.link_status.setAlignment(Qt.AlignRight)
+        self.link_status.setStyleSheet("font-size: 10px;")
+        name_layout.addWidget(self.link_status, 5, 1)
 
         self.layout.addWidget(name_group)
 
@@ -162,9 +177,9 @@ class ProjectDialog(QDialog):
         self.layout.addLayout(button_layout)
 
         self.update_name_counter()
+        self.update_author_counter()
         self.update_desc_counter()
-        if self.is_edit_mode:
-            self.validate_link()
+        self.validate_link()
 
     def update_name_counter(self):
         current_length = len(self.name_input.text())
@@ -177,6 +192,18 @@ class ProjectDialog(QDialog):
             self.name_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
         else:
             self.name_counter.setStyleSheet("color: #888; font-size: 10px;")
+
+    def update_author_counter(self):
+        current_length = len(self.author_input.text())
+        remaining = AUTHOR_MAX_LENGTH - current_length
+        self.author_counter.setText(f"{current_length}/{AUTHOR_MAX_LENGTH} characters")
+
+        if remaining <= 5:
+            self.author_counter.setStyleSheet("color: #ff6b6b; font-size: 10px; font-weight: bold;")
+        elif remaining <= 15:
+            self.author_counter.setStyleSheet("color: #ffa726; font-size: 10px;")
+        else:
+            self.author_counter.setStyleSheet("color: #888; font-size: 10px;")
 
     def update_desc_counter(self):
         current_length = len(self.desc_input.toPlainText())
@@ -210,13 +237,12 @@ class ProjectDialog(QDialog):
             )
 
     def get_project_data(self) -> dict:
-        data = {
+        return {
             'name': self.name_input.text().strip(),
-            'description': self.desc_input.toPlainText().strip() or None
+            'description': self.desc_input.toPlainText().strip() or None,
+            'link': self.link_input.text().strip() or None,
+            'author': self.author_input.text().strip() or None
         }
-        if self.is_edit_mode:
-            data['link'] = self.link_input.text().strip() or None
-        return data
 
     def accept(self):
         data = self.get_project_data()
@@ -233,15 +259,22 @@ class ProjectDialog(QDialog):
             )
             return
 
-        if self.is_edit_mode:
-            link = data.get('link')
-            if link and not is_valid_link(link):
-                QMessageBox.warning(
-                    self, 'Invalid Link',
-                    'Please enter a valid URL with scheme, for example:\n'
-                    'https://github.com/user/repo\n'
-                    'or leave the field empty.'
-                )
-                return
+        if data['author'] and len(data['author']) > AUTHOR_MAX_LENGTH:
+            QMessageBox.warning(
+                self, 'Author Too Long',
+                f'Author cannot exceed {AUTHOR_MAX_LENGTH} characters.\n'
+                f'Current length: {len(data["author"])} characters.'
+            )
+            return
+
+        link = data.get('link')
+        if link and not is_valid_link(link):
+            QMessageBox.warning(
+                self, 'Invalid Link',
+                'Please enter a valid URL with scheme, for example:\n'
+                'https://github.com/user/repo\n'
+                'or leave the field empty.'
+            )
+            return
 
         super().accept()
