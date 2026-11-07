@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
 
         self._updating = False
         self._project_search_text = ""
+        self._task_search_text = ""
 
         self.setWindowTitle('Smart Project Manager')
         self.setMinimumSize(800, 600)
@@ -311,6 +312,25 @@ class MainWindow(QMainWindow):
 
         tasks_layout.addLayout(tasks_header_row)
 
+        self.task_search_input = QLineEdit(self)
+        self.task_search_input.setPlaceholderText("Search tasks...")
+        self.task_search_input.setClearButtonEnabled(True)
+        self.task_search_input.textChanged.connect(self.on_task_search_changed)
+        self.task_search_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #1c1f24;
+                border: 1px solid #2f343d;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-size: 12px;
+                color: #ffffff;
+            }
+            QLineEdit:focus {
+                border: 1px solid #2a6fb0;
+            }
+        """)
+        tasks_layout.addWidget(self.task_search_input)
+
         self.task_list = TaskListWidget(self)
         self.task_list.manager = self.manager
         self.task_list.task_selected.connect(self.on_task_selected)
@@ -481,9 +501,27 @@ class MainWindow(QMainWindow):
                 filtered.append(project)
         return filtered
 
+    def _get_filtered_tasks(self, project_id):
+        tasks = self.manager.get_tasks_by_project(project_id)
+        if not self._task_search_text:
+            return tasks
+
+        search = self._task_search_text.lower()
+        filtered = []
+        for task in tasks:
+            title = (task.title or "").lower()
+            description = (task.description or "").lower()
+            if search in title or search in description:
+                filtered.append(task)
+        return filtered
+
     def on_project_search_changed(self, text):
         self._project_search_text = text.strip()
         self._reload_projects_only()
+
+    def on_task_search_changed(self, text):
+        self._task_search_text = text.strip()
+        self._reload_tasks_only()
 
     def _reload_projects_only(self):
         if self._updating:
@@ -499,6 +537,26 @@ class MainWindow(QMainWindow):
         elif projects:
             self.current_project_id = projects[0].id
             self.project_list.set_current_id(self.current_project_id)
+
+        self._updating = False
+
+    def _reload_tasks_only(self):
+        if self._updating:
+            return
+
+        if not self.current_project_id:
+            return
+
+        self._updating = True
+
+        tasks = self._get_filtered_tasks(self.current_project_id)
+        self.task_list.load_tasks(tasks)
+
+        if self.current_task_id:
+            self.task_list.set_current_id(self.current_task_id)
+        elif tasks:
+            self.current_task_id = tasks[0].id
+            self.task_list.set_current_id(self.current_task_id)
 
         self._updating = False
 
@@ -532,7 +590,7 @@ class MainWindow(QMainWindow):
 
             self.project_list.set_current_id(project_id)
 
-            tasks = self.manager.get_tasks_by_project(project_id)
+            tasks = self._get_filtered_tasks(project_id)
             self.task_list.load_tasks(tasks)
 
             task_exists = task_id and self.manager.get_task(task_id) and \
