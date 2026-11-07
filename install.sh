@@ -103,7 +103,7 @@ ICON_PATH="$INSTALL_DIR/data/icons/icon.png"
 [ -f "$ICON_PATH" ] || ICON_PATH="system-run"
 
 DESKTOP_CONTENT="[Desktop Entry]
-Version=1.2.7
+Version=1.2.8
 Type=Application
 Name=$APP_NAME
 Comment=Desktop application for comprehensive project and task management

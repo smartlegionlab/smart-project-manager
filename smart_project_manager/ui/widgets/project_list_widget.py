@@ -62,9 +62,9 @@ class ProjectListWidget(QListWidget):
                 widget.setFixedWidth(width)
                 height = widget.heightForWidth(width)
                 if height > 0:
-                    # +4 пикселя запаса под descent (g, y, p) и наклонный шрифт
                     item.setSizeHint(QSize(width, height + 4))
-        self.doItemsLayout()
+        self.scheduleDelayedItemsLayout()
+        self.updateGeometries()
 
     def load_projects(self, projects, manager):
         self.blockSignals(True)
@@ -113,7 +113,7 @@ class ProjectListWidget(QListWidget):
         widget = QWidget()
         widget.setObjectName("projectRow")
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(12, 10, 12, 12)  # +2 снизу под descent
+        layout.setContentsMargins(12, 10, 12, 12)
         layout.setSpacing(10)
 
         text_column = QVBoxLayout()
@@ -128,7 +128,6 @@ class ProjectListWidget(QListWidget):
         name_label.setMinimumHeight(20)
         text_column.addWidget(name_label)
 
-        # Счётчик задач — СИНИЙ
         tasks_text = f"{completed_tasks}/{task_count} tasks"
         if task_count > 0 and completed_tasks == task_count:
             tasks_text += " • done"
@@ -141,7 +140,6 @@ class ProjectListWidget(QListWidget):
         tasks_label.setWordWrap(True)
         text_column.addWidget(tasks_label)
 
-        # Дата — СЕРАЯ и НАКЛОННАЯ
         created_text = self._format_created_at(project.created_at)
         if created_text:
             date_label = QLabel(f"added {created_text}")
