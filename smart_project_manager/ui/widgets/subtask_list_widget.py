@@ -1,9 +1,9 @@
 # Copyright (©) 2026, Alexander Suvorov. All rights reserved.
 from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QWidget, QHBoxLayout, QLabel, QVBoxLayout,
-    QCheckBox, QListView, QSizePolicy
+    QCheckBox, QListView
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
 
 
 class SubtaskListWidget(QListWidget):
@@ -49,16 +49,20 @@ class SubtaskListWidget(QListWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self._relayout_items()
+        self._update_item_heights()
 
-    def _relayout_items(self):
-        width = max(self.viewport().width() - 8, 80)
+    def _update_item_heights(self):
+        width = self.viewport().width() - 8
+        if width <= 0:
+            return
         for i in range(self.count()):
             item = self.item(i)
             widget = self.itemWidget(item)
             if widget:
                 widget.setFixedWidth(width)
-                item.setSizeHint(widget.sizeHint())
+                height = widget.heightForWidth(width)
+                if height > 0:
+                    item.setSizeHint(QSize(width, height))
         self.doItemsLayout()
 
     def load_subtasks(self, subtasks):
@@ -84,18 +88,19 @@ class SubtaskListWidget(QListWidget):
                 self._add_subtask_row(subtask)
 
         self.blockSignals(False)
-        self._relayout_items()
+        self._update_item_heights()
 
     def _add_subtask_row(self, subtask):
         widget = QWidget()
         widget.setObjectName("subtaskRow")
-        layout = QHBoxLayout(widget)
-        layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(10)
-        layout.setAlignment(Qt.AlignTop)
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setSpacing(3)
+
+        top_line = QHBoxLayout()
+        top_line.setSpacing(8)
 
         checkbox = QCheckBox()
-        checkbox.setFixedSize(18, 18)
         checkbox.setChecked(subtask.completed)
         checkbox.setCursor(Qt.PointingHandCursor)
         checkbox.setStyleSheet("""
@@ -120,7 +125,7 @@ class SubtaskListWidget(QListWidget):
         checkbox.clicked.connect(
             lambda checked, sid=subtask.id: self.subtask_toggled.emit(sid)
         )
-        layout.addWidget(checkbox, 0, Qt.AlignTop)
+        top_line.addWidget(checkbox, 0, Qt.AlignTop)
 
         title_label = QLabel(subtask.title)
         if subtask.completed:
@@ -133,9 +138,7 @@ class SubtaskListWidget(QListWidget):
                 "QLabel { color: #ffffff; font-size: 12px; background: transparent; }"
             )
         title_label.setWordWrap(True)
-        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        title_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        layout.addWidget(title_label, 1)
+        top_line.addWidget(title_label, 1)
 
         priority_text = ["High", "Medium", "Low"][subtask.priority - 1]
         priority_color = ["#ff6b6b", "#ffb454", "#4ee09c"][subtask.priority - 1]
@@ -144,8 +147,9 @@ class SubtaskListWidget(QListWidget):
             f"QLabel {{ color: {priority_color}; font-size: 9px; font-weight: bold; "
             f"background: transparent; }}"
         )
-        priority_label.setAlignment(Qt.AlignTop | Qt.AlignRight)
-        layout.addWidget(priority_label, 0, Qt.AlignTop)
+        top_line.addWidget(priority_label, 0, Qt.AlignTop)
+
+        layout.addLayout(top_line)
 
         item = QListWidgetItem()
         item.setData(Qt.UserRole, subtask.id)
