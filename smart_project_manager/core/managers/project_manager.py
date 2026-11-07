@@ -64,8 +64,14 @@ class ProjectManager:
 
     def create_project(self, name: str,
                       description: Optional[str] = None,
-                      link: Optional[str] = None) -> Project:
-        project = Project(name=name, description=description, link=link)
+                      link: Optional[str] = None,
+                      author: Optional[str] = None) -> Project:
+        project = Project(
+            name=name,
+            description=description,
+            link=link,
+            author=author
+        )
         self.projects[project.id] = project
         self.save_data()
         return project
